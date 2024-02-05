@@ -2,7 +2,7 @@
     [Parameter] public required string href { get; set; }
     [Parameter] public Size size { get; set; } = Size.Default;
     [Parameter] public Width width { get; set; } = Width.Inline;
-    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public required RenderFragment ChildContent { get; set; }
 
     public enum Size
     {

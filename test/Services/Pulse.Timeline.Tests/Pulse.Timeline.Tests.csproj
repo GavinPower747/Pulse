@@ -22,4 +22,8 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Pulse.Timeline\Pulse.Timeline.csproj" />
+  </ItemGroup>
+
 </Project>

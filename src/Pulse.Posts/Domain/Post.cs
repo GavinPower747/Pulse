@@ -1,6 +1,6 @@
 namespace Pulse.Posts.Domain;
 
-public class Post
+internal class Post
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }

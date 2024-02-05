@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.AspNetCore.Http.HttpResults;
 using Pulse.Posts.Contracts;
+using Pulse.WebApp.Features.Posts.Components;
 
 namespace Pulse.WebApp.Features.Posts.API;
 
@@ -12,11 +12,8 @@ public class GetPostEndpoint(IPostQueryService postQueryService)
     {
         var post = await _postQueryService.Get(postId, cancellationToken);
 
-        if (post is null)
-        {
-            return TypedResults.NotFound();
-        }
-
-        return TypedResults.Ok(post);
+        return post is not null
+            ? new RazorComponentResult<Post>(new { CurrentPost = post })
+            : TypedResults.NotFound();
     }
 }

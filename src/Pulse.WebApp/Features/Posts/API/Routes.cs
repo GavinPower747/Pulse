@@ -1,5 +1,5 @@
+using Autofac;
 using Microsoft.AspNetCore.Mvc;
-
 using Pulse.WebApp.Features.Posts.API.Create;
 
 namespace Pulse.WebApp.Features.Posts.API;
@@ -12,10 +12,34 @@ internal static class Routes
 
         group.WithTags("Post");
 
-        group.MapPost("/", 
-            async ([FromForm]CreatePostRequest request, [FromServices] CreatePostEndpoint handler ) 
-                => await handler.Handle(request));
-        
+        group.MapPost(
+            "/",
+            async (
+                [FromForm] CreatePostRequest request,
+                [FromServices] CreatePostEndpoint handler
+            ) => await handler.Handle(request)
+        );
+
+        group.MapGet(
+            "/{postId}",
+            async (
+                Guid postId,
+                [FromServices] GetPostEndpoint handler,
+                CancellationToken cancellationToken
+            ) => await handler.Handle(postId, cancellationToken)
+        );
+
         return group;
+    }
+}
+
+internal static class PostApiExtensions
+{
+    public static ContainerBuilder AddPostEndpoints(this ContainerBuilder builder)
+    {
+        builder.RegisterType<CreatePostEndpoint>().AsSelf().SingleInstance();
+        builder.RegisterType<GetPostEndpoint>().AsSelf().SingleInstance();
+
+        return builder;
     }
 }

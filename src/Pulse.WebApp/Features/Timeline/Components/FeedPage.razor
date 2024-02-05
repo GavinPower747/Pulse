@@ -1,0 +1,34 @@
+@using Pulse.Posts.Contracts
+@using Pulse.WebApp.Features.Posts.Components
+
+@code {
+    [Parameter]
+    public required List<DisplayPost> EagerPosts { get; set; } = new List<DisplayPost>();
+
+    [Parameter]
+    public required List<Guid> LazyPostIds { get; set; } = new List<Guid>();
+
+    [Parameter]
+    public string? ContinuationToken { get; set; }
+}
+
+@for (var i = 0; i < EagerPosts.Count; i++)
+{
+    @if (i != EagerPosts.Count - 1 || ContinuationToken == null)
+    {
+        <Post CurrentPost="@EagerPosts[i]" />
+    }
+    else
+    {
+        <div hx-get="/api/timeline/?ContinuationToken=@ContinuationToken" hx-target="#user-feed" hx-swap="afterend"
+    hx-trigger="revealed">
+    <Post CurrentPost="@EagerPosts[i]" />
+</div>
+    }
+}
+
+@foreach (var postId in LazyPostIds)
+{
+    // Perform skeleton loading of posts
+
+}

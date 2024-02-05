@@ -39,7 +39,7 @@ services:
       - ./build/postgres/scripts:/docker-entrypoint-initdb.d
       - ./build/postgres/data:/var/lib/postgresql/data
   rabbitmq:
-    image: rabbitmq
+    image: rabbitmq:management
     container_name: rabbitmq
     restart: unless-stopped
     ports:
@@ -50,3 +50,11 @@ services:
       RABBITMQ_DEFAULT_PASS: admin
     volumes:
       - ./build/rabbitmq/data:/var/lib/rabbitmq
+  redis:
+    image: redis
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./build/redis/data:/data

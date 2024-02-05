@@ -1,8 +1,5 @@
 using System.Data;
-
 using Bogus;
-
-
 using Dapper;
 using FluentAssertions;
 using Pulse.Posts.Domain;
@@ -31,7 +28,8 @@ public class PostQueryServiceTests : IClassFixture<DatabaseFixture>
         private readonly Post _existingPost;
         private readonly List<Post> _existingPosts = [];
 
-        public Given_Existing(DatabaseFixture fixture) : base(fixture)
+        public Given_Existing(DatabaseFixture fixture)
+            : base(fixture)
         {
             const string insertStatement = """
                 INSERT INTO Posts 
@@ -54,7 +52,7 @@ public class PostQueryServiceTests : IClassFixture<DatabaseFixture>
                 """;
             var faker = new PostFaker().ForUser(_userId);
             var randomUserFaker = new PostFaker();
-            
+
             _existingPost = faker.Generate();
             _existingPosts.Add(_existingPost);
 
@@ -76,6 +74,15 @@ public class PostQueryServiceTests : IClassFixture<DatabaseFixture>
         }
 
         [Fact]
+        public async Task Gets_List_Of_Existing_Posts()
+        {
+            var posts = await Sut.Get(_existingPosts.Select(p => p.Id), CancellationToken.None);
+
+            posts.Should().HaveCount(_existingPosts.Count);
+            posts.Should().BeEquivalentTo(_existingPosts);
+        }
+
+        [Fact]
         public async Task Gets_List_Of_Existing_Posts_For_User()
         {
             var posts = await Sut.GetForUser(_existingPost.UserId, CancellationToken.None);
@@ -87,7 +94,6 @@ public class PostQueryServiceTests : IClassFixture<DatabaseFixture>
 
     public class Given_NonExisting(DatabaseFixture fixture) : PostQueryServiceTests(fixture)
     {
-
         [Fact]
         public async Task Gets_Null()
         {
@@ -97,7 +103,15 @@ public class PostQueryServiceTests : IClassFixture<DatabaseFixture>
         }
 
         [Fact]
-        public async Task Gets_Empty_List()
+        public async Task Gets_Empty_List_For_Ids()
+        {
+            var posts = await Sut.Get(Enumerable.Repeat(Guid.NewGuid(), 5), CancellationToken.None);
+
+            posts.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task Gets_Empty_List_For_User()
         {
             var posts = await Sut.GetForUser(Guid.NewGuid(), CancellationToken.None);
 

@@ -13,6 +13,7 @@ internal class PostQueryService(IDbConnection connection, DomainDtoMapper mapper
     private readonly DomainDtoMapper _mapper = mapper;
 
     private const string GetByIdQuery = "SELECT * FROM Posts WHERE id = @Id";
+    private const string GetByIdsQuery = "SELECT * FROM Posts WHERE id = ANY(@Ids)";
     private const string GetByUserQuery = "SELECT * FROM Posts WHERE user_id = @UserId";
 
     public async Task<DisplayPost?> Get(Guid id, CancellationToken cancellationToken)
@@ -25,6 +26,20 @@ internal class PostQueryService(IDbConnection connection, DomainDtoMapper mapper
         var postDto = _mapper.MapToDisplayPost(post);
 
         return postDto;
+    }
+
+    public async Task<IEnumerable<DisplayPost>> Get(
+        IEnumerable<Guid> ids,
+        CancellationToken cancellationToken
+    )
+    {
+        if (!ids.Any())
+            return [];
+
+        var posts = await _connection.QueryAsync<Post>(GetByIdsQuery, new { Ids = ids });
+        var postDtos = posts.Select(_mapper.MapToDisplayPost);
+
+        return postDtos;
     }
 
     public async Task<IEnumerable<DisplayPost>> GetForUser(

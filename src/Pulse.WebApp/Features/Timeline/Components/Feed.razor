@@ -1,19 +1,37 @@
 @using Pulse.WebApp.Features.Posts.Components
 @using Pulse.Posts.Contracts
+@using Pulse.Timeline.Contracts
+@using Pulse.WebApp.Auth
+@inject ITimelineService TimelineService
+@inject IPostQueryService PostQueryService
+@inject IHttpContextAccessor HttpContextAccessor
 
 @code {
-    private IEnumerable<DisplayPost> samplePosts = new List<DisplayPost>()
+    private IEnumerable<DisplayPost> FirstPage { get; set; } = new List<DisplayPost>();
+
+    protected override async Task OnInitializedAsync()
     {
-        new(Guid.NewGuid(), Guid.NewGuid(), "This is a sample post", DateTime.Now, null, null),
-        new(Guid.NewGuid(), Guid.NewGuid(), "This is a sample post", DateTime.Now, null, null),
-        new(Guid.NewGuid(), Guid.NewGuid(), "This is a sample post", DateTime.Now, null, null),
-        new(Guid.NewGuid(), Guid.NewGuid(), "This is a sample post", DateTime.Now, null, null),
-    };
+        var userId = HttpContextAccessor.HttpContext?.GetUserId();
+
+        if (!userId.HasValue)
+        {
+            return;
+        }
+
+        var timeline = await TimelineService.GetTimelinePage(userId.Value, string.Empty, 10);
+        FirstPage = await PostQueryService.Get(timeline, CancellationToken.None);
+    }
 }
 
 <div id="user-feed" class="[&_p:last-child]:text-slate-500 [&_p:first-child]:text-lg divide-y divide-slate-200">
-    @foreach(var post in samplePosts)
+    @if (FirstPage.Any())
     {
-        <Post CurrentPost="@post" />
+        <FeedPage EagerPosts="@FirstPage.ToList()" />
+    }
+    else
+    {
+        <div class="text-center text-slate-500 text-lg p-8">
+            <p>Nothing to see here.</p>
+        </div>
     }
 </div>

@@ -14,5 +14,8 @@ public static class DIExtensions
     > RegisterIsolated<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementer
     >(this ContainerBuilder builder, [CallerMemberName] string? callerMemberName = null)
-        where TImplementer : notnull { }
+        where TImplementer : notnull
+    {
+        return builder.RegisterType<TImplementer>().AsSelf().InstancePerLifetimeScope();
+    }
 }

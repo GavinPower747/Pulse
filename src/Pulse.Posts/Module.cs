@@ -1,9 +1,11 @@
 using System.Data;
 using Autofac;
 using FluentMigrator.Runner;
+using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Pulse.Posts.Contracts;
+using Pulse.Posts.Domain.Mapping;
 using Pulse.Posts.Services;
 
 namespace Pulse.Posts;
@@ -16,6 +18,7 @@ public class PostsModule : Module
     {
         builder.RegisterType<PostQueryService>().As<IPostQueryService>().SingleInstance();
         builder.RegisterType<PostCreator>().As<IPostCreator>().SingleInstance();
+        builder.RegisterType<DomainDtoMapper>().AsSelf().SingleInstance();
 
         builder
             .Register(srv =>
