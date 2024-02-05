@@ -1,0 +1,11 @@
+@code {
+    [Parameter] public required string Title { get; set; }
+}
+
+<div className="sticky bg-white/75 z-10 backdrop-blur-md top-0">
+    <div className="flex items-center justify-between px-4 py-3">
+        <div>
+            <h2 className="text-lg font-bold">@Title</h2>
+        </div>
+    </div>
+</div>

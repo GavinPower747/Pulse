@@ -1,0 +1,52 @@
+version: '3.9'
+services:
+  webapp:
+    build:
+      context: .
+      dockerfile: ./src/Pulse.WebApp/Dockerfile
+    ports:
+      - "5000:80"
+    depends_on: [ "db", "keycloak", "rabbitmq" ]
+  keycloak:
+    image: quay.io/keycloak/keycloak
+    container_name: keycloak
+    restart: unless-stopped
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      DB_VENDOR: POSTGRES
+      DB_ADDR: db
+      DB_DATABASE: postgres
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      KEYCLOAK_IMPORT: /tmp/realm-export.json
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./build/keycloak/realm-export.json:/tmp/realm-export.json
+  db:
+    image: postgres
+    container_name: db
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_MULTIPLE_DATABASES: PulsePosts,postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./build/postgres/scripts:/docker-entrypoint-initdb.d
+      - ./build/postgres/data:/var/lib/postgresql/data
+  rabbitmq:
+    image: rabbitmq
+    container_name: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - ./build/rabbitmq/data:/var/lib/rabbitmq

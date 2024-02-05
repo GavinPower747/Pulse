@@ -1,0 +1,19 @@
+@using Pulse.WebApp.Features.Posts.Components
+@using Pulse.Posts.Contracts
+
+@code {
+    private IEnumerable<DisplayPost> samplePosts = new List<DisplayPost>()
+    {
+        new(Guid.NewGuid(), Guid.NewGuid(), "This is a sample post", DateTime.Now, null, null),
+        new(Guid.NewGuid(), Guid.NewGuid(), "This is a sample post", DateTime.Now, null, null),
+        new(Guid.NewGuid(), Guid.NewGuid(), "This is a sample post", DateTime.Now, null, null),
+        new(Guid.NewGuid(), Guid.NewGuid(), "This is a sample post", DateTime.Now, null, null),
+    };
+}
+
+<div id="user-feed" class="[&_p:last-child]:text-slate-500 [&_p:first-child]:text-lg divide-y divide-slate-200">
+    @foreach(var post in samplePosts)
+    {
+        <Post CurrentPost="@post" />
+    }
+</div>

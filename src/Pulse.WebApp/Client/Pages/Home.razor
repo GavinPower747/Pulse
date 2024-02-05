@@ -1,0 +1,14 @@
+﻿@page "/"
+@using Pulse.WebApp.Client.Components
+@using Pulse.WebApp.Features.Posts.Components
+@using Pulse.WebApp.Features.Timeline.Components
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+
+<main class="col-span-5 w-full border-x border-slate-200">
+    <Header title="Home" />
+    <PostForm />
+    <Feed/>
+</main>
+    

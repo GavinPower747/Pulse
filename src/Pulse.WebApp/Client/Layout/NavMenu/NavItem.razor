@@ -1,0 +1,40 @@
+@code {
+    [Parameter] public required string href { get; set; }
+    [Parameter] public Size size { get; set; } = Size.Default;
+    [Parameter] public Width width { get; set; } = Width.Inline;
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    public enum Size
+    {
+        Default,
+        Small,
+        Large
+    }
+
+    public enum Width
+    {
+        Full,
+        Inline,
+        Mobile
+    }
+
+    private string SizeClass => size switch
+    {
+        Size.Small => "py-2 [&_div:last-child]:text-sm my-0",
+        _ => string.Empty
+    };
+
+    private string WidthClass => width switch
+    {
+        Width.Full => "w-full",
+        Width.Mobile => "inline-flex justify-center xl:justify-start",
+        Width.Inline => "max-w-fit rounded-full",
+        _ => string.Empty
+    };
+
+    private string CompiledClass => $"flex items-center gap-x-4 px-4 py-3 hover:bg-slate-100 text-slate-900 my-1 {SizeClass} {WidthClass}";
+}
+
+<NavLink class=@CompiledClass href=@href>
+    @ChildContent
+</NavLink>

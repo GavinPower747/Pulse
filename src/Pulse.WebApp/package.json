@@ -1,0 +1,15 @@
+{
+    "name": "src",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "css:build": "npx tailwindcss -i ./wwwroot/app.css -o ./wwwroot/css/output.css"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "tailwindcss": "^3.1.6"
+    }
+}
