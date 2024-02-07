@@ -5,8 +5,15 @@ services:
       context: .
       dockerfile: ./src/Pulse.WebApp/Dockerfile
     ports:
-      - "5000:80"
-    depends_on: [ "db", "keycloak", "rabbitmq" ]
+      - "5000:8080"
+    environment:
+      RabbitMQ__Host: rabbitmq
+      Authentication__Authority: http://keycloak/realms/Pulse
+      modules__0__properties__Configuration__Database__ConnectionString: Server=db;Port=5432;Database=pulseposts;User Id=postgres;Password=postgres;"
+      modules__0__properties__Configuration__Redis__ConnectionString: redis:6379
+    depends_on: [ "db", "keycloak", "rabbitmq", "redis" ]
+    extra_hosts: 
+      - "host.docker.internal:host-gateway"
   keycloak:
     image: quay.io/keycloak/keycloak
     container_name: keycloak
@@ -37,7 +44,7 @@ services:
       - "5432:5432"
     volumes:
       - ./build/postgres/scripts:/docker-entrypoint-initdb.d
-      - ./build/postgres/data:/var/lib/postgresql/data
+      - ./data/postgres/data:/var/lib/postgresql/data
   rabbitmq:
     image: rabbitmq:management
     container_name: rabbitmq
@@ -49,7 +56,7 @@ services:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin
     volumes:
-      - ./build/rabbitmq/data:/var/lib/rabbitmq
+      - ./data/rabbitmq/data:/var/lib/rabbitmq
   redis:
     image: redis
     container_name: redis
@@ -57,4 +64,4 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - ./build/redis/data:/data
+      - ./data/redis/data:/data
