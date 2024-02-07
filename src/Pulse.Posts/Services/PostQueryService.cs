@@ -1,24 +1,24 @@
 using System.Data;
 using Dapper;
+using Microsoft.EntityFrameworkCore;
 using Pulse.Posts.Contracts;
+using Pulse.Posts.Data;
 using Pulse.Posts.Domain;
 using Pulse.Posts.Domain.Mapping;
 
 namespace Pulse.Posts.Services;
 
-internal class PostQueryService(IDbConnection connection, DomainDtoMapper mapper)
-    : IPostQueryService
+internal class PostQueryService(PostsContext connection, DomainDtoMapper mapper) : IPostQueryService
 {
-    private readonly IDbConnection _connection = connection;
+    private readonly PostsContext _connection = connection;
     private readonly DomainDtoMapper _mapper = mapper;
-
-    private const string GetByIdQuery = "SELECT * FROM Posts WHERE id = @Id";
-    private const string GetByIdsQuery = "SELECT * FROM Posts WHERE id = ANY(@Ids)";
-    private const string GetByUserQuery = "SELECT * FROM Posts WHERE user_id = @UserId";
 
     public async Task<DisplayPost?> Get(Guid id, CancellationToken cancellationToken)
     {
-        var post = await _connection.QueryFirstOrDefaultAsync<Post>(GetByIdQuery, new { Id = id });
+        var post = await _connection.PostSet.FirstOrDefaultAsync(
+            p => p.Id == id,
+            cancellationToken
+        );
 
         if (post is null)
             return null;
@@ -36,7 +36,10 @@ internal class PostQueryService(IDbConnection connection, DomainDtoMapper mapper
         if (!ids.Any())
             return [];
 
-        var posts = await _connection.QueryAsync<Post>(GetByIdsQuery, new { Ids = ids });
+        var posts = await _connection
+            .PostSet.Where(p => ids.Contains(p.Id))
+            .ToListAsync(cancellationToken);
+
         var postDtos = posts.Select(_mapper.MapToDisplayPost);
 
         return postDtos;
@@ -47,7 +50,10 @@ internal class PostQueryService(IDbConnection connection, DomainDtoMapper mapper
         CancellationToken cancellationToken
     )
     {
-        var posts = await _connection.QueryAsync<Post>(GetByUserQuery, new { UserId = userId });
+        var posts = await _connection
+            .PostSet.Where(p => p.UserId == userId)
+            .ToListAsync(cancellationToken);
+
         var postDtos = posts.Select(_mapper.MapToDisplayPost);
 
         return postDtos;

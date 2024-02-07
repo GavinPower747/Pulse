@@ -1,10 +1,12 @@
 using System.Data;
 using Autofac;
 using FluentMigrator.Runner;
-using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Pulse.Posts.Contracts;
+using Pulse.Posts.Data;
+using Pulse.Posts.Domain;
 using Pulse.Posts.Domain.Mapping;
 using Pulse.Posts.Services;
 
@@ -19,15 +21,14 @@ public class PostsModule : Module
         builder.RegisterType<PostQueryService>().As<IPostQueryService>().SingleInstance();
         builder.RegisterType<PostCreator>().As<IPostCreator>().SingleInstance();
         builder.RegisterType<DomainDtoMapper>().AsSelf().SingleInstance();
-
+        builder.RegisterType<PostsContext>().InstancePerLifetimeScope();
         builder
-            .Register(srv =>
+            .Register<DbContextOptions<PostsContext>>(c =>
             {
-                var connectionString = Configuration.Database.ConnectionString;
-
-                return new NpgsqlConnection(connectionString);
+                var optionsBuilder = new DbContextOptionsBuilder<PostsContext>();
+                optionsBuilder.UseNpgsql(Configuration.Database.ConnectionString);
+                return optionsBuilder.Options;
             })
-            .As<IDbConnection>()
             .InstancePerLifetimeScope();
 
         MigrateDatabase();

@@ -8,6 +8,7 @@ internal class Post
     public DateTime CreatedAt { get; set; }
     public DateTime? ScheduledAt { get; set; }
     public DateTime? PublishedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     public Post(
         Guid id,
