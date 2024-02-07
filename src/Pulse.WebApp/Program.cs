@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Pulse.Timeline.Consumers;
 using Pulse.WebApp.Client;
 using Pulse.WebApp.Features.Posts.API;
+using Pulse.WebApp.Features.Posts.Mapping;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -20,12 +21,15 @@ builder.Host.ConfigureContainer<ContainerBuilder>(builder =>
     builder.RegisterModule(module);
 
     builder.AddPostEndpoints();
+
+    builder.RegisterType<PostMapper>().AsSelf().SingleInstance();
 });
 
 builder.Logging.AddJsonConsole();
 
 // Add services to the container.
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+builder.Services.AddHttpClient();
 
 builder
     .Services.AddAuthentication(opt =>

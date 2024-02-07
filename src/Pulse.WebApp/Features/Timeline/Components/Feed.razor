@@ -1,13 +1,19 @@
 @using Pulse.WebApp.Features.Posts.Components
+@using Pulse.WebApp.Features.Posts.Models
+@using Pulse.WebApp.Features.Posts.Mapping
 @using Pulse.Posts.Contracts
 @using Pulse.Timeline.Contracts
+@using Pulse.Users.Contracts
 @using Pulse.WebApp.Auth
+
 @inject ITimelineService TimelineService
 @inject IPostQueryService PostQueryService
+@inject IUserQueries UserQueries
+@inject PostMapper Mapper
 @inject IHttpContextAccessor HttpContextAccessor
 
 @code {
-    private IEnumerable<DisplayPost> FirstPage { get; set; } = new List<DisplayPost>();
+    private IEnumerable<PostViewModel> FirstPage { get; set; } = new List<PostViewModel>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -19,7 +25,15 @@
         }
 
         var timeline = await TimelineService.GetTimelinePage(userId.Value, string.Empty, 10);
-        FirstPage = await PostQueryService.Get(timeline, CancellationToken.None);
+        var posts = await PostQueryService.Get(timeline, CancellationToken.None);
+
+        foreach (var post in posts)
+        {
+            var user = await UserQueries.GetUser(post.UserId);
+            var vm = Mapper.MapToViewModel(post, user);
+
+            FirstPage = FirstPage.Append(vm);
+        }
     }
 }
 

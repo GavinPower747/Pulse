@@ -1,9 +1,9 @@
-@using Pulse.Posts.Contracts
 @using Pulse.WebApp.Features.Posts.Components
+@using Pulse.WebApp.Features.Posts.Models
 
 @code {
     [Parameter]
-    public required List<DisplayPost> EagerPosts { get; set; } = new List<DisplayPost>();
+    public required List<PostViewModel> EagerPosts { get; set; } = new List<PostViewModel>();
 
     [Parameter]
     public required List<Guid> LazyPostIds { get; set; } = new List<Guid>();
