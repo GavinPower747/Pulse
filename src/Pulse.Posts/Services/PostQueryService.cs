@@ -1,10 +1,10 @@
 using System.Data;
-using Dapper;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Posts.Contracts;
 using Pulse.Posts.Data;
-using Pulse.Posts.Domain;
 using Pulse.Posts.Domain.Mapping;
+using Pulse.Shared.Encoders;
 
 namespace Pulse.Posts.Services;
 
@@ -45,17 +45,57 @@ internal class PostQueryService(PostsContext connection, DomainDtoMapper mapper)
         return postDtos;
     }
 
-    public async Task<IEnumerable<DisplayPost>> GetForUser(
+    public async Task<PostPage> GetForUser(
         Guid userId,
+        int pageSize,
+        string? continuationToken,
         CancellationToken cancellationToken
     )
     {
-        var posts = await _connection
-            .PostSet.Where(p => p.UserId == userId)
-            .ToListAsync(cancellationToken);
+        var token = ContinuationToken.Parse(continuationToken);
+        var postsQuery = _connection.PostSet.Where(p => p.UserId == userId);
 
-        var postDtos = posts.Select(_mapper.MapToDisplayPost);
+        if (token is not null)
+            postsQuery = postsQuery.Where(p => p.CreatedAt <= token.Value.OlderThan);
 
-        return postDtos;
+        postsQuery = postsQuery.OrderBy(p => p.CreatedAt).Take(pageSize + 1); // Take one extra to check if there are more pages
+        var posts = await postsQuery.ToListAsync(cancellationToken);
+
+        var postDtos = posts.Take(pageSize).Select(_mapper.MapToDisplayPost);
+
+        string? newToken = null;
+        if (posts.Count > pageSize)
+        {
+            var lastPost = postsQuery.Last();
+            newToken = new ContinuationToken(lastPost.CreatedAt).ToString();
+        }
+
+        return new PostPage(postDtos, newToken);
+    }
+
+    private readonly struct ContinuationToken(DateTime olderThan)
+    {
+        // Continue from a specific datetime rather than skip/take in case a new post gets added between changes
+        public DateTime OlderThan { get; } = olderThan;
+
+        public static ContinuationToken? Parse(string? token)
+        {
+            if (token is null)
+                return null;
+
+            var unencoded = Base64UrlEncoder.Decode(token);
+            var decoded = Encoding.UTF8.GetString(unencoded);
+            var split = decoded.Split('|');
+
+            return new ContinuationToken(DateTime.Parse(split[0]));
+        }
+
+        public override readonly string ToString()
+        {
+            var encoded = Encoding.UTF8.GetBytes(OlderThan.ToString());
+            var token = Base64UrlEncoder.Encode(encoded);
+
+            return token;
+        }
     }
 }

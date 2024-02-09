@@ -5,10 +5,22 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 
+@inject IHttpContextAccessor HttpContextAccessor
 
-<main class="col-span-5 w-full border-x border-slate-200">
-    <Header title="Home" />
-    <PostForm />
-    <Feed/>
-</main>
-    
+@if (HttpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated == true)
+{
+    <main class="col-span-5 w-full border-x border-slate-200">
+        <Header title="Home" />
+        <PostForm />
+        <Feed />
+    </main>
+}
+else
+{
+    <main class="col-span-5 w-full border-x border-slate-200">
+        <Header title="Home" />
+        <p class="text-center text-slate-500">
+            Please <a href="/auth/realm/Pulse" class="text-blue-500">login</a> to view your timeline.
+        </p> 
+    </main>
+}

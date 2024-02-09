@@ -1,0 +1,37 @@
+@page "/profile/{username}"
+@using Pulse.Users.Contracts
+@using Pulse.Posts.Contracts
+@using Pulse.WebApp.Features.Posts.Models
+@using Pulse.WebApp.Features.Posts.Mapping
+
+@inject IUserQueries UserQueries
+@inject IPostQueryService PostQueries
+@inject PostMapper PostMapper
+
+@code {
+    [Parameter] public required string Username { get; set; }
+
+    private User? user;
+    private List<PostViewModel> firstPage = new List<PostViewModel>();
+    private string continuationToken = string.Empty;
+    private string continuationUrl => $"/api/user/{user?.Id}/posts?continuationToken={continuationToken}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserQueries.GetUser(Username);
+        var (posts, continuationToken) = await PostQueries.GetForUser(user.Id, 50, null, CancellationToken.None);
+
+        firstPage = posts.Select(x => PostMapper.MapToViewModel(x, user)).ToList();
+    }
+}
+
+<main class="col-span-5 w-full border-x border-slate-200">
+    <Header Title="@Username" />
+    @* <UserCard/> *@
+    <div id="user-feed"  class="[&_p:last-child]:text-slate-500 [&_p:first-child]:text-lg divide-y divide-slate-200">
+        <InfinitelyScrollingFeedPage 
+            EagerPosts="@firstPage" 
+            ContinuationUrl="@continuationUrl" 
+            FeedElementSelector="#user-posts" />
+    </div>
+</main>

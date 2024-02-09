@@ -1,4 +1,4 @@
-@using Pulse.WebApp.Features.Posts.Components
+@using Pulse.WebApp.Client.Components
 @using Pulse.WebApp.Features.Posts.Models
 @using Pulse.WebApp.Features.Posts.Mapping
 @using Pulse.Posts.Contracts
@@ -14,6 +14,7 @@
 
 @code {
     private IEnumerable<PostViewModel> FirstPage { get; set; } = new List<PostViewModel>();
+    private string ContinuationToken { get; set; } = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -35,12 +36,19 @@
             FirstPage = FirstPage.Append(vm);
         }
     }
+
+    private string GetContinuationUrl() => !string.IsNullOrWhiteSpace(ContinuationToken) 
+            ? $"/api/timeline?continuationToken={ContinuationToken}"
+            : string.Empty;
 }
 
 <div id="user-feed" class="[&_p:last-child]:text-slate-500 [&_p:first-child]:text-lg divide-y divide-slate-200">
     @if (FirstPage.Any())
     {
-        <FeedPage EagerPosts="@FirstPage.ToList()" />
+        <InfinitelyScrollingFeedPage 
+            EagerPosts="@FirstPage.ToList()" 
+            ContinuationUrl="@GetContinuationUrl()" 
+            FeedElementSelector="#user-feed"  />
     }
     else
     {

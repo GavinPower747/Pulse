@@ -25,4 +25,8 @@
     <InternalsVisibleTo Include="Pulse.Posts.Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Pulse.Shared\Pulse.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,30 @@
+@using Pulse.WebApp.Features.Posts.Components
+@using Pulse.WebApp.Features.Posts.Models
+
+@code {
+    [Parameter] public required List<PostViewModel> EagerPosts { get; set; } = new List<PostViewModel>();
+    [Parameter] public required List<Guid> LazyPostIds { get; set; } = new List<Guid>();
+    [Parameter] public string FeedElementSelector { get; set; } = "#user-feed";
+    [Parameter] public string? ContinuationUrl { get; set; }
+}
+
+@for (var i = 0; i < EagerPosts.Count; i++)
+{
+    @if (i != EagerPosts.Count - 1 || string.IsNullOrWhiteSpace(ContinuationUrl))
+    {
+        <Post CurrentPost="@EagerPosts[i]" />
+    }
+    else
+    {
+        <div hx-get="@ContinuationUrl" hx-target="@FeedElementSelector" hx-swap="afterend"
+    hx-trigger="revealed">
+            <Post CurrentPost="@EagerPosts[i]" />
+        </div>
+    }
+}
+
+@foreach (var postId in LazyPostIds)
+{
+    // Perform skeleton loading of posts
+
+}

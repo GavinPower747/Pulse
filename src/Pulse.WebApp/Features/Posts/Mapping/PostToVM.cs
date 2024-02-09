@@ -24,4 +24,15 @@ public class PostMapper
 
         return viewModel;
     }
+
+    public PostViewModel MapToViewModel(DisplayPost post, string username, string displayName)
+    {
+        var viewModel = new PostViewModel();
+        post.Adapt(viewModel);
+
+        viewModel.Username = username;
+        viewModel.DisplayName = displayName;
+
+        return viewModel;
+    }
 }

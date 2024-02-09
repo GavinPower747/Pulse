@@ -22,8 +22,8 @@
     {
         <div hx-get="/api/timeline/?ContinuationToken=@ContinuationToken" hx-target="#user-feed" hx-swap="afterend"
     hx-trigger="revealed">
-    <Post CurrentPost="@EagerPosts[i]" />
-</div>
+            <Post CurrentPost="@EagerPosts[i]" />
+        </div>
     }
 }
 

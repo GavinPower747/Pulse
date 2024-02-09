@@ -7,7 +7,12 @@ public class TimelineService(IDatabase redis) : ITimelineService
 {
     private readonly IDatabase _redis = redis;
 
-    public async Task<IEnumerable<Guid>> GetTimelinePage(Guid userId, string? cursor, int count)
+    public async Task<IEnumerable<Guid>> GetTimelinePage(
+        Guid userId,
+        string? cursor,
+        int count,
+        CancellationToken token = default
+    )
     {
         if (userId == Guid.Empty || count <= 0)
             return [];

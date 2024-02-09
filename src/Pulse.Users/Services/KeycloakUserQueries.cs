@@ -14,6 +14,8 @@ internal class KeycloakUserQueries(
 {
     private readonly IHttpClientFactory _clientFactory = clientFactory;
     private readonly UsersConfiguration _configuration = configuration;
+    private readonly JsonSerializerOptions _jsonOptions =
+        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
     public async Task<User> GetUser(Guid id)
     {
@@ -28,10 +30,8 @@ internal class KeycloakUserQueries(
         }
 
         var keycloakUser =
-            JsonSerializer.Deserialize<KeycloakUserRepresentation>(
-                content,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            ) ?? throw new Exception("User not found");
+            JsonSerializer.Deserialize<KeycloakUserRepresentation>(content, _jsonOptions)
+            ?? throw new Exception("User not found");
 
         return KeycloakMapper.MapToUser(keycloakUser);
     }
@@ -51,8 +51,9 @@ internal class KeycloakUserQueries(
         }
 
         var keycloakUser =
-            JsonSerializer.Deserialize<KeycloakUserRepresentation>(content)
-            ?? throw new Exception("User not found");
+            JsonSerializer
+                .Deserialize<KeycloakUserRepresentation[]>(content, _jsonOptions)
+                ?.FirstOrDefault() ?? throw new Exception("User not found");
 
         return KeycloakMapper.MapToUser(keycloakUser);
     }
