@@ -24,7 +24,8 @@ public class TimelineService(IDatabase redis) : ITimelineService
         var posts = await _redis.SortedSetRangeByRankAsync(
             key,
             start.GetValueOrDefault(),
-            end.GetValueOrDefault()
+            end.GetValueOrDefault(),
+            Order.Descending
         );
 
         List<Guid> postIds = [];

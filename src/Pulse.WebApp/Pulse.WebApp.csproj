@@ -4,6 +4,7 @@
     <ProjectReference Include="..\Pulse.Posts\Pulse.Posts.csproj" />
     <ProjectReference Include="..\Pulse.Timeline\Pulse.Timeline.csproj" />
     <ProjectReference Include="..\Pulse.Users\Pulse.Users.csproj" />
+    <ProjectReference Include="..\Pulse.Followers\Pulse.Followers.csproj" />
   </ItemGroup>
 
   <ItemGroup>

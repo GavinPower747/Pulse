@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Pulse.Timeline.Consumers;
+using Pulse.WebApp.Auth;
 using Pulse.WebApp.Client;
 using Pulse.WebApp.Features.Posts.API;
 using Pulse.WebApp.Features.Posts.Mapping;
@@ -23,6 +24,7 @@ builder.Host.ConfigureContainer<ContainerBuilder>(builder =>
     builder.AddPostEndpoints();
 
     builder.RegisterType<PostMapper>().AsSelf().SingleInstance();
+    builder.RegisterType<IdentityProvider>().AsSelf().SingleInstance();
 });
 
 builder.Logging.AddJsonConsole();
