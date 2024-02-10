@@ -9,26 +9,22 @@ using Pulse.WebApp.Features.Timeline.Components;
 namespace Pulse.WebApp.Features.Timeline.Api;
 
 public class GetTimelinePageEndpoint(
-    IHttpContextAccessor ctxAccessor,
     ITimelineService timelineService,
     IPostQueryService postQuery,
     IUserQueries userQuery,
-    PostMapper mapper
+    PostMapper mapper,
+    IdentityProvider identityProvider
 )
 {
-    private readonly ITimelineService _timelineService = timelineService;
-    private readonly IHttpContextAccessor _ctxAccessor = ctxAccessor;
-
     public async Task<IResult> Handle(
         GetTimelinePageRequest request,
         CancellationToken cancellationToken
     )
     {
-        var userId = _ctxAccessor.HttpContext?.GetUserId();
-        ArgumentNullException.ThrowIfNull(userId, nameof(userId));
+        var currentUser = identityProvider.GetCurrentUser();
 
-        var timelinePage = await _timelineService.GetTimelinePage(
-            userId.Value,
+        var timelinePage = await timelineService.GetTimelinePage(
+            currentUser.Id,
             request.ContinuationToken ?? string.Empty,
             request.PageSize,
             cancellationToken

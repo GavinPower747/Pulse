@@ -1,9 +1,12 @@
 @using Pulse.Posts.Contracts
+@using Pulse.WebApp.Client.Components
 @using Pulse.WebApp.Features.Posts.Models
 
 @code {
     [Parameter] public required PostViewModel CurrentPost { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string UserInitials => CurrentPost.DisplayName?.Split(' ').Select(x => x[0]).Aggregate(string.Empty, (x, y) => x + y) ?? string.Empty;
 }
 
 <div class="flex flex-1 gap-x-4 p-4">
@@ -11,8 +14,11 @@
         @* <HoverCardDemo src={src} alt={name} initials={initials} name={name} username={username} following={following}
         followers={followers} description={description} /> *@
     </div>
+    <div class="flex flex-col xl:flex-none">
+		<Avatar src="" alt="@CurrentPost.DisplayName" initials="@UserInitials" />
+	</div>
     <div class="flex flex-col flex-1">
-        <a href="/profile/@CurrentPost.Username" class="flex flex-1">
+        <a href="/u/@CurrentPost.Username" class="flex flex-1">
             <div class="flex flex-1 gap-x-1 text-sm">
                 <span class="text-slate-900 font-bold">
                     @CurrentPost.DisplayName
@@ -20,7 +26,7 @@
                 <span class="text-slate-600 font-medium">
                     @CurrentPost.Username
                 </span>·
-                <span class="text-slate-600 font-medium">@CurrentPost.CreatedAt.ToString()</span>
+                <HumanReadableTimestamp Timestamp="@CurrentPost.CreatedAt" class="text-slate-600 font-medium"/>
             </div>
             <div class="">
                 @* <DropdownMenuDemo /> *@

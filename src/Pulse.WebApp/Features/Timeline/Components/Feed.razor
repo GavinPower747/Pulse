@@ -5,12 +5,15 @@
 @using Pulse.Timeline.Contracts
 @using Pulse.Users.Contracts
 @using Pulse.WebApp.Auth
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
 
 @inject ITimelineService TimelineService
 @inject IPostQueryService PostQueryService
 @inject IUserQueries UserQueries
 @inject PostMapper Mapper
-@inject IHttpContextAccessor HttpContextAccessor
+@inject IdentityProvider IdentityProvider
 
 @code {
     private IEnumerable<PostViewModel> FirstPage { get; set; } = new List<PostViewModel>();
@@ -18,23 +21,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var userId = HttpContextAccessor.HttpContext?.GetUserId();
-
-        if (!userId.HasValue)
-        {
-            return;
-        }
-
-        var timeline = await TimelineService.GetTimelinePage(userId.Value, string.Empty, 10);
+        var currentUser = IdentityProvider.GetCurrentUser();
+        var timeline = await TimelineService.GetTimelinePage(currentUser.Id, string.Empty, 50);
         var posts = await PostQueryService.Get(timeline, CancellationToken.None);
+        var userTasks = posts.Select(p => p.UserId).Distinct().Select(UserQueries.GetUser);
 
-        foreach (var post in posts)
-        {
-            var user = await UserQueries.GetUser(post.UserId);
-            var vm = Mapper.MapToViewModel(post, user);
+        var users = await Task.WhenAll(userTasks);
 
-            FirstPage = FirstPage.Append(vm);
-        }
+        FirstPage = posts.Select(p => Mapper.MapToViewModel(p, users.First(u => u.Id == p.UserId)));
     }
 
     private string GetContinuationUrl() => !string.IsNullOrWhiteSpace(ContinuationToken) 
@@ -42,7 +36,7 @@
             : string.Empty;
 }
 
-<div id="user-feed" class="[&_p:last-child]:text-slate-500 [&_p:first-child]:text-lg divide-y divide-slate-200">
+<div x-data="{ isEmpty: @FirstPage.Any().ToString().ToLower() }" x-on:pulse:post-created="isEmpty = false" id="user-feed" class="[&_p:last-child]:text-slate-500 [&_p:first-child]:text-lg divide-y divide-slate-200">
     @if (FirstPage.Any())
     {
         <InfinitelyScrollingFeedPage 
@@ -50,10 +44,8 @@
             ContinuationUrl="@GetContinuationUrl()" 
             FeedElementSelector="#user-feed"  />
     }
-    else
-    {
-        <div class="text-center text-slate-500 text-lg p-8">
-            <p>Nothing to see here.</p>
-        </div>
-    }
+    
+    <div x-show="isEmpty" class="text-center text-slate-500 text-lg p-8">
+        <p>Nothing to see here.</p>
+    </div>
 </div>

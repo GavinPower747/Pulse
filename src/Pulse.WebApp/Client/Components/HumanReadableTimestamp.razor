@@ -1,0 +1,35 @@
+@code {
+    [Parameter] public required DateTime Timestamp { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; } = new Dictionary<string, object>();
+
+    private string GetHumanReadableTime(DateTime timestamp)
+    {
+        var timeSpan = DateTime.Now - timestamp;
+        if (Math.Floor(timeSpan.TotalDays) > 7)
+        {
+            return timestamp.ToString("D");
+        }
+        else if (Math.Floor(timeSpan.TotalDays) > 1)
+        {
+            return $"{timeSpan.Days} days ago";
+        }
+        else if (timeSpan.TotalHours > 24)
+        {
+            return "yesterday";
+        }
+        else if (timeSpan.TotalHours > 1)
+        {
+            return $"{timeSpan.Hours} hours ago";
+        }
+        else if (timeSpan.TotalMinutes > 1)
+        {
+            return $"{timeSpan.Minutes} minutes ago";
+        }
+        else
+        {
+            return "just now";
+        }
+    }
+}
+
+<span @attributes="AdditionalAttributes">@GetHumanReadableTime(Timestamp)</span>

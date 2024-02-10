@@ -8,7 +8,7 @@ internal static class Routes
 {
     public static RouteGroupBuilder MapPostRoutes(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/post");
+        var group = endpoints.MapGroup("/api/post").RequireAuthorization();
 
         group.WithTags("Post");
 

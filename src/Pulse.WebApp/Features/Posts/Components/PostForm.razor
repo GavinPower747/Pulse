@@ -1,24 +1,42 @@
+@using Pulse.WebApp.Auth
 @using Pulse.WebApp.Client.Components
 @using Microsoft.AspNetCore.Antiforgery
 @using Microsoft.AspNetCore.Components.Forms
 @attribute [RequireAntiforgeryToken]
 
-@code {
+@inject IdentityProvider IdentityProvider
 
+@code {
+    private CurrentUser _user;
+
+    protected override void OnInitialized()
+    {
+        _user = IdentityProvider.GetCurrentUser();
+    }
 }
 
 <div class="flex flex-1 gap-x-2 p-4 border-b border-slate-200">
-    <Avatar src="https://pbs.twimg.com/profile_images/1489998205236527108/q2REh8nW_400x400.jpg" alt="Roy Quilor"
-        initials="RQ" />
-    <form class="flex flex-col flex-1 gap-y-4" hx-post="/api/post" hx-swap="afterbegin" hx-target="#user-feed">
+    <Avatar src="@_user.ProfilePictureUrl" alt="@_user.DisplayName" initials="@_user.Initials" />
+    <form 
+        class="flex flex-col flex-1 gap-y-4" 
+        hx-post="/api/post" 
+        hx-swap="afterbegin" 
+        hx-target="#user-feed"
+        hx-trigger="submit"
+        hx-swap-oob="true"
+        hx-on::after-request="this.reset(); document.body.dispatchEvent(new CustomEvent('pulse:post-created'));"
+        x-data="{ text: '' }"
+        >
         <AntiforgeryToken />
         <div class="flex flex-1">
             <textarea
-            name="content"
-            type="text"
-            placeholder="What's up?"
-            class="w-full px-4 py-3 text-xl border-transparent placeholder:text-slate-600 outline-0
-            focus:outline-none appearance-none focus:ring-0 focus:border-transparent resize-none"
+                x-model="text"
+                x-on:input="$el.style.height = 'auto'; $el.style.height = ($el.scrollHeight) + 'px';"
+                name="content"
+                type="text"
+                placeholder="What's up?"
+                class="w-full px-4 py-3 text-xl border-transparent placeholder:text-slate-600 outline-0
+                focus:outline-none appearance-none focus:ring-0 focus:border-transparent resize-none"
             />
         </div>
         <div class="flex justify-between items-center">
@@ -58,7 +76,7 @@
                 <button
                     type="submit"
                     class="inline-flex items-center font-bold rounded-full border px-4 py-2 text-sm bg-slate-900 text-white border-transparent disabled:opacity-50 transition-opacity duration-200">
-                    Tweet
+                    Post
                 </button>
             </div>
         </div>

@@ -1,8 +1,9 @@
-@page "/profile/{username}"
+@page "/u/{username}"
 @using Pulse.Users.Contracts
 @using Pulse.Posts.Contracts
 @using Pulse.WebApp.Features.Posts.Models
 @using Pulse.WebApp.Features.Posts.Mapping
+@using Pulse.WebApp.Features.Users.Components
 
 @inject IUserQueries UserQueries
 @inject IPostQueryService PostQueries
@@ -25,9 +26,31 @@
     }
 }
 
-<main class="col-span-5 w-full border-x border-slate-200">
-    <Header Title="@Username" />
-    @* <UserCard/> *@
+<main
+    x-data="{ userCardInView: true }"
+    x-init="() => {
+          const observer = new IntersectionObserver(
+              ([entry]) => { userCardInView = entry.isIntersecting; },
+              { threshold: 0.1 }
+          );
+          observer.observe($refs.userCard);
+      }"
+    class="col-span-5 w-full border-x border-slate-200">
+    <Header Title="@user?.DisplayName" ShowBackButton="true">
+        <div class="w-full">
+            <div class="float-end"
+                x-show="!userCardInView" 
+                x-transition:enter="transition ease-out duration-300" 
+                x-transition:enter-start="opacity-0" 
+                x-transition:enter-end="opacity-100" 
+                x-transition:leave="transition ease-in duration-300" 
+                x-transition:leave-start="opacity-100" 
+                x-transition:leave-end="opacity-0">
+                <FollowButton />
+            </div>
+        </div>
+    </Header>
+    <UserCard x-ref="userCard" Name="@user?.DisplayName" Username="@Username" Description="This is a sub heading" Followers="1000" Following="1999" ProfilePictureUrl="@string.Empty"/>
     <div id="user-feed"  class="[&_p:last-child]:text-slate-500 [&_p:first-child]:text-lg divide-y divide-slate-200">
         <InfinitelyScrollingFeedPage 
             EagerPosts="@firstPage" 

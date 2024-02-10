@@ -1,14 +1,13 @@
-﻿@code {
+﻿@using Pulse.Users.Contracts
+@using Pulse.WebApp.Auth
 
-    private List<NavItem> _items = new()
-    {
-        new NavItem { Href = "/home", Text = "Home", Icon = "<HiOutlineHome class=\"w-6 h-6\" />" },
-        new NavItem { Href = "/explore", Text = "Explore", Icon = "<HiHashtag class=\"w-6 h-6\" />" },
-        new NavItem { Href = "/notifications", Text = "Notifications", Icon = "<HiOutlineBell class=\"w-6 h-6\" />" },
-        new NavItem { Href = "/messages", Text = "Messages", Icon = "<HiOutlineEnvelope class=\"w-6 h-6\" />" },
-        new NavItem { Href = "/bookmarks", Text = "Bookmarks", Icon = "<HiOutlineBookmark class=\"w-6 h-6\" />" },
-        new NavItem { Href = "/profile", Text = "Profile", Icon = "<HiOutlineUser class=\"w-6 h-6\" />" },
-    };
+@inject IHttpContextAccessor HttpContextAccessor
+
+@code {
+
+    private List<NavItem> _items = new();
+
+    private User? currentUser;
 
     private class NavItem
     {
@@ -23,12 +22,35 @@
             icon = Icon;
         }
     }
+
+    protected override Task OnInitializedAsync()
+    {
+        var context = HttpContextAccessor.HttpContext!;
+
+        currentUser = new User(
+            context.GetUserId(), 
+            context.User.Identity!.Name!, 
+            string.Empty, 
+            context.User.FindFirst("name")!.Value);
+
+        _items = new()    
+        {
+            new NavItem { Href = "/", Text = "Home", Icon = "<HiOutlineHome class=\"w-6 h-6\" />" },
+            new NavItem { Href = "/explore", Text = "Explore", Icon = "<HiHashtag class=\"w-6 h-6\" />" },
+            new NavItem { Href = "/notifications", Text = "Notifications", Icon = "<HiOutlineBell class=\"w-6 h-6\" />" },
+            new NavItem { Href = "/messages", Text = "Messages", Icon = "<HiOutlineEnvelope class=\"w-6 h-6\" />" },
+            new NavItem { Href = "/bookmarks", Text = "Bookmarks", Icon = "<HiOutlineBookmark class=\"w-6 h-6\" />" },
+            new NavItem { Href = $"/u/{currentUser.Username}", Text = "Profile", Icon = "<HiOutlineUser class=\"w-6 h-6\" />" },
+        };
+
+        return base.OnInitializedAsync();
+    }
 }
 
 <header class="hidden sm:flex w-24 xl:col-span-2">
     <div class="flex flex-1 xl:w-60 flex-col fixed h-full">
         <div class="flex flex-col flex-1">
-            <NavItem href="/home" size="default">
+            <NavItem href="/" size="default">
                 @* <SiTwitter class="w-6 h-6" /> *@
                 Home
             </NavItem>

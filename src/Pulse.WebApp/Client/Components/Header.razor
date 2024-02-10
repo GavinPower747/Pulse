@@ -1,11 +1,20 @@
 @code {
     [Parameter] public required string Title { get; set; }
+    [Parameter] public bool ShowBackButton { get; set; } = false;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
 }
 
-<div className="sticky bg-white/75 z-10 backdrop-blur-md top-0">
-    <div className="flex items-center justify-between px-4 py-3">
-        <div>
-            <h2 className="text-lg font-bold">@Title</h2>
+<div class="sticky bg-white/75 z-10 backdrop-blur-md top-0">
+    <div class="flex items-center px-4 py-3">
+        @if(ShowBackButton)
+        {
+            <a class="text-gray-500 mr-2" href="/" >
+                <svg viewBox="0 0 24 24" class="h-6 w-6" aria-hidden="true" style="color: rgb(239, 243, 244);"><g><path d="M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z"></path></g></svg>
+            </a>
+        }
+        <div class="mr-2 w-full">
+            <h2 class="text-lg font-bold">@Title</h2>
         </div>
+        @ChildContent
     </div>
 </div>
