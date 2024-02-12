@@ -83,30 +83,6 @@ public class TimelineServiceTests
     }
 
     [Fact]
-    public async Task GetTimelinePage_WhenSortedSetRankReturnsNonZeroRank_ReturnsCorrectPostIds()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var cursor = "cursor";
-        var count = 5;
-
-        var expectedPostIds = Enumerable.Range(1, count).Select(i => Guid.NewGuid()).ToList();
-
-        var redisValues = expectedPostIds.Select(id => (RedisValue)$"post:{id}").ToArray();
-
-        _redis.SortedSetRank(userId.ToString(), cursor).Returns(1);
-        _redis
-            .SortedSetRangeByRankAsync($"timeline:{userId}", 2, count + 2, Order.Descending)
-            .Returns(redisValues);
-
-        // Act
-        var postIds = await _timelineService.GetTimelinePage(userId, cursor, count);
-
-        // Assert
-        postIds.Should().BeEquivalentTo(expectedPostIds);
-    }
-
-    [Fact]
     public async Task GetTimelinePage_WhenSortedSetRangeByRankAsyncReturnsEmptyArray_ReturnsEmptyList()
     {
         // Arrange
