@@ -1,12 +1,11 @@
 using System.Data;
-using Bogus;
-using Dapper;
 using FluentAssertions;
+using Pulse.Posts.Data;
 using Pulse.Posts.Domain;
 using Pulse.Posts.Domain.Mapping;
 using Pulse.Posts.Services;
-using Pulse.Posts.Tests.Data;
 using Pulse.Posts.Tests.Fixtures;
+using Pulse.Tests.Data.Fakers;
 
 namespace Pulse.Posts.Tests.Services;
 
@@ -14,7 +13,7 @@ public class PostQueryServiceTests : IClassFixture<DatabaseFixture>
 {
     internal readonly PostQueryService Sut;
     protected readonly DatabaseFixture _fixture;
-    protected IDbConnection Connection => _fixture.Connection;
+    internal PostsContext Connection => _fixture.Posts;
 
     public PostQueryServiceTests(DatabaseFixture fixture)
     {
@@ -31,25 +30,6 @@ public class PostQueryServiceTests : IClassFixture<DatabaseFixture>
         public Given_Existing(DatabaseFixture fixture)
             : base(fixture)
         {
-            const string insertStatement = """
-                INSERT INTO Posts 
-                (
-                    id, 
-                    user_id, 
-                    content, 
-                    created_at, 
-                    published_at, 
-                    scheduled_at
-                ) 
-                VALUES (
-                    @Id, 
-                    @UserId, 
-                    @Content, 
-                    @CreatedAt,
-                    @PublishedAt,
-                    @ScheduledAt
-                );
-                """;
             var faker = new PostFaker().ForUser(_userId);
             var randomUserFaker = new PostFaker();
 
@@ -61,8 +41,10 @@ public class PostQueryServiceTests : IClassFixture<DatabaseFixture>
 
             foreach (var post in _existingPosts.Concat(randomUserPosts))
             {
-                Connection.Execute(insertStatement, post);
+                Connection.Add(post);
             }
+
+            Connection.SaveChanges();
         }
 
         [Fact]
@@ -70,7 +52,7 @@ public class PostQueryServiceTests : IClassFixture<DatabaseFixture>
         {
             var post = await Sut.Get(_existingPost.Id, CancellationToken.None);
 
-            post.Should().BeEquivalentTo(_existingPost);
+            post.Should().BeEquivalentTo(_existingPost, opt => opt.Excluding(p => p.UpdatedAt));
         }
 
         [Fact]
@@ -79,16 +61,75 @@ public class PostQueryServiceTests : IClassFixture<DatabaseFixture>
             var posts = await Sut.Get(_existingPosts.Select(p => p.Id), CancellationToken.None);
 
             posts.Should().HaveCount(_existingPosts.Count);
-            posts.Should().BeEquivalentTo(_existingPosts);
+            posts.Should().BeEquivalentTo(_existingPosts, opt => opt.Excluding(p => p.UpdatedAt));
         }
 
         [Fact]
         public async Task Gets_List_Of_Existing_Posts_For_User()
         {
-            var posts = await Sut.GetForUser(_existingPost.UserId, CancellationToken.None);
+            var page = await Sut.GetForUser(
+                _existingPost.UserId,
+                _existingPosts.Count,
+                null,
+                CancellationToken.None
+            );
 
-            posts.Should().HaveCount(_existingPosts.Count);
-            posts.Should().BeEquivalentTo(_existingPosts);
+            page.Posts.Should().HaveCount(_existingPosts.Count);
+            page
+                .Posts.Should()
+                .BeEquivalentTo(_existingPosts, opt => opt.Excluding(p => p.UpdatedAt));
+        }
+
+        [Fact]
+        public async Task Gets_List_Of_Size()
+        {
+            var page = await Sut.GetForUser(_existingPost.UserId, 2, null, CancellationToken.None);
+
+            page.Posts.Should().HaveCount(2);
+        }
+
+        [Fact]
+        public async Task Gets_List_With_ContinuationToken()
+        {
+            var page = await Sut.GetForUser(
+                _existingPost.UserId,
+                _existingPosts.Count - 1,
+                null,
+                CancellationToken.None
+            );
+
+            page.ContinuationToken.Should().NotBeNullOrEmpty();
+        }
+
+        [Fact]
+        public async Task Gets_All_When_Count_Greater()
+        {
+            var page = await Sut.GetForUser(
+                _existingPost.UserId,
+                _existingPosts.Count + 1,
+                null,
+                CancellationToken.None
+            );
+
+            page.Posts.Should().HaveCount(_existingPosts.Count);
+            page.ContinuationToken.Should().BeNullOrEmpty();
+        }
+
+        [Fact]
+        public async Task Gets_List_With_ContinuationToken_For_Next_Page()
+        {
+            var page = await Sut.GetForUser(_existingPost.UserId, 2, null, CancellationToken.None);
+
+            var next = await Sut.GetForUser(
+                _existingPost.UserId,
+                2,
+                page.ContinuationToken,
+                CancellationToken.None
+            );
+
+            next.Should().NotBeSameAs(page);
+            next.Posts.Should().HaveCount(2);
+            next.ContinuationToken.Should().NotBeNullOrEmpty();
         }
     }
 
@@ -113,9 +154,9 @@ public class PostQueryServiceTests : IClassFixture<DatabaseFixture>
         [Fact]
         public async Task Gets_Empty_List_For_User()
         {
-            var posts = await Sut.GetForUser(Guid.NewGuid(), CancellationToken.None);
+            var page = await Sut.GetForUser(Guid.NewGuid(), 10, null, CancellationToken.None);
 
-            posts.Should().BeEmpty();
+            page.Posts.Should().BeEmpty();
         }
     }
 }

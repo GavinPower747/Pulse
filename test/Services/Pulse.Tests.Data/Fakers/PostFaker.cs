@@ -1,7 +1,7 @@
 using Bogus;
 using Pulse.Posts.Domain;
 
-namespace Pulse.Posts.Tests.Data;
+namespace Pulse.Tests.Data.Fakers;
 
 internal class PostFaker : Faker<Post>
 {

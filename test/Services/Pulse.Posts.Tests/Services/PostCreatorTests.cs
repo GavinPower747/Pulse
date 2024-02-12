@@ -15,7 +15,7 @@ public class PostCreatorTests : IClassFixture<DatabaseFixture>
 
     public PostCreatorTests(DatabaseFixture databaseFixture)
     {
-        _sut = new PostCreator(databaseFixture.Connection, _messageBus, new DomainDtoMapper());
+        _sut = new PostCreator(databaseFixture.Posts, _messageBus, new DomainDtoMapper());
     }
 
     [Fact]

@@ -60,7 +60,7 @@ public class PostsModule : Module
     private static void UpdateDatabase(IServiceProvider serviceProvider)
     {
         var runner = serviceProvider.GetRequiredService<IMigrationRunner>();
-        runner.MigrateUp();
+        //runner.MigrateUp();
     }
 }
 

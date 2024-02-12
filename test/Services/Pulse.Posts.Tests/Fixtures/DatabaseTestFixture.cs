@@ -2,7 +2,9 @@ using System.Data;
 using Dapper;
 using FluentMigrator.Runner;
 using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Pulse.Posts.Data;
 using Pulse.Posts.Migrations;
 using Pulse.Posts.Tests.Data;
 
@@ -11,19 +13,17 @@ namespace Pulse.Posts.Tests.Fixtures;
 public class DatabaseFixture : IDisposable
 {
     public readonly string DatabaseId = Guid.NewGuid().ToString();
-    public IDbConnection Connection { get; init; }
+    internal PostsContext Posts { get; init; }
 
     private string ConnectionString => $"Data Source={DatabaseId};Mode=Memory;Cache=Shared";
 
     public DatabaseFixture()
     {
-        DefaultTypeMap.MatchNamesWithUnderscores = true;
-        SqlMapper.AddTypeHandler(typeof(Guid), new GuidTypeMapper());
-        SqlMapper.RemoveTypeMap(typeof(Guid));
-        SqlMapper.RemoveTypeMap(typeof(Guid?));
+        var options = new DbContextOptionsBuilder<PostsContext>()
+            .UseInMemoryDatabase(DatabaseId)
+            .Options;
 
-        Connection = new SqliteConnection(ConnectionString);
-        Connection.Open();
+        Posts = new PostsContext(options);
 
         using (var services = CreateServices())
         using (var scope = services.CreateScope())
@@ -35,8 +35,6 @@ public class DatabaseFixture : IDisposable
 
     public void Dispose()
     {
-        Connection.Dispose();
-
         using (var services = CreateServices())
         using (var scope = services.CreateScope())
         {

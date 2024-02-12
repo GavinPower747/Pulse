@@ -1,78 +1,148 @@
+using FluentAssertions;
+using NSubstitute;
 using Pulse.Timeline.Services;
+using StackExchange.Redis;
 
 namespace Pulse.Timeline.Tests;
 
 public class TimelineServiceTests
 {
-    public class Given_NewUser
+    private readonly IDatabase _redis;
+    private readonly TimelineService _timelineService;
+
+    public TimelineServiceTests()
     {
-        [Fact]
-        public async Task GetTimelinePage_ReturnsEmpty()
-        {
-            var service = new TimelineService();
-            var result = await service.GetTimelinePage(Guid.NewGuid(), null, 10);
-            Assert.Empty(result);
-        }
-
-        [Fact]
-        public async Task GetTimelinePage_ReturnsEmpty_WhenCursorIsNotNull()
-        {
-            var service = new TimelineService();
-            var result = await service.GetTimelinePage(Guid.NewGuid(), "cursor", 10);
-            Assert.Empty(result);
-        }
-
-        [Fact]
-        public async Task GetTimelinePage_ReturnsEmpty_WhenCountIsZero()
-        {
-            var service = new TimelineService();
-            var result = await service.GetTimelinePage(Guid.NewGuid(), null, 0);
-            Assert.Empty(result);
-        }
-
-        [Fact]
-        public async Task GetTimelinePage_ReturnsEmpty_WhenUserIdIsEmpty()
-        {
-            var service = new TimelineService();
-            var result = await service.GetTimelinePage(Guid.Empty, null, 10);
-            Assert.Empty(result);
-        }
+        _redis = Substitute.For<IDatabase>();
+        _timelineService = new TimelineService(_redis);
     }
 
-    public class Given_ExistingUser
+    [Fact]
+    public async Task GetTimelinePage_WhenUserIdIsEmpty_ReturnsEmptyList()
     {
-        private readonly Guid _userId;
-        private readonly List<Guid> _posts;
+        // Act
+        var result = await _timelineService.GetTimelinePage(Guid.Empty, "cursor", 5);
 
-        public Given_ExistingUser()
-        {
-            _userId = Guid.NewGuid();
-            _posts = Enumerable.Range(0, 10).Select(_ => Guid.NewGuid()).ToList();
-        }
+        // Assert
+        result.Should().BeEmpty();
+    }
 
-        [Fact]
-        public async Task GetTimelinePage_ReturnsPosts()
-        {
-            var service = new TimelineService();
-            var result = await service.GetTimelinePage(_userId, null, 10);
-            Assert.Equal(_posts, result);
-        }
+    [Fact]
+    public async Task GetTimelinePage_WhenCountIsZero_ReturnsEmptyList()
+    {
+        // Act
+        var result = await _timelineService.GetTimelinePage(Guid.NewGuid(), "cursor", 0);
 
-        [Fact]
-        public async Task GetTimelinePage_ReturnsPosts_WhenCursorIsNotNull()
-        {
-            var service = new TimelineService();
-            var result = await service.GetTimelinePage(_userId, null, 5);
-            var secondPage = await service.GetTimelinePage(_userId, result.Last().ToString(), 5);
-            Assert.Equal(_posts.Skip(5).Take(5), result);
-        }
+        // Assert
+        result.Should().BeEmpty();
+    }
 
-        [Fact]
-        public async Task GetTimelinePage_ReturnsEmpty_WhenCountIsZero()
-        {
-            var service = new TimelineService();
-            var result = await service.GetTimelinePage(_userId, null, 0);
-            Assert.Empty(result);
-        }
+    [Fact]
+    public async Task GetTimelinePage_WhenCursorIsNull_ReturnsCorrectPostIds()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var count = 5;
+
+        var expectedPostIds = Enumerable.Range(1, count).Select(i => Guid.NewGuid()).ToList();
+
+        var redisValues = expectedPostIds.Select(id => (RedisValue)$"post:{id}").ToArray();
+
+        _redis
+            .SortedSetRangeByRankAsync($"timeline:{userId}", 0, count, Order.Descending)
+            .Returns(redisValues);
+
+        // Act
+        var postIds = await _timelineService.GetTimelinePage(userId, null, count);
+
+        // Assert
+        postIds.Should().BeEquivalentTo(expectedPostIds);
+    }
+
+    [Fact]
+    public async Task GetTimelinePage_WhenCursorIsNotNull_ReturnsCorrectPostIds()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var cursor = "cursor";
+        var count = 5;
+
+        var expectedPostIds = Enumerable.Range(1, count).Select(i => Guid.NewGuid()).ToList();
+
+        var redisValues = expectedPostIds.Select(id => (RedisValue)$"post:{id}").ToArray();
+
+        _redis.SortedSetRank(userId.ToString(), cursor).Returns(0);
+        _redis
+            .SortedSetRangeByRankAsync($"timeline:{userId}", 1, count + 1, Order.Descending)
+            .Returns(redisValues);
+
+        // Act
+        var postIds = await _timelineService.GetTimelinePage(userId, cursor, count);
+
+        // Assert
+        postIds.Should().BeEquivalentTo(expectedPostIds);
+    }
+
+    [Fact]
+    public async Task GetTimelinePage_WhenSortedSetRankReturnsNonZeroRank_ReturnsCorrectPostIds()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var cursor = "cursor";
+        var count = 5;
+
+        var expectedPostIds = Enumerable.Range(1, count).Select(i => Guid.NewGuid()).ToList();
+
+        var redisValues = expectedPostIds.Select(id => (RedisValue)$"post:{id}").ToArray();
+
+        _redis.SortedSetRank(userId.ToString(), cursor).Returns(1);
+        _redis
+            .SortedSetRangeByRankAsync($"timeline:{userId}", 2, count + 2, Order.Descending)
+            .Returns(redisValues);
+
+        // Act
+        var postIds = await _timelineService.GetTimelinePage(userId, cursor, count);
+
+        // Assert
+        postIds.Should().BeEquivalentTo(expectedPostIds);
+    }
+
+    [Fact]
+    public async Task GetTimelinePage_WhenSortedSetRangeByRankAsyncReturnsEmptyArray_ReturnsEmptyList()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var cursor = "cursor";
+        var count = 5;
+
+        _redis.SortedSetRank(userId.ToString(), cursor).Returns(0);
+        _redis
+            .SortedSetRangeByRankAsync($"timeline:{userId}", 1, count + 1, Order.Descending)
+            .Returns(new RedisValue[0]);
+
+        // Act
+        var postIds = await _timelineService.GetTimelinePage(userId, cursor, count);
+
+        // Assert
+        postIds.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetTimelinePage_WhenSortedSetRangeByRankAsyncThrowsException_ReturnsEmptyList()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var cursor = "cursor";
+        var count = 5;
+
+        _redis.SortedSetRank(userId.ToString(), cursor).Returns(0);
+        _redis
+            .SortedSetRangeByRankAsync($"timeline:{userId}", 1, count + 1, Order.Descending)
+            .Returns(Task.FromException<RedisValue[]>(new Exception()));
+
+        // Act
+        var postIds = await _timelineService.GetTimelinePage(userId, cursor, count);
+
+        // Assert
+        postIds.Should().BeEmpty();
     }
 }

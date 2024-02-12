@@ -56,9 +56,11 @@ internal class PostQueryService(PostsContext connection, DomainDtoMapper mapper)
         var postsQuery = _connection.PostSet.Where(p => p.UserId == userId);
 
         if (token is not null)
-            postsQuery = postsQuery.Where(p => p.CreatedAt <= token.Value.OlderThan);
+            postsQuery = postsQuery.Where(p =>
+                p.CreatedAt >= token.Value.OlderThan && p.Id >= token.Value.LastRecord
+            );
 
-        postsQuery = postsQuery.OrderBy(p => p.CreatedAt).Take(pageSize + 1); // Take one extra to check if there are more pages
+        postsQuery = postsQuery.OrderBy(p => p.CreatedAt).ThenBy(x => x.Id).Take(pageSize + 1); // Take one extra to check if there are more pages
         var posts = await postsQuery.ToListAsync(cancellationToken);
 
         var postDtos = posts.Take(pageSize).Select(_mapper.MapToDisplayPost);
@@ -66,17 +68,18 @@ internal class PostQueryService(PostsContext connection, DomainDtoMapper mapper)
         string? newToken = null;
         if (posts.Count > pageSize)
         {
-            var lastPost = postsQuery.Last();
-            newToken = new ContinuationToken(lastPost.CreatedAt).ToString();
+            var overflowPost = posts.Last();
+            newToken = new ContinuationToken(overflowPost.CreatedAt, overflowPost.Id).ToString();
         }
 
         return new PostPage(postDtos, newToken);
     }
 
-    private readonly struct ContinuationToken(DateTime olderThan)
+    private readonly struct ContinuationToken(DateTime olderThan, Guid lastRecord)
     {
         // Continue from a specific datetime rather than skip/take in case a new post gets added between changes
         public DateTime OlderThan { get; } = olderThan;
+        public Guid LastRecord { get; } = lastRecord;
 
         public static ContinuationToken? Parse(string? token)
         {
@@ -87,12 +90,13 @@ internal class PostQueryService(PostsContext connection, DomainDtoMapper mapper)
             var decoded = Encoding.UTF8.GetString(unencoded);
             var split = decoded.Split('|');
 
-            return new ContinuationToken(DateTime.Parse(split[0]));
+            return new ContinuationToken(DateTime.Parse(split[0]), Guid.Parse(split[1]));
         }
 
         public override readonly string ToString()
         {
-            var encoded = Encoding.UTF8.GetBytes(OlderThan.ToString());
+            var separated = $"{OlderThan}|{LastRecord}";
+            var encoded = Encoding.UTF8.GetBytes(separated);
             var token = Base64UrlEncoder.Encode(encoded);
 
             return token;
