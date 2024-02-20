@@ -1,3 +1,4 @@
+using System.Reflection;
 using Autofac;
 using Autofac.Configuration;
 using Autofac.Extensions.DependencyInjection;
@@ -5,7 +6,7 @@ using MassTransit;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using Pulse.Timeline.Consumers;
+using Pulse.Timeline.Contracts.Commands;
 using Pulse.WebApp.Auth;
 using Pulse.WebApp.Client;
 using Pulse.WebApp.Features.Posts.API;
@@ -66,10 +67,11 @@ builder
 
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly())
+);
 builder.Services.AddMassTransit(cfg =>
 {
-    cfg.AddConsumer<PostCreatedConsumer>();
-
     cfg.UsingRabbitMq(
         (context, cfg) =>
         {

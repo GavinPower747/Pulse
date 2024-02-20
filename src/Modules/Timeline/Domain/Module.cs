@@ -14,17 +14,31 @@ public class TimelineModule : Module
     protected override void Load(ContainerBuilder builder)
     {
         builder.RegisterType<TimelineService>().As<ITimelineService>().SingleInstance();
-        builder.RegisterType<PostCreatedConsumer>().AsSelf().AsImplementedInterfaces();
-        builder.Register(cfg =>
-        {
-            var redis = ConnectionMultiplexer.Connect(Configuration.Redis.ConnectionString);
 
-            return redis.GetDatabase();
-        });
+        builder
+            .Register(cfg =>
+            {
+                var timelineCapacity = Configuration.TimelineCapacity;
+                var redis = cfg.Resolve<IDatabase>();
+
+                return new AddToTimelineConsumer(redis, timelineCapacity);
+            })
+            .As<AddToTimelineConsumer>()
+            .AsImplementedInterfaces();
+
+        builder
+            .Register(cfg =>
+            {
+                var redis = ConnectionMultiplexer.Connect(Configuration.Redis.ConnectionString);
+
+                return redis.GetDatabase();
+            })
+            .As<IDatabase>();
     }
 
     public class TimelineConfiguration
     {
+        public int TimelineCapacity { get; set; }
         public RedisConfiguration Redis { get; set; } = default!;
     }
 }
