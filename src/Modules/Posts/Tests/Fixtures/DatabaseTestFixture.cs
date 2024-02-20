@@ -1,12 +1,8 @@
-using System.Data;
-using Dapper;
 using FluentMigrator.Runner;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Pulse.Posts.Data;
 using Pulse.Posts.Migrations;
-using Pulse.Posts.Tests.Data;
 
 namespace Pulse.Posts.Tests.Fixtures;
 

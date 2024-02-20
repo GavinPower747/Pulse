@@ -23,11 +23,12 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Pulse.Posts.Tests" />
-    <InternalsVisibleTo Include="Pulse.Tests.Data"/>
+    <InternalsVisibleTo Include="Pulse.Tests.Data" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Pulse.Shared\Pulse.Shared.csproj" />
+    <ProjectReference Include="..\Contracts\Pulse.Posts.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Pulse.Shared\Pulse.Shared.csproj" />
   </ItemGroup>
 
 </Project>

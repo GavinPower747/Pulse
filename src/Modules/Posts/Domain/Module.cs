@@ -1,12 +1,9 @@
-using System.Data;
 using Autofac;
 using FluentMigrator.Runner;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql;
 using Pulse.Posts.Contracts;
 using Pulse.Posts.Data;
-using Pulse.Posts.Domain;
 using Pulse.Posts.Domain.Mapping;
 using Pulse.Posts.Services;
 
@@ -60,7 +57,7 @@ public class PostsModule : Module
     private static void UpdateDatabase(IServiceProvider serviceProvider)
     {
         var runner = serviceProvider.GetRequiredService<IMigrationRunner>();
-        //runner.MigrateUp();
+        runner.MigrateUp();
     }
 }
 

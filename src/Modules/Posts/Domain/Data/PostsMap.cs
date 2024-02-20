@@ -1,13 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Pulse.Posts.Domain;
 
 namespace Pulse.Posts.Data;
 
 internal class PostsMap : IEntityTypeConfiguration<Post>
 {
-    public void Configure(
-        Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<Post> builder
-    )
+    public void Configure(EntityTypeBuilder<Post> builder)
     {
         builder.ToTable("posts");
         builder.HasKey(p => p.Id);
@@ -19,5 +18,7 @@ internal class PostsMap : IEntityTypeConfiguration<Post>
         builder.Property(p => p.UpdatedAt).HasColumnName("updated_at").IsRequired(false);
         builder.Property(p => p.PublishedAt).HasColumnName("published_at").IsRequired(false);
         builder.Property(p => p.ScheduledAt).HasColumnName("scheduled_at").IsRequired(false);
+
+        builder.HasIndex(p => p.UserId);
     }
 }

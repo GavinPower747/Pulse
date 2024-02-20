@@ -27,6 +27,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Pulse.Timeline\Pulse.Timeline.csproj" />
     <ProjectReference Include="..\Pulse.Tests.Data\Pulse.Tests.Data.csproj" />
+    <ProjectReference Include="..\Domain\Pulse.Timeline.csproj" />
+    <ProjectReference Include="..\Contracts\Pulse.Timeline.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

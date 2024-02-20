@@ -4,8 +4,8 @@ using Pulse.Posts.Data;
 using Pulse.Posts.Domain;
 using Pulse.Posts.Domain.Mapping;
 using Pulse.Posts.Services;
+using Pulse.Posts.Tests.Fakers;
 using Pulse.Posts.Tests.Fixtures;
-using Pulse.Tests.Data.Fakers;
 
 namespace Pulse.Posts.Tests.Services;
 

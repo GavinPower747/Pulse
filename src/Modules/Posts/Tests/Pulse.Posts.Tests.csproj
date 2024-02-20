@@ -31,8 +31,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Pulse.Posts\Pulse.Posts.csproj" />
-    <ProjectReference Include="..\Pulse.Tests.Data\Pulse.Tests.Data.csproj" />
+    <ProjectReference Include="..\Domain\Pulse.Posts.csproj" />
+    <ProjectReference Include="..\Contracts\Pulse.Posts.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Pulse.Test.Data\Pulse.Tests.Data.csproj" />
   </ItemGroup>
 
 </Project>
