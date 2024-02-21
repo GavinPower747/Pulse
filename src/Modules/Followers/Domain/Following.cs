@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Pulse.Followers.Events;
 using Pulse.Shared.Domain;
 
@@ -25,6 +26,7 @@ internal class Following
 
     public DateTime CreatedAt { get; private set; }
 
+    [JsonIgnore]
     public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents;
 
     private readonly List<IDomainEvent> _domainEvents = [];

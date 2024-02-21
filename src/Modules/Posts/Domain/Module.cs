@@ -6,6 +6,8 @@ using Pulse.Posts.Contracts;
 using Pulse.Posts.Data;
 using Pulse.Posts.Domain.Mapping;
 using Pulse.Posts.Services;
+using Pulse.Shared.Data;
+using Pulse.Shared.Extensions;
 
 namespace Pulse.Posts;
 
@@ -18,46 +20,12 @@ public class PostsModule : Module
         builder.RegisterType<PostQueryService>().As<IPostQueryService>().SingleInstance();
         builder.RegisterType<PostCreator>().As<IPostCreator>().SingleInstance();
         builder.RegisterType<DomainDtoMapper>().AsSelf().SingleInstance();
-        builder.RegisterType<PostsContext>().InstancePerLifetimeScope();
-        builder
-            .Register<DbContextOptions<PostsContext>>(c =>
-            {
-                var optionsBuilder = new DbContextOptionsBuilder<PostsContext>();
-                optionsBuilder.UseNpgsql(Configuration.Database.ConnectionString);
-                return optionsBuilder.Options;
-            })
-            .InstancePerLifetimeScope();
+        builder.RegisterDbContext<PostsContext>(Configuration.Database.ConnectionString);
 
-        MigrateDatabase();
-    }
-
-    private void MigrateDatabase()
-    {
-        using (var serviceProvider = CreateServices())
-        using (var scope = serviceProvider.CreateScope())
-        {
-            UpdateDatabase(scope.ServiceProvider);
-        }
-    }
-
-    private ServiceProvider CreateServices()
-    {
-        return new ServiceCollection()
-            .AddFluentMigratorCore()
-            .ConfigureRunner(rb =>
-                rb.AddPostgres()
-                    .WithGlobalConnectionString(Configuration.Database.ConnectionString)
-                    .ScanIn(typeof(PostsModule).Assembly)
-                    .For.Migrations()
-            )
-            .AddLogging(lb => lb.AddFluentMigratorConsole())
-            .BuildServiceProvider(false);
-    }
-
-    private static void UpdateDatabase(IServiceProvider serviceProvider)
-    {
-        var runner = serviceProvider.GetRequiredService<IMigrationRunner>();
-        runner.MigrateUp();
+        DataJobs.MigrateDatabase(
+            Configuration.Database.ConnectionString,
+            typeof(PostsModule).Assembly
+        );
     }
 }
 

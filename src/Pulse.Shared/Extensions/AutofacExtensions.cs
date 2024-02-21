@@ -2,6 +2,7 @@
 using Autofac;
 using MediatR;
 using MediatR.Pipeline;
+using Microsoft.EntityFrameworkCore;
 
 namespace Pulse.Shared.Extensions;
 
@@ -28,5 +29,20 @@ public static class AutofacExtensions
             .RegisterAssemblyTypes(assembly)
             .AsClosedTypesOf(typeof(IRequestPostProcessor<,>))
             .AsImplementedInterfaces();
+    }
+
+    public static void RegisterDbContext<TContext>(
+        this ContainerBuilder builder,
+        string connectionString
+    )
+        where TContext : DbContext
+    {
+        builder.RegisterType<TContext>().InstancePerLifetimeScope();
+        builder.Register(c =>
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<TContext>();
+            optionsBuilder.UseNpgsql(connectionString);
+            return optionsBuilder.Options;
+        });
     }
 }

@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
-    <ProjectReference Include="..\Modules\Followers\Contracts\Pulse.Followers.Contracts.csproj" />
     <ProjectReference Include="..\Modules\Posts\Contracts\Pulse.Posts.Contracts.csproj" />
     <ProjectReference Include="..\Modules\Timeline\Contracts\Pulse.Timeline.Contracts.csproj" />
     <ProjectReference Include="..\Modules\Users\Contracts\Pulse.Users.Contracts.csproj" />
+    <ProjectReference Include="..\Modules\Followers\Contracts\Pulse.Followers.Contracts.csproj" />
     <ProjectReference Include="..\Modules\Posts\Domain\Pulse.Posts.csproj" />
     <ProjectReference Include="..\Modules\Followers\Domain\Pulse.Followers.csproj" />
     <ProjectReference Include="..\Modules\Timeline\Domain\Pulse.Timeline.csproj" />
@@ -15,9 +15,9 @@
     <PackageReference Include="Autofac" Version="8.0.0" />
     <PackageReference Include="Autofac.Configuration" Version="6.0.0" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="9.0.0" />
-    <PackageReference Include="FluentMigrator" Version="5.0.0" />
-    <PackageReference Include="FluentMigrator.Runner" Version="5.0.0" />
-    <PackageReference Include="FluentMigrator.Runner.Postgres" Version="5.0.0" />
+    <PackageReference Include="FluentMigrator" Version="5.1.0" />
+    <PackageReference Include="FluentMigrator.Runner" Version="5.1.0" />
+    <PackageReference Include="FluentMigrator.Runner.Postgres" Version="5.1.0" />
     <PackageReference Include="Mapster" Version="7.4.0" />
     <PackageReference Include="MassTransit" Version="8.1.3" />
     <PackageReference Include="MassTransit.RabbitMq" Version="8.1.3" />

@@ -6,9 +6,9 @@ using MassTransit;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using Pulse.Timeline.Contracts.Commands;
 using Pulse.WebApp.Auth;
 using Pulse.WebApp.Client;
+using Pulse.WebApp.Configuration;
 using Pulse.WebApp.Features.Posts.API;
 using Pulse.WebApp.Features.Posts.Mapping;
 
@@ -17,15 +17,15 @@ var config = builder.Configuration;
 
 // Use Autofac as a DI Container
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
-builder.Host.ConfigureContainer<ContainerBuilder>(builder =>
+builder.Host.ConfigureContainer<ContainerBuilder>(autofac =>
 {
     var module = new ConfigurationModule(config);
-    builder.RegisterModule(module);
+    autofac.RegisterModule(module);
 
-    builder.AddPostEndpoints();
+    autofac.AddPostEndpoints();
 
-    builder.RegisterType<PostMapper>().AsSelf().SingleInstance();
-    builder.RegisterType<IdentityProvider>().AsSelf().SingleInstance();
+    autofac.RegisterType<PostMapper>().AsSelf().SingleInstance();
+    autofac.RegisterType<IdentityProvider>().AsSelf().SingleInstance();
 });
 
 builder.Logging.AddJsonConsole();
@@ -70,8 +70,32 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly())
 );
+
 builder.Services.AddMassTransit(cfg =>
 {
+    var autofacModuleAssemblies = builder
+        .Configuration.GetSection("modules")
+        .Get<List<ModuleInfo>>();
+
+    var moduleAssemblies = autofacModuleAssemblies!
+        .Select(m => Type.GetType(m.Type)?.Assembly)
+        .ToList();
+
+    var consumerTypes = moduleAssemblies
+        .SelectMany(a => a!.GetTypes())
+        .Where(t =>
+            t.IsClass
+            && !t.IsAbstract
+            && t.GetInterfaces()
+                .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IConsumer<>))
+        )
+        .ToList();
+
+    foreach (var type in consumerTypes)
+    {
+        cfg.AddConsumer(type);
+    }
+
     cfg.UsingRabbitMq(
         (context, cfg) =>
         {
