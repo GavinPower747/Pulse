@@ -1,5 +1,7 @@
 ﻿using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Pulse.Followers.Data;
+using Pulse.Followers.Domain;
 using Pulse.Posts.Contracts.Messages;
 using Pulse.Timeline.Contracts.Commands;
 
@@ -14,7 +16,12 @@ internal class PostCreatedConsumer(FollowingContext dbContext, IBus messageBus)
     public async Task Consume(ConsumeContext<PostCreatedEvent> context)
     {
         var followingId = context.Message.UserId;
-        var followers = _dbContext.Followings.Where(f => f.FollowingId == followingId);
+        var followers = await _dbContext
+            .Followings.Where(f => f.FollowingId == followingId)
+            .ToListAsync();
+
+        //Ensure we add the users post to their own timeline.
+        followers.Add(new Following(followingId, followingId));
 
         foreach (var follower in followers)
         {
@@ -24,7 +31,7 @@ internal class PostCreatedConsumer(FollowingContext dbContext, IBus messageBus)
                 context.Message.Created
             );
 
-            await _messageBus.Send(command);
+            await _messageBus.Publish(command);
         }
     }
 }
