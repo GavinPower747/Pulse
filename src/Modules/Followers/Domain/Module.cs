@@ -1,5 +1,4 @@
 ﻿using Autofac;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Pulse.Followers.Api.Endpoints;
 using Pulse.Followers.Data;
 using Pulse.Followers.Domain.Services;
@@ -26,7 +25,7 @@ public class FollowersModule : Module
         RegisterEndpoints(builder);
     }
 
-    private void RegisterEndpoints(ContainerBuilder builder)
+    private static void RegisterEndpoints(ContainerBuilder builder)
     {
         builder.RegisterType<AddFollowerEndpoint>().AsSelf().SingleInstance();
         builder.RegisterType<RemoveFollowerEndpoint>().AsSelf().SingleInstance();

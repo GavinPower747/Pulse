@@ -29,6 +29,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Contracts\Pulse.Posts.Contracts.csproj" />
     <ProjectReference Include="..\..\..\Pulse.Shared\Pulse.Shared.csproj" />
+    <ProjectReference Include="..\..\Followers\Contracts\Pulse.Followers.Contracts.csproj" />
+    <ProjectReference Include="..\..\Timeline\Contracts\Pulse.Timeline.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

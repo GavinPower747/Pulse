@@ -9,11 +9,6 @@ namespace Pulse.Followers.Domain;
 internal class Following : Entity
 {
     /// <summary>
-    /// The Id of the relationship
-    /// </summary>
-    public Guid Id { get; private set; }
-
-    /// <summary>
     /// The user who created the following relationship
     /// </summary>
     public Guid UserId { get; private set; }
@@ -25,9 +20,8 @@ internal class Following : Entity
 
     public DateTime CreatedAt { get; private set; }
 
-    public Following(Guid id, Guid userId, Guid followingId, DateTime createdAt)
+    public Following(Guid userId, Guid followingId, DateTime createdAt)
     {
-        Id = id;
         UserId = userId;
         FollowingId = followingId;
         CreatedAt = createdAt;
@@ -35,7 +29,6 @@ internal class Following : Entity
 
     public Following(Guid userId, Guid followingId)
     {
-        Id = Guid.NewGuid();
         UserId = userId;
         FollowingId = followingId;
         CreatedAt = DateTime.UtcNow;

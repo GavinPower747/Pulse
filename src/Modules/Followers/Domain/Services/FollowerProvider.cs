@@ -1,16 +1,15 @@
-﻿using MassTransit;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Pulse.Followers.Contracts.Services;
 using Pulse.Followers.Data;
 
 namespace Pulse.Followers.Domain.Services;
 
-internal class FollowerProvider(FollowingContext dbContext, ILogger logger, IBus bus)
+internal class FollowerProvider(FollowingContext dbContext, ILoggerFactory loggerFactory)
     : IFollowerProvider
 {
     private readonly FollowingContext _dbContext = dbContext;
-    private readonly ILogger _logger = logger;
+    private readonly ILogger<FollowerProvider> _logger = loggerFactory.CreateLogger<FollowerProvider>();
 
     public async Task Follow(Guid userId, Guid followerId, CancellationToken cancellationToken)
     {
