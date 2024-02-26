@@ -5,6 +5,7 @@
     <ProjectReference Include="..\..\..\Pulse.Shared\Pulse.Shared.csproj" />
     <ProjectReference Include="..\..\Posts\Contracts\Pulse.Posts.Contracts.csproj" />
     <ProjectReference Include="..\..\Timeline\Contracts\Pulse.Timeline.Contracts.csproj" />
+    <ProjectReference Include="..\UI\Pulse.Followers.UI.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -12,6 +13,8 @@
     <PackageReference Include="FluentMigrator" Version="5.1.0" />
     <PackageReference Include="MassTransit" Version="8.1.3" />
     <PackageReference Include="Mediatr" Version="12.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.2" />
     <PackageReference Include="Npgsql" Version="8.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.2" />

@@ -9,15 +9,16 @@ public class AddFollowersTable : Migration
     {
         Create
             .Table("followings")
-            .WithColumn("id")
-            .AsGuid()
-            .PrimaryKey()
             .WithColumn("user_id")
             .AsGuid()
+            .NotNullable()
             .WithColumn("following_id")
             .AsGuid()
+            .NotNullable()
             .WithColumn("created_at")
             .AsDateTime();
+
+        Create.PrimaryKey("pk_followings").OnTable("followings").Columns("user_id", "following_id");
 
         Create.Index("ix_followings_user_id").OnTable("followings").OnColumn("user_id");
         Create.Index("ix_followings_following_id").OnTable("followings").OnColumn("following_id");

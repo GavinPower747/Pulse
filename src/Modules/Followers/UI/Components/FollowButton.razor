@@ -1,0 +1,19 @@
+@code {
+    [Parameter] public bool IsFollowing = false;
+    [Parameter] public string UserId { get; set; } = string.Empty;
+
+    private string GetButtonClass() => IsFollowing ? "bg-slate-900 text-white" : "bg-white text-slate-900";
+    private string GetButtonText() => IsFollowing ? "Unfollow" : "Follow";
+
+    private string htmxAttribute => IsFollowing ? $"hx-delete={RequestUrl}" : $"hx-post={RequestUrl}";
+    private string RequestUrl => $"/api/user/{UserId}/followers";
+}
+
+<div>
+    <button
+        @htmxAttribute
+        hx-swap="outerHTML"
+        class="inline-flex items-center font-bold rounded-full border px-4 py-2 text-sm border-transparent disabled:opacity-50 transition-opacity duration-200 @GetButtonClass()">
+        @GetButtonText()
+    </button>
+</div>

@@ -7,15 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Domain/" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Autofac" Version="8.0.0" />
     <PackageReference Include="FluentMigrator" Version="5.1.0" />
     <PackageReference Include="FluentMigrator.Runner" Version="5.1.0" />
     <PackageReference Include="FluentMigrator.Runner.Postgres" Version="5.1.0" />
     <PackageReference Include="Mediatr" Version="12.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.2" />
   </ItemGroup>

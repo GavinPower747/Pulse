@@ -1,4 +1,6 @@
 ﻿using Autofac;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
+using Pulse.Followers.Api.Endpoints;
 using Pulse.Followers.Data;
 using Pulse.Followers.Domain.Services;
 using Pulse.Shared.Data;
@@ -20,6 +22,14 @@ public class FollowersModule : Module
             Configuration.Database.ConnectionString,
             typeof(FollowersModule).Assembly
         );
+
+        RegisterEndpoints(builder);
+    }
+
+    private void RegisterEndpoints(ContainerBuilder builder)
+    {
+        builder.RegisterType<AddFollowerEndpoint>().AsSelf().SingleInstance();
+        builder.RegisterType<RemoveFollowerEndpoint>().AsSelf().SingleInstance();
     }
 }
 

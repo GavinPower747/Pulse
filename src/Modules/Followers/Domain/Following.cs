@@ -1,13 +1,12 @@
-using System.Text.Json.Serialization;
 using Pulse.Followers.Events;
-using Pulse.Shared.Domain;
+using Pulse.Shared;
 
 namespace Pulse.Followers.Domain;
 
 /// <summary>
 /// A domain object that represents a following relationship between two users.
 /// </summary>
-internal class Following
+internal class Following : Entity
 {
     /// <summary>
     /// The Id of the relationship
@@ -26,11 +25,6 @@ internal class Following
 
     public DateTime CreatedAt { get; private set; }
 
-    [JsonIgnore]
-    public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents;
-
-    private readonly List<IDomainEvent> _domainEvents = [];
-
     public Following(Guid id, Guid userId, Guid followingId, DateTime createdAt)
     {
         Id = id;
@@ -46,6 +40,6 @@ internal class Following
         FollowingId = followingId;
         CreatedAt = DateTime.UtcNow;
 
-        _domainEvents.Add(new FollowingCreatedEvent(UserId, FollowingId));
+        AddDomainEvent(new FollowingCreatedEvent(UserId, FollowingId));
     }
 }
