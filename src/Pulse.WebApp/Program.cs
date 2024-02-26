@@ -6,7 +6,8 @@ using MassTransit;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using Pulse.WebApp.Auth;
+using Pulse.Followers;
+using Pulse.Shared.Auth;
 using Pulse.WebApp.Client;
 using Pulse.WebApp.Configuration;
 using Pulse.WebApp.Features.Posts.API;
@@ -117,6 +118,7 @@ builder.Services.AddMassTransit(cfg =>
 var app = builder.Build();
 
 app.MapPostRoutes();
+app.MapFollowerRoutes();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
