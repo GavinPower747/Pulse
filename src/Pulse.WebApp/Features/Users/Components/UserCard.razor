@@ -1,5 +1,7 @@
-@using Pulse.WebApp.Client.Components
+@using Pulse.Shared.UI.Components
+@using Pulse.Followers.UI.Components
 @code {
+    [Parameter] public Guid? UserId { get; set; } = Guid.Empty;
     [Parameter] public required string Name { get; set; }
     [Parameter] public required string Username { get; set; }
     [Parameter] public required string Description { get; set; }
@@ -14,7 +16,10 @@
 <div class="w-full flex flex-col gap-y-2 p-4 border-b border-slate-200" @attributes="AdditionalAttributes">
 	<div class="flex justify-between items-start">
 		<Avatar src="@ProfilePictureUrl" alt="@Name" initials="@initials" />
-        <FollowButton />
+        @if(UserId is null || UserId != Guid.Empty)
+        {
+            <FollowButton UserId="@UserId" />
+        }
     </div>
 	<div class="mb-2">
         <div class="text-base font-semibold leading-none">@Name</div>

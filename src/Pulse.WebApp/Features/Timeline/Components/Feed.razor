@@ -1,10 +1,11 @@
-@using Pulse.WebApp.Client.Components
+@using Pulse.Shared.UI.Components
+@using Pulse.WebApp.Features.Posts.Components
 @using Pulse.WebApp.Features.Posts.Models
 @using Pulse.WebApp.Features.Posts.Mapping
 @using Pulse.Posts.Contracts
 @using Pulse.Timeline.Contracts
 @using Pulse.Users.Contracts
-@using Pulse.WebApp.Auth
+@using Pulse.Shared.Auth
 @using Microsoft.AspNetCore.Authorization
 
 @attribute [Authorize]
@@ -18,6 +19,7 @@
 @code {
     private IEnumerable<PostViewModel> FirstPage { get; set; } = new List<PostViewModel>();
     private string ContinuationToken { get; set; } = string.Empty;
+    private bool IsEmpty => !FirstPage.Any();
 
     protected override async Task OnInitializedAsync()
     {
@@ -36,13 +38,18 @@
             : string.Empty;
 }
 
-<div x-data="{ isEmpty: @FirstPage.Any().ToString().ToLower() }" x-on:pulse:post-created="isEmpty = false" id="user-feed" class="[&_p:last-child]:text-slate-500 [&_p:first-child]:text-lg divide-y divide-slate-200">
+<div x-data="{ isEmpty: @IsEmpty.ToString().ToLower() }" x-on:pulse:post-created="isEmpty = false" id="user-feed" class="[&_p:last-child]:text-slate-500 [&_p:first-child]:text-lg divide-y divide-slate-200">
     @if (FirstPage.Any())
     {
         <InfinitelyScrollingFeedPage 
-            EagerPosts="@FirstPage.ToList()" 
+            EagerItems="@FirstPage.ToList()" 
             ContinuationUrl="@GetContinuationUrl()" 
-            FeedElementSelector="#user-feed"  />
+            FeedElementSelector="#user-feed"
+            Context="post">
+            <ItemTemplate>
+                <Post CurrentPost="@post"/>
+            </ItemTemplate>    
+        </InfinitelyScrollingFeedPage>
     }
     
     <div x-show="isEmpty" class="text-center text-slate-500 text-lg p-8">

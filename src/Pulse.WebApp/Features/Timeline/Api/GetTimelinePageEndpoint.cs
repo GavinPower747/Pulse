@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Pulse.Posts.Contracts;
 using Pulse.Timeline.Contracts;
 using Pulse.Users.Contracts;
-using Pulse.WebApp.Auth;
+using Pulse.Shared.Auth;
 using Pulse.WebApp.Features.Posts.Mapping;
 using Pulse.WebApp.Features.Timeline.Components;
 

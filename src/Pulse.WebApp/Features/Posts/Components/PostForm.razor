@@ -1,5 +1,5 @@
-@using Pulse.WebApp.Auth
-@using Pulse.WebApp.Client.Components
+@using Pulse.Shared.Auth
+@using Pulse.Shared.UI.Components
 @using Microsoft.AspNetCore.Antiforgery
 @using Microsoft.AspNetCore.Components.Forms
 @attribute [RequireAntiforgeryToken]
@@ -7,7 +7,7 @@
 @inject IdentityProvider IdentityProvider
 
 @code {
-    private CurrentUser _user;
+    private CurrentUser? _user;
 
     protected override void OnInitialized()
     {
@@ -16,7 +16,7 @@
 }
 
 <div class="flex flex-1 gap-x-2 p-4 border-b border-slate-200">
-    <Avatar src="@_user.ProfilePictureUrl" alt="@_user.DisplayName" initials="@_user.Initials" />
+    <Avatar src="@_user?.ProfilePictureUrl" alt="@_user?.DisplayName" initials="@_user?.Initials" />
     <form 
         class="flex flex-col flex-1 gap-y-4" 
         hx-post="/api/post" 

@@ -1,26 +1,50 @@
 @page "/u/{username}"
 @using Pulse.Users.Contracts
 @using Pulse.Posts.Contracts
+@using Pulse.Shared.Auth
+@using Pulse.Shared.UI.Components
+@using Pulse.Followers.Contracts.Services
+@using Pulse.Followers.UI.Components
 @using Pulse.WebApp.Features.Posts.Models
 @using Pulse.WebApp.Features.Posts.Mapping
+@using Pulse.WebApp.Features.Posts.Components
 @using Pulse.WebApp.Features.Users.Components
 
 @inject IUserQueries UserQueries
+@inject IFollowerProvider FollowerProvider
 @inject IPostQueryService PostQueries
+@inject IdentityProvider IdentityProvider
 @inject PostMapper PostMapper
 
 @code {
     [Parameter] public required string Username { get; set; }
 
+    private CurrentUser currentUser => IdentityProvider.GetCurrentUser();
     private User? user;
+    private bool isFollowing;
+    private bool isViewingOwnProfile => Username == currentUser.UserName;
     private List<PostViewModel> firstPage = new List<PostViewModel>();
     private string continuationToken = string.Empty;
-    private string continuationUrl => $"/api/user/{user?.Id}/posts?continuationToken={continuationToken}";
+    private string continuationUrl => !string.IsNullOrWhiteSpace(continuationToken) 
+        ? $"/api/user/{user?.Id}/posts?continuationToken={continuationToken}"
+        : string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        user = await UserQueries.GetUser(Username);
+        // If we're viewing our own profile, save on the remote call and use the token.
+        if(!isViewingOwnProfile)
+        {
+            user = await UserQueries.GetUser(Username);
+        }
+        else
+        {
+            user = new User(currentUser.Id, currentUser.UserName, string.Empty, currentUser.DisplayName);
+        }
+
         var (posts, continuationToken) = await PostQueries.GetForUser(user.Id, 50, null, CancellationToken.None);
+
+        if(!isViewingOwnProfile)       
+            isFollowing = await FollowerProvider.IsFollowing(currentUser.Id, user.Id, CancellationToken.None);
 
         firstPage = posts.Select(x => PostMapper.MapToViewModel(x, user)).ToList();
     }
@@ -46,15 +70,24 @@
                 x-transition:leave="transition ease-in duration-300" 
                 x-transition:leave-start="opacity-100" 
                 x-transition:leave-end="opacity-0">
-                <FollowButton />
+                @if(!isViewingOwnProfile)
+                {
+                    <FollowButton UserId="@user?.Id" IsFollowing="@isFollowing"/>
+                }
             </div>
         </div>
     </Header>
-    <UserCard x-ref="userCard" Name="@user?.DisplayName" Username="@Username" Description="This is a sub heading" Followers="1000" Following="1999" ProfilePictureUrl="@string.Empty"/>
+    <UserCard x-ref="userCard" UserId="@user?.Id" Name="@user?.DisplayName" Username="@Username" IsFollowing="@isFollowing" Description="This is a sub heading" Followers="1000" Following="1999" ProfilePictureUrl="@string.Empty"/>
     <div id="user-feed"  class="[&_p:last-child]:text-slate-500 [&_p:first-child]:text-lg divide-y divide-slate-200">
         <InfinitelyScrollingFeedPage 
-            EagerPosts="@firstPage" 
+            EagerItems="@firstPage" 
             ContinuationUrl="@continuationUrl" 
-            FeedElementSelector="#user-posts" />
+            FeedElementSelector="#user-posts"
+            Context="post">
+
+            <ItemTemplate>
+                <Post CurrentPost="@post"/>
+            </ItemTemplate>
+        </InfinitelyScrollingFeedPage>
     </div>
 </main>
