@@ -9,7 +9,7 @@ services:
     environment:
       RabbitMQ__Host: rabbitmq
       Authentication__Authority: http://host.docker.internal/realms/Pulse
-      modules__0__properties__Configuration__Database__ConnectionString: Server=host.docker.internal;Port=5432;Database=pulseposts;User Id=postgres;Password=postgres;"
+      modules__0__properties__Configuration__Database__ConnectionString: Server=host.docker.internal;Port=5432;Database=pulseposts;User Id=postgres;Password=postgres;
       modules__1__properties__Configuration__Redis__ConnectionString: host.docker.internal:6379
       modules__2__properties__Configuration__Keycloak__ApiBase: http://host.docker.internal:8080
       modules__3__properties__Configuration__Database__ConnectionString: Server=host.docker.internal;Port=5432;Database=pulsefollowers;User Id=postgres;Password=postgres;
