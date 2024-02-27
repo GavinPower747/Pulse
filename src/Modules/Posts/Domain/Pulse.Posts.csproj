@@ -23,7 +23,6 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Pulse.Posts.Tests" />
-    <InternalsVisibleTo Include="Pulse.Tests.Data" />
   </ItemGroup>
 
   <ItemGroup>

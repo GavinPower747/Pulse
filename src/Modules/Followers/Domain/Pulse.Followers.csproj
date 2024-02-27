@@ -5,6 +5,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Pulse.Followers.Test"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Contracts\Pulse.Followers.Contracts.csproj" />
     <ProjectReference Include="..\..\..\Pulse.Shared\Pulse.Shared.csproj" />
     <ProjectReference Include="..\..\Posts\Contracts\Pulse.Posts.Contracts.csproj" />
