@@ -9,7 +9,8 @@ internal class FollowerProvider(FollowingContext dbContext, ILoggerFactory logge
     : IFollowerProvider
 {
     private readonly FollowingContext _dbContext = dbContext;
-    private readonly ILogger<FollowerProvider> _logger = loggerFactory.CreateLogger<FollowerProvider>();
+    private readonly ILogger<FollowerProvider> _logger =
+        loggerFactory.CreateLogger<FollowerProvider>();
 
     public async Task Follow(Guid userId, Guid followerId, CancellationToken cancellationToken)
     {
@@ -90,9 +91,8 @@ internal class FollowerProvider(FollowingContext dbContext, ILoggerFactory logge
     )
     {
         var following = await _dbContext.Followings.FindAsync(
-            userId,
-            followerId,
-            cancellationToken
+            [userId, followerId],
+            cancellationToken: cancellationToken
         );
 
         return following is not null;

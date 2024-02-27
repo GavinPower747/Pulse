@@ -26,7 +26,6 @@ builder.Host.ConfigureContainer<ContainerBuilder>(autofac =>
     autofac.AddPostEndpoints();
 
     autofac.RegisterType<PostMapper>().AsSelf().SingleInstance();
-    autofac.RegisterType<IdentityProvider>().AsSelf().SingleInstance();
 });
 
 builder.Logging.AddJsonConsole();
@@ -34,6 +33,7 @@ builder.Logging.AddJsonConsole();
 // Add services to the container.
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddHttpClient();
+builder.Services.AddTransient<IdentityProvider>();
 
 builder
     .Services.AddAuthentication(opt =>
@@ -69,8 +69,17 @@ builder
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly())
-);
+{
+    var autofacModuleAssemblies = builder
+        .Configuration.GetSection("modules")
+        .Get<List<ModuleInfo>>();
+
+    var moduleAssemblies = autofacModuleAssemblies!
+        .Select(m => Type.GetType(m.Type)?.Assembly)
+        .ToArray();
+
+    cfg.RegisterServicesFromAssemblies(moduleAssemblies!);
+});
 
 builder.Services.AddMassTransit(cfg =>
 {

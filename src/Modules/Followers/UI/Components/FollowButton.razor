@@ -1,30 +1,45 @@
+@using Pulse.Followers.Contracts.Services
+@using Pulse.Shared.Auth
+
+@inject IFollowerProvider FollowerProvider
+@inject IdentityProvider IdentityService
+
 @code {
     [Parameter] public bool IsFollowing { get; set; } = false;
     [Parameter] public Guid? UserId { get; set; } = Guid.Empty;
 
-    private string GetButtonClass() => IsFollowing ? "bg-slate-900 text-white" : "bg-white text-slate-900";
-    private string GetButtonText() => IsFollowing ? "Unfollow" : "Follow";
-
-    private string htmxMethod => IsFollowing ? "hx-delete" : "hx-post";
     private string RequestUrl => $"/api/user/{UserId}/followers";
 
-    private Dictionary<string, object> requestAttributes = [];
-
-    protected override void OnInitialized()
+    protected async override Task OnInitializedAsync()
     {
-        requestAttributes.Add(htmxMethod, RequestUrl);     
+        var currentUser = IdentityService.GetCurrentUser();
+        IsFollowing = await FollowerProvider.IsFollowing(currentUser!.Id, UserId.GetValueOrDefault(), CancellationToken.None);
     }
 }
 
 <div>
-    <button
-        hx-swap="outerHTML"
-        hx-trigger="click"
-        hx-boost="true"
-        class="inline-flex items-center font-bold rounded-full border px-4 py-2 text-sm border-transparent disabled:opacity-50 transition-opacity duration-200 @GetButtonClass()"
-        @attributes="@requestAttributes">
-        @GetButtonText()
-        @UserId
-        
-    </button>
+    @if(IsFollowing)
+    {
+        <button
+            hx-swap="outerHTML"
+            hx-trigger="click"
+            hx-boost="true"
+            class="inline-flex items-center font-bold rounded-full border px-4 py-2 text-sm border-transparent bg-slate-900 text-white disabled:opacity-50 transition-opacity duration-200"
+            hx-delete="/api/user/@UserId/followers"
+            >
+            Unfollow
+        </button>
+    }
+    else
+    {
+        <button
+            hx-swap="outerHTML"
+            hx-trigger="click"
+            hx-boost="true"
+            class="inline-flex items-center font-bold rounded-full border px-4 py-2 text-sm border-transparent bg-white text-slate-900 disabled:opacity-50 transition-opacity duration-200"
+            hx-post="/api/user/@UserId/followers"
+            >
+            Follow
+        </button>
+    }
 </div>

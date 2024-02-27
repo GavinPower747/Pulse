@@ -61,6 +61,8 @@
       }"
     class="col-span-5 w-full border-x border-slate-200">
     <Header Title="@user?.DisplayName" ShowBackButton="true">
+        @if(!isViewingOwnProfile)
+        {
         <div class="w-full">
             <div class="float-end"
                 x-show="!userCardInView" 
@@ -70,12 +72,10 @@
                 x-transition:leave="transition ease-in duration-300" 
                 x-transition:leave-start="opacity-100" 
                 x-transition:leave-end="opacity-0">
-                @if(!isViewingOwnProfile)
-                {
                     <FollowButton UserId="@user?.Id" IsFollowing="@isFollowing"/>
-                }
             </div>
         </div>
+        }
     </Header>
     <UserCard x-ref="userCard" UserId="@user?.Id" Name="@user?.DisplayName" Username="@Username" IsFollowing="@isFollowing" Description="This is a sub heading" Followers="1000" Following="1999" ProfilePictureUrl="@string.Empty"/>
     <div id="user-feed"  class="[&_p:last-child]:text-slate-500 [&_p:first-child]:text-lg divide-y divide-slate-200">

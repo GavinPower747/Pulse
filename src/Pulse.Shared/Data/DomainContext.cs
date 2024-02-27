@@ -17,12 +17,13 @@ public class DomainContext(DbContextOptions options, IMediator mediator) : DbCon
         domainEntities.ForEach(entity =>
         {
             var events = entity.Entity.DomainEvents;
-            entity.Entity.ClearDomainEvents();
 
             foreach (var domainEvent in events)
             {
                 _mediator.Publish(domainEvent);
             }
+
+            entity.Entity.ClearDomainEvents();
         });
 
         return base.SaveChangesAsync(cancellationToken);

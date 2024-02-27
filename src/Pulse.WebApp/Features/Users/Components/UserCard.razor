@@ -16,7 +16,7 @@
 <div class="w-full flex flex-col gap-y-2 p-4 border-b border-slate-200" @attributes="AdditionalAttributes">
 	<div class="flex justify-between items-start">
 		<Avatar src="@ProfilePictureUrl" alt="@Name" initials="@initials" />
-        @if(UserId is null || UserId != Guid.Empty)
+        @if(UserId is not null && UserId != Guid.Empty)
         {
             <FollowButton UserId="@UserId" />
         }

@@ -1,11 +1,10 @@
-
 using Microsoft.AspNetCore.Http;
 
 namespace Pulse.Shared.Auth;
 
 public class IdentityProvider(IHttpContextAccessor httpContextAccessor)
 {
-    private readonly CurrentUser? _currentUser = new(httpContextAccessor.HttpContext);
+    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
-    public CurrentUser? GetCurrentUser() => _currentUser;
+    public CurrentUser? GetCurrentUser() => new(_httpContextAccessor.HttpContext);
 }
