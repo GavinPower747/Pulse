@@ -1,6 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-    content: ["./**/*.{razor,cshtml,html}"],
-    theme: {},
-    plugins: [],
-  }
+  content:
+  {
+    relative: true,
+    files: [
+      "./**/*.{razor,cshtml,html}",
+      "../Modules/**/*.{razor,cshtml,html}",
+      "../Pulse.Shared.UI/**/*.{razor,cshtml,html}"
+    ],
+  },
+  theme: {},
+  plugins: [],
+}
