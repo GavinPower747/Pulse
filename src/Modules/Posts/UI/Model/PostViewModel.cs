@@ -1,4 +1,4 @@
-namespace Pulse.WebApp.Features.Posts.Models;
+namespace Pulse.Posts.UI.Models;
 
 public class PostViewModel
 {
@@ -13,5 +13,7 @@ public class PostViewModel
     public string? Username { get; set; }
     public string? AvatarUrl { get; set; }
 
-    public string GetUserInitials() => DisplayName?.Split(' ').Select(x => x[0]).Aggregate(string.Empty, (x, y) => x + y) ?? string.Empty;
+    public string GetUserInitials() =>
+        DisplayName?.Split(' ').Select(x => x[0]).Aggregate(string.Empty, (x, y) => x + y)
+        ?? string.Empty;
 }

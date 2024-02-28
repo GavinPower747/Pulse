@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Pulse.Shared\Pulse.Shared.csproj" />
+    <ProjectReference Include="..\..\..\Pulse.Shared.UI\Pulse.Shared.UI.csproj" />
+    <ProjectReference Include="..\..\Posts\UI\Pulse.Posts.UI.csproj" />
+    <ProjectReference Include="..\Contracts\Pulse.Timeline.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

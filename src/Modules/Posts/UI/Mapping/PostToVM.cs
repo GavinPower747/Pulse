@@ -1,9 +1,9 @@
 using Mapster;
 using Pulse.Posts.Contracts;
+using Pulse.Posts.UI.Models;
 using Pulse.Users.Contracts;
-using Pulse.WebApp.Features.Posts.Models;
 
-namespace Pulse.WebApp.Features.Posts.Mapping;
+namespace Pulse.Posts.UI.Mapping;
 
 public class MappingConfig
 {

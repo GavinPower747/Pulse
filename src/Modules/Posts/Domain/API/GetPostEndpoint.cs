@@ -1,6 +1,7 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Pulse.Posts.Contracts;
-using Pulse.WebApp.Features.Posts.Components;
+using Pulse.Posts.UI.Components;
 
 namespace Pulse.WebApp.Features.Posts.API;
 

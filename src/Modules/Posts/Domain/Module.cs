@@ -1,13 +1,12 @@
 using Autofac;
-using FluentMigrator.Runner;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Pulse.Posts.Contracts;
 using Pulse.Posts.Data;
 using Pulse.Posts.Domain.Mapping;
 using Pulse.Posts.Services;
+using Pulse.Posts.UI.Mapping;
 using Pulse.Shared.Data;
 using Pulse.Shared.Extensions;
+using Pulse.WebApp.Features.Posts.API;
 
 namespace Pulse.Posts;
 
@@ -21,11 +20,14 @@ public class PostsModule : Module
         builder.RegisterType<PostCreator>().As<IPostCreator>().SingleInstance();
         builder.RegisterType<DomainDtoMapper>().AsSelf().SingleInstance();
         builder.RegisterDbContext<PostsContext>(Configuration.Database.ConnectionString);
+        builder.RegisterType<PostMapper>().AsSelf();
 
         DataJobs.MigrateDatabase(
             Configuration.Database.ConnectionString,
             typeof(PostsModule).Assembly
         );
+
+        builder.AddPostEndpoints();
     }
 }
 

@@ -1,10 +1,13 @@
 using Autofac;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Pulse.WebApp.Features.Posts.API.Create;
 
 namespace Pulse.WebApp.Features.Posts.API;
 
-internal static class Routes
+public static class Routes
 {
     public static RouteGroupBuilder MapPostRoutes(this IEndpointRouteBuilder endpoints)
     {

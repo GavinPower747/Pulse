@@ -1,4 +1,3 @@
-using System.Reflection;
 using Autofac;
 using Autofac.Configuration;
 using Autofac.Extensions.DependencyInjection;
@@ -8,10 +7,10 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Pulse.Followers;
 using Pulse.Shared.Auth;
+using Pulse.Timeline;
 using Pulse.WebApp.Client;
 using Pulse.WebApp.Configuration;
 using Pulse.WebApp.Features.Posts.API;
-using Pulse.WebApp.Features.Posts.Mapping;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -22,10 +21,6 @@ builder.Host.ConfigureContainer<ContainerBuilder>(autofac =>
 {
     var module = new ConfigurationModule(config);
     autofac.RegisterModule(module);
-
-    autofac.AddPostEndpoints();
-
-    autofac.RegisterType<PostMapper>().AsSelf().SingleInstance();
 });
 
 builder.Logging.AddJsonConsole();
@@ -128,6 +123,7 @@ var app = builder.Build();
 
 app.MapPostRoutes();
 app.MapFollowerRoutes();
+app.MapTimelineRoutes();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

@@ -1,10 +1,11 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Pulse.Posts.Contracts;
-using Pulse.Timeline.Contracts;
-using Pulse.Users.Contracts;
+using Pulse.Posts.UI.Mapping;
 using Pulse.Shared.Auth;
-using Pulse.WebApp.Features.Posts.Mapping;
-using Pulse.WebApp.Features.Timeline.Components;
+using Pulse.Timeline.Contracts;
+using Pulse.Timeline.UI.Components;
+using Pulse.Users.Contracts;
 
 namespace Pulse.WebApp.Features.Timeline.Api;
 

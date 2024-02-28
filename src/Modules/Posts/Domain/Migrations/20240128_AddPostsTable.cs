@@ -17,16 +17,7 @@ public class AddPostsTable : Migration
             .WithColumn("content")
             .AsString()
             .WithColumn("created_at")
-            .AsDateTime()
-            .WithColumn("scheduled_at")
-            .AsDateTime()
-            .Nullable()
-            .WithColumn("published_at")
-            .AsDateTime()
-            .Nullable()
-            .WithColumn("updated_at")
-            .AsDateTime()
-            .Nullable();
+            .AsDateTime();
 
         Create.Index("ix_posts_user_id").OnTable("posts").OnColumn("user_id");
     }
