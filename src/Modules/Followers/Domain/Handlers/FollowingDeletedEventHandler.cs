@@ -4,7 +4,7 @@ using Pulse.Followers.Contracts.Events;
 
 namespace Pulse.Followers;
 
-public class FollowingDeletedEventHandler(IBus messageBus)
+internal class FollowingDeletedEventHandler(IBus messageBus)
     : INotificationHandler<FollowingDeletedEvent>
 {
     private readonly IBus _messageBus = messageBus;

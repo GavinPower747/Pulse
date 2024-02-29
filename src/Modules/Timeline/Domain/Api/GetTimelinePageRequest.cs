@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace Pulse.WebApp.Features.Timeline.Api;
+namespace Pulse.Timeline.Api;
 
 public class GetTimelinePageRequest
 {

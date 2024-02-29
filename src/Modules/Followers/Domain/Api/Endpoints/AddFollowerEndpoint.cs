@@ -6,7 +6,7 @@ using Pulse.Shared.Auth;
 
 namespace Pulse.Followers.Api.Endpoints;
 
-public class AddFollowerEndpoint(
+internal class AddFollowerEndpoint(
     IdentityProvider identityService,
     IFollowerProvider followerProvider
 )

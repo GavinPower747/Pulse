@@ -1,9 +1,16 @@
 ﻿@code {
-
+    [Parameter] public required string Etag { get; set; }
 }
 
 <div
     hx-get="/api/timeline/updates"
-    hx-trigger="every 10s">
-    <span>Load New Posts</span>
+    hx-trigger="every 10s"
+    hx-headers="{'If-None-Match', '@Etag'}">
+        <button
+            hx-get="/api/timeline"
+            hx-trigger="click"
+            hx-headers="{'If-Modified-Since', '@Etag'}"
+        >
+            Load New Posts 
+        </button>
 </div>

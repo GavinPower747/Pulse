@@ -5,7 +5,7 @@ using Pulse.Followers.Events;
 
 namespace Pulse.Followers.Domain.Handlers;
 
-public class FollowingCreatedEventHandler(IBus messageBus)
+internal class FollowingCreatedEventHandler(IBus messageBus)
     : INotificationHandler<FollowingCreatedEvent>
 {
     private readonly IBus _messageBus = messageBus;

@@ -6,7 +6,7 @@ using Pulse.Shared.Auth;
 
 namespace Pulse.Followers;
 
-public class RemoveFollowerEndpoint(
+internal class RemoveFollowerEndpoint(
     IdentityProvider identityProvider,
     IFollowerProvider followerProvider
 )

@@ -23,6 +23,15 @@ public static class Routes
             ) => await handler.Handle(request, cancellationToken)
         );
 
+        group.MapGet(
+            "/updates",
+            async (
+                [FromHeader(Name = "If-None-Match")] string etag,
+                [FromServices] GetTimelineUpdatesEndpoint handler,
+                CancellationToken cancellationToken
+            ) => await handler.Handle(etag, cancellationToken)
+        );
+
         return group;
     }
 }

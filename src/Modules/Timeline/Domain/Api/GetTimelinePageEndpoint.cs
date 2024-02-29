@@ -7,7 +7,7 @@ using Pulse.Timeline.Contracts;
 using Pulse.Timeline.UI.Components;
 using Pulse.Users.Contracts;
 
-namespace Pulse.WebApp.Features.Timeline.Api;
+namespace Pulse.Timeline.Api;
 
 public class GetTimelinePageEndpoint(
     ITimelineService timelineService,

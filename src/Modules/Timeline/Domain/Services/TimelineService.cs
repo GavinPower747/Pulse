@@ -1,3 +1,4 @@
+using System.Text;
 using Pulse.Timeline.Contracts;
 using StackExchange.Redis;
 
@@ -37,5 +38,38 @@ public class TimelineService(IDatabase redis) : ITimelineService
         }
 
         return postIds;
+    }
+
+    public async Task<(bool hasChanges, string newEtag)> CheckForChanges(
+        Guid userId,
+        string etag,
+        CancellationToken token = default
+    )
+    {
+        var parsedTag = ChangesEtag.Parse(etag);
+        var key = $"timeline:{userId}";
+        var topPost = await _redis.SortedSetRangeByRankAsync(key, 0, 0, Order.Descending);
+
+        if (topPost.Length == 0)
+            return (false, string.Empty);
+
+        var lastUpdate = topPost[0].ToString();
+
+        return (lastUpdate != parsedTag.CacheKey, new ChangesEtag(lastUpdate).ToString());
+    }
+
+    private readonly struct ChangesEtag(string cacheKey)
+    {
+        public string CacheKey { get; } = cacheKey;
+
+        public static ChangesEtag Parse(string etag)
+        {
+            var unencoded = Encoding.UTF8.GetString(Convert.FromBase64String(etag));
+
+            return new ChangesEtag(unencoded);
+        }
+
+        public override readonly string ToString() =>
+            Convert.ToBase64String(Encoding.UTF8.GetBytes(CacheKey));
     }
 }

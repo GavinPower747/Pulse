@@ -8,4 +8,10 @@ public interface ITimelineService
         int count,
         CancellationToken cancellationToken = default
     );
+
+    Task<(bool hasChanges, string newEtag)> CheckForChanges(
+        Guid userId,
+        string etag,
+        CancellationToken cancellationToken = default
+    );
 }
