@@ -23,6 +23,7 @@
     private User? user;
     private bool isFollowing;
     private bool isViewingOwnProfile => Username == currentUser.UserName;
+    private bool showCTA => !isViewingOwnProfile;
     private List<PostViewModel> firstPage = new List<PostViewModel>();
     private string continuationToken = string.Empty;
     private string continuationUrl => !string.IsNullOrWhiteSpace(continuationToken) 
@@ -50,7 +51,7 @@
     }
 }
 
-<main
+<div
     x-data="{ userCardInView: true }"
     x-init="() => {
           const observer = new IntersectionObserver(
@@ -58,10 +59,9 @@
               { threshold: 0.1 }
           );
           observer.observe($refs.userCard);
-      }"
-    class="col-span-5 w-full border-x border-slate-200">
+      }">
     <Header Title="@user?.DisplayName" ShowBackButton="true">
-        @if(!isViewingOwnProfile)
+        @if(showCTA)
         {
         <div class="w-full">
             <div class="float-end"
@@ -77,17 +77,21 @@
         </div>
         }
     </Header>
-    <UserCard x-ref="userCard" UserId="@user?.Id" Name="@user?.DisplayName" Username="@Username" IsFollowing="@isFollowing" Description="This is a sub heading" Followers="1000" Following="1999" ProfilePictureUrl="@string.Empty"/>
-    <div id="user-feed"  class="[&_p:last-child]:text-slate-500 [&_p:first-child]:text-lg divide-y divide-slate-200">
+    <Panel>
+        <UserCard x-ref="userCard" UserId="@user?.Id" Name="@user?.DisplayName" Username="@Username" IsFollowing="@isFollowing" ShowCTA="@showCTA" Description="This is a sub heading" Followers="1000" Following="1999" ProfilePictureUrl="@string.Empty"/>
+    </Panel>
+    <div id="user-feed" class="[&_p:last-child]:text-slate-500 [&_p:first-child]:text-lg">
         <InfinitelyScrollingFeedPage 
             EagerItems="@firstPage" 
             ContinuationUrl="@continuationUrl" 
-            FeedElementSelector="#user-posts"
+            FeedElementSelector="#user-feed"
             Context="post">
 
             <ItemTemplate>
-                <Post CurrentPost="@post"/>
+                <Panel>
+                    <Post CurrentPost="@post"/>
+                </Panel>
             </ItemTemplate>
         </InfinitelyScrollingFeedPage>
     </div>
-</main>
+</div>

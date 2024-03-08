@@ -11,6 +11,8 @@ public class GetTimelinePageRequest
         set => _pageSize = value;
     }
 
+    public string Etag { get; set; } = string.Empty;
+
     private int _pageSize;
 
     private const int MaxPageSize = 100;
@@ -19,13 +21,17 @@ public class GetTimelinePageRequest
     {
         const string continuationTokenKey = "continuationToken";
         const string pageSizeKey = "pageSize";
+        const string etagKey = "If-None-Match";
+
+        var etag = context.Request.Headers[etagKey].FirstOrDefault() ?? string.Empty;
 
         var request = new GetTimelinePageRequest
         {
             ContinuationToken = context.Request.Query[continuationTokenKey],
             PageSize = int.TryParse(context.Request.Query[pageSizeKey], out var pageSize)
                 ? pageSize
-                : 10
+                : 10,
+            Etag = etag
         };
 
         return new ValueTask<GetTimelinePageRequest>(request);

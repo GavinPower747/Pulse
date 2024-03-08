@@ -60,7 +60,11 @@ internal class PostQueryService(PostsContext connection, DomainDtoMapper mapper)
                 p.CreatedAt >= token.Value.OlderThan && p.Id >= token.Value.LastRecord
             );
 
-        postsQuery = postsQuery.OrderBy(p => p.CreatedAt).ThenBy(x => x.Id).Take(pageSize + 1); // Take one extra to check if there are more pages
+        postsQuery = postsQuery
+            .OrderByDescending(p => p.CreatedAt)
+            .ThenBy(x => x.Id)
+            .Take(pageSize + 1); // Take one extra to check if there are more pages
+
         var posts = await postsQuery.ToListAsync(cancellationToken);
 
         var postDtos = posts.Take(pageSize).Select(_mapper.MapToDisplayPost);

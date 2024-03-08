@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Pulse.WebApp.Features.Timeline.Api;
+using Pulse.Timeline.Api;
 
 namespace Pulse.Timeline;
 

@@ -13,7 +13,7 @@ public class FollowersModule : Module
 
     protected override void Load(ContainerBuilder builder)
     {
-        builder.RegisterType<FollowerProvider>().AsImplementedInterfaces().SingleInstance();
+        builder.RegisterType<FollowerProvider>().AsImplementedInterfaces();
         builder.RegisterMediator(typeof(FollowersModule).Assembly);
         builder.RegisterDbContext<FollowingContext>(Configuration.Database.ConnectionString);
 
@@ -27,8 +27,8 @@ public class FollowersModule : Module
 
     private static void RegisterEndpoints(ContainerBuilder builder)
     {
-        builder.RegisterType<AddFollowerEndpoint>().AsSelf().SingleInstance();
-        builder.RegisterType<RemoveFollowerEndpoint>().AsSelf().SingleInstance();
+        builder.RegisterType<AddFollowerEndpoint>().AsSelf();
+        builder.RegisterType<RemoveFollowerEndpoint>().AsSelf();
     }
 }
 

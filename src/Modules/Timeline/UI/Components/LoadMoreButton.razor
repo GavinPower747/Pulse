@@ -1,16 +1,35 @@
 ﻿@code {
     [Parameter] public required string Etag { get; set; }
+    [Parameter] public required bool HasChanges { get; set; }
 }
 
-<div
+@if (!HasChanges)
+{ 
+    <div
     hx-get="/api/timeline/updates"
     hx-trigger="every 10s"
-    hx-headers="{'If-None-Match', '@Etag'}">
+    hx-headers='{"If-None-Match": "@Etag"}'
+    hx-swap="outerHTML"
+    >
+
+    </div>
+}
+else
+{
+    <div
+        hx-get="/api/timeline/updates"
+        hx-trigger="click"
+        hx-headers='{"If-None-Match": "@Etag"}'
+        hx-swap="outerHTML">
         <button
-            hx-get="/api/timeline"
-            hx-trigger="click"
-            hx-headers="{'If-Modified-Since', '@Etag'}"
-        >
-            Load New Posts 
+                hx-get="/api/timeline"
+                hx-trigger="click"
+                hx-target="#user-feed"
+                hx-swap="innerHTML"
+                hx-headers='{"If-None-Match": "@Etag"}'
+                class="flex mb-2 rounded-xl items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-pulse-600 border border-transparent hover:bg-pulse-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-grey-500"
+            >
+                Load New Posts 
         </button>
-</div>
+    </div>
+}

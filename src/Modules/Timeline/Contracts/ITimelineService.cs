@@ -2,7 +2,7 @@ namespace Pulse.Timeline.Contracts;
 
 public interface ITimelineService
 {
-    Task<IEnumerable<Guid>> GetTimelinePage(
+    Task<TimelinePage> GetTimelinePage(
         Guid userId,
         string cursor,
         int count,
@@ -15,3 +15,5 @@ public interface ITimelineService
         CancellationToken cancellationToken = default
     );
 }
+
+public record TimelinePage(IEnumerable<Guid> Ids, string Etag, string ContinuationToken);

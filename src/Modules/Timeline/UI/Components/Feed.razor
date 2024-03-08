@@ -18,6 +18,7 @@
 
 @code {
     private IEnumerable<PostViewModel> FirstPage { get; set; } = new List<PostViewModel>();
+    private string Etag { get; set; } = string.Empty;
     private string ContinuationToken { get; set; } = string.Empty;
     private bool IsEmpty => !FirstPage.Any();
 
@@ -25,31 +26,22 @@
     {
         var currentUser = IdentityProvider.GetCurrentUser();
         var timeline = await TimelineService.GetTimelinePage(currentUser.Id, string.Empty, 50);
-        var posts = await PostQueryService.Get(timeline, CancellationToken.None);
+        var posts = await PostQueryService.Get(timeline.Ids, CancellationToken.None);
         var userTasks = posts.Select(p => p.UserId).Distinct().Select(UserQueries.GetUser);
 
         var users = await Task.WhenAll(userTasks);
 
         FirstPage = posts.Select(p => Mapper.MapToViewModel(p, users.First(u => u.Id == p.UserId)));
+        ContinuationToken = timeline.ContinuationToken;
+        Etag = timeline.Etag;
     }
-
-    private string GetContinuationUrl() => !string.IsNullOrWhiteSpace(ContinuationToken) 
-            ? $"/api/timeline?continuationToken={ContinuationToken}"
-            : string.Empty;
 }
 
-<div x-data="{ isEmpty: @IsEmpty.ToString().ToLower() }" x-on:pulse:post-created="isEmpty = false" id="user-feed" class="[&_p:last-child]:text-slate-500 [&_p:first-child]:text-lg divide-y divide-slate-200">
+<LoadMoreButton Etag="@Etag" HasChanges="false"/>
+<div x-data="{ isEmpty: @IsEmpty.ToString().ToLower() }" x-on:pulse:post-created="isEmpty = false" id="user-feed">
     @if (FirstPage.Any())
     {
-        <InfinitelyScrollingFeedPage 
-            EagerItems="@FirstPage.ToList()" 
-            ContinuationUrl="@GetContinuationUrl()" 
-            FeedElementSelector="#user-feed"
-            Context="post">
-            <ItemTemplate>
-                <Post CurrentPost="@post"/>
-            </ItemTemplate>    
-        </InfinitelyScrollingFeedPage>
+        <FeedPage EagerPosts="@FirstPage" ContinuationToken="@ContinuationToken"/>
     }
     
     <div x-show="isEmpty" class="text-center text-slate-500 text-lg p-8">

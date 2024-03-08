@@ -31,7 +31,7 @@ public class GetTimelinePageEndpoint(
             cancellationToken
         );
 
-        var posts = await postQuery.Get(timelinePage, cancellationToken);
+        var posts = await postQuery.Get(timelinePage.Ids, cancellationToken);
         var userTasks = posts.Select(p => p.UserId).Distinct().Select(userQuery.GetUser);
 
         var users = await Task.WhenAll(userTasks);
@@ -43,7 +43,8 @@ public class GetTimelinePageEndpoint(
 
         var viewArgs = new Dictionary<string, object?>
         {
-            [nameof(FeedPage.EagerPosts)] = viewModels,
+            [nameof(FeedPage.EagerPosts)] = viewModels.ToList(),
+            [nameof(FeedPage.ContinuationToken)] = timelinePage.ContinuationToken
         };
 
         return new RazorComponentResult<FeedPage>(viewArgs);

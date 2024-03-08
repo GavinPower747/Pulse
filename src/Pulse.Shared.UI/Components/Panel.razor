@@ -9,16 +9,24 @@
     public RenderFragment? ChildContent { get; set; }
 }
 
-<div class="bg-slate-50 rounded-xl mb-3">
-    <div class="px-4 py-4">
-        <h2 class="text-xl font-bold leading-none">
-            @Title
-        </h2>
-    </div>
+<div class="bg-pulse-500/10 rounded-xl mb-3 shadow-xl">
+    @if(!string.IsNullOrWhiteSpace(Title))
+    {
+        <div class="px-4 py-4">
+            <h2 class="text-xl font-bold leading-none">
+                @Title
+            </h2>
+        </div>
+    }
+
     @ChildContent
-    <div class="px-4 py-4">
-        <a class="text-sm font-medium" href=@Href>
-            Show more
-        </a>
-    </div>
+
+    @if(!string.IsNullOrWhiteSpace(Href))
+    {
+        <div class="px-4 py-4">
+            <a class="text-sm font-medium" href=@Href>
+                Show more
+            </a>
+        </div>
+    }
 </div>

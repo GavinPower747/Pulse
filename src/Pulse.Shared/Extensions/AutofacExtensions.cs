@@ -37,12 +37,14 @@ public static class AutofacExtensions
     )
         where TContext : DbContext
     {
-        builder.RegisterType<TContext>().InstancePerLifetimeScope();
-        builder.Register(c =>
-        {
-            var optionsBuilder = new DbContextOptionsBuilder<TContext>();
-            optionsBuilder.UseNpgsql(connectionString);
-            return optionsBuilder.Options;
-        });
+        builder.RegisterType<TContext>().InstancePerDependency();
+        builder
+            .Register(c =>
+            {
+                var optionsBuilder = new DbContextOptionsBuilder<TContext>();
+                optionsBuilder.UseNpgsql(connectionString);
+                return optionsBuilder.Options;
+            })
+            .InstancePerDependency();
     }
 }

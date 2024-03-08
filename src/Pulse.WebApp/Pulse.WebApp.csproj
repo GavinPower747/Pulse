@@ -9,6 +9,7 @@
     <ProjectReference Include="..\Modules\Followers\Domain\Pulse.Followers.csproj" />
     <ProjectReference Include="..\Modules\Timeline\Domain\Pulse.Timeline.csproj" />
     <ProjectReference Include="..\Modules\Users\Domain\Pulse.Users.csproj" />
+    <ProjectReference Include="..\Pulse.Shared\Pulse.Shared.csproj" />
     <ProjectReference Include="..\Pulse.Shared.UI\Pulse.Shared.UI.csproj" />
   </ItemGroup>
 

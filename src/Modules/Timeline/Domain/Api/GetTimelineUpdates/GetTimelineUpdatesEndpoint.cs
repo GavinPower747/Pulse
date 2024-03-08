@@ -23,11 +23,12 @@ public class GetTimelineUpdatesEndpoint(
             cancellationToken
         );
 
-        if (!hasChanges)
-            return TypedResults.StatusCode(StatusCodes.Status304NotModified);
+        var viewProperties = new Dictionary<string, object?>
+        {
+            { nameof(LoadMoreButton.Etag), newEtag },
+            { nameof(LoadMoreButton.HasChanges), hasChanges }
+        };
 
-        var viewProperties = new Dictionary<string, object> { [LoadMoreButton.Etag] = newEtag };
-
-        return new RazorComponentResult<LoadMoreButton>();
+        return new RazorComponentResult<LoadMoreButton>(viewProperties);
     }
 }

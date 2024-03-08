@@ -7,14 +7,10 @@
 @code {
     [Parameter] public bool IsFollowing { get; set; } = false;
     [Parameter] public Guid? UserId { get; set; } = Guid.Empty;
+    [Parameter] public Dictionary<string, object?> AdditionalAttributes { get; set; } = new Dictionary<string, object?>();
 
     private string RequestUrl => $"/api/user/{UserId}/followers";
 
-    protected async override Task OnInitializedAsync()
-    {
-        var currentUser = IdentityService.GetCurrentUser();
-        IsFollowing = await FollowerProvider.IsFollowing(currentUser!.Id, UserId.GetValueOrDefault(), CancellationToken.None);
-    }
 }
 
 <div>
@@ -24,10 +20,10 @@
             hx-swap="outerHTML"
             hx-trigger="click"
             hx-boost="true"
-            class="inline-flex items-center font-bold rounded-full border px-4 py-2 text-sm border-transparent bg-slate-900 text-white disabled:opacity-50 transition-opacity duration-200"
-            hx-delete="/api/user/@UserId/followers"
+            hx-delete="@RequestUrl"
+            @attributes="AdditionalAttributes"
             >
-            Unfollow
+            Unfollow Account
         </button>
     }
     else
@@ -36,10 +32,10 @@
             hx-swap="outerHTML"
             hx-trigger="click"
             hx-boost="true"
-            class="inline-flex items-center font-bold rounded-full border px-4 py-2 text-sm border-transparent bg-white text-slate-900 disabled:opacity-50 transition-opacity duration-200"
-            hx-post="/api/user/@UserId/followers"
+            hx-post="@RequestUrl"
+            @attributes="AdditionalAttributes"
             >
-            Follow
+            Follow Account
         </button>
     }
 </div>

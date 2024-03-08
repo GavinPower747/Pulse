@@ -23,7 +23,7 @@ public class TimelineServiceTests
         var result = await _timelineService.GetTimelinePage(Guid.Empty, "cursor", 5);
 
         // Assert
-        result.Should().BeEmpty();
+        result.Ids.Should().BeEmpty();
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class TimelineServiceTests
         var result = await _timelineService.GetTimelinePage(Guid.NewGuid(), "cursor", 0);
 
         // Assert
-        result.Should().BeEmpty();
+        result.Ids.Should().BeEmpty();
     }
 
     [Fact]
@@ -93,13 +93,13 @@ public class TimelineServiceTests
         _redis.SortedSetRank(userId.ToString(), cursor).Returns(0);
         _redis
             .SortedSetRangeByRankAsync($"timeline:{userId}", 1, count + 1, Order.Descending)
-            .Returns(new RedisValue[0]);
+            .Returns([]);
 
         // Act
         var postIds = await _timelineService.GetTimelinePage(userId, cursor, count);
 
         // Assert
-        postIds.Should().BeEmpty();
+        postIds.Ids.Should().BeEmpty();
     }
 
     [Fact]
@@ -119,6 +119,6 @@ public class TimelineServiceTests
         var postIds = await _timelineService.GetTimelinePage(userId, cursor, count);
 
         // Assert
-        postIds.Should().BeEmpty();
+        postIds.Ids.Should().BeEmpty();
     }
 }

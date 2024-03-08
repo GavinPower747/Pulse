@@ -2,21 +2,36 @@
     [Parameter] public required string Src { get; set; }
     [Parameter] public required string Alt { get; set; }
     [Parameter] public required string Initials { get; set; }
+    [Parameter] public Size ImageSize { get; set; } = Size.Medium;
 
     private bool validImage => !string.IsNullOrEmpty(Src);
     private string imageFailedInitial => !validImage ? "true" : "false";
+    private string sizeClass => ImageSize switch
+    {
+        Size.Small => "h-8 w-8",
+        Size.Medium => "h-12 w-12",
+        Size.Large => "h-16 w-16",
+        _ => "h-12 w-12"
+    };
+
+    public enum Size
+    {
+        Small,
+        Medium,
+        Large
+    }
 }
 
-<div
-    class="AvatarRoot inline-flex items-center justify-center overflow-hidden w-12 h-12 rounded-full bg-slate-900"
+<div 
+    class="flex justify-center"
     x-data="{ imageFailed: @imageFailedInitial }">
     @if(validImage)
     {
-        <img class="AvatarImage w-100 h-100 object-cover" src="@Src" alt="@Alt" 
+        <img class="rounded-full border-solid border-white border-2 @sizeClass" src="@Src" alt="@Alt" 
             x-on:error="imageFailed = true"
             x-show="!imageFailed" />
     }
-    <div class="AvatarFallback w-100 h-100 flex items-center justify-center text-base text-white leading-none font-semibold"
+    <div class="rounded-full border-solid border-white border-2 @sizeClass text-center text-black flex justify-center items-center bg-gray-300"
          x-show="imageFailed">
         @Initials
     </div>

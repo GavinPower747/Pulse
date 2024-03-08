@@ -8,32 +8,50 @@
     [Parameter] public int Following { get; set; }
     [Parameter] public int Followers { get; set; }
     [Parameter] public required string ProfilePictureUrl { get; set; }
+    [Parameter] public bool ShowFollowButton { get; set; } = true;
+    [Parameter] public bool ShowCTA { get; set; } = true;
     [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; } = new Dictionary<string, object>();
     
+    private string BottomDivClasses => ShowCTA ? "border-b" : "p-4";
+
     private string initials => Name?.Split(' ').Select(x => x[0]).Aggregate(string.Empty, (x, y) => x + y) ?? string.Empty;
 }
 
-<div class="w-full flex flex-col gap-y-2 p-4 border-b border-slate-200" @attributes="AdditionalAttributes">
-	<div class="flex justify-between items-start">
-		<Avatar src="@ProfilePictureUrl" alt="@Name" initials="@initials" />
-        @if(UserId is not null && UserId != Guid.Empty)
-        {
-            <FollowButton UserId="@UserId" />
-        }
+<div>
+  	<img src="https://i.imgur.com/dYcYQ7E.png" class="w-full rounded-t-xl" />
+    <div class="-mt-6">
+        <Avatar Initials="@initials" Src="@ProfilePictureUrl" ImageSize="@Avatar.Size.Large" />
     </div>
-	<div class="mb-2">
-        <div class="text-base font-semibold leading-none">@Name</div>
-        <div class="text-sm text-slate-500 font-medium">@Username</div>	
-    </div>
-    <div class="text-sm mb-2">@Description</div>
-    <div class="flex gap-x-4">
-        <div class="flex gap-x-1">
-            <div class="text-sm font-bold leading-none">@Following</div>
-            <div class="text-sm text-slate-500 leading-none">Following</div>
+	<div class="text-center px-3 pb-6 pt-2">
+		<h3 class="text-sm bold font-sans">@Name</h3>
+        <div class="text-xs mt-0 mb-2 text-gray-500 font-bold">@Username</div>
+		<p class="mt-2 font-sans font-light">@Description</p>
+	</div>
+  	<div class="flex py-2 justify-center border-t @BottomDivClasses">
+      <div class="text-center border-r pr-3 w-full">
+        <h2>@Followers</h2>
+        <span class="text-gray-500">Followers</span>
+      </div>
+      <div class="text-center w-full">
+        <h2>@Following</h2>
+        <span class="text-gray-500">Following</span>
+      </div>
+  	</div>
+    @if (ShowCTA)
+    {
+        <div class="py-4 border-slate-200 text-center">
+            <div class="flex flex-wrap justify-center">
+                <div class="w-full px-4">
+                    @if (ShowFollowButton)
+                    {
+                        <FollowButton UserId="@UserId" />
+                    }
+                    else
+                    {
+                        <a href="/u/@Username" class="font-normal hover:text-grey-400">View Profile</a>
+                    }
+                </div>
+            </div>
         </div>
-        <div class="flex gap-x-1">
-            <div class="text-sm font-bold leading-none">@Followers</div>
-            <div class="text-sm text-slate-500 leading-none">Followers</div>
-        </div>
-    </div>
+    }
 </div>

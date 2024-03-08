@@ -8,7 +8,7 @@ public class TimelineService(IDatabase redis) : ITimelineService
 {
     private readonly IDatabase _redis = redis;
 
-    public async Task<IEnumerable<Guid>> GetTimelinePage(
+    public async Task<TimelinePage> GetTimelinePage(
         Guid userId,
         string? cursor,
         int count,
@@ -16,7 +16,7 @@ public class TimelineService(IDatabase redis) : ITimelineService
     )
     {
         if (userId == Guid.Empty || count <= 0)
-            return [];
+            return new TimelinePage([], string.Empty, string.Empty);
 
         var key = $"timeline:{userId}";
         var start = string.IsNullOrEmpty(cursor) ? 0 : _redis.SortedSetRank(key, cursor) + 1;
@@ -37,7 +37,13 @@ public class TimelineService(IDatabase redis) : ITimelineService
             postIds.Add(postId);
         }
 
-        return postIds;
+        string etag = posts.Length > 0 ? new ChangesEtag(posts[0].ToString()) : string.Empty;
+
+        return new TimelinePage(
+            postIds,
+            etag,
+            posts.Length == count ? posts[^1].ToString() : string.Empty
+        );
     }
 
     public async Task<(bool hasChanges, string newEtag)> CheckForChanges(
@@ -58,6 +64,10 @@ public class TimelineService(IDatabase redis) : ITimelineService
         return (lastUpdate != parsedTag.CacheKey, new ChangesEtag(lastUpdate).ToString());
     }
 
+    /// <summary>
+    /// A simple wrapper around etag encoding to make it more readable
+    /// </summary>
+    /// <param name="cacheKey">The most recent cache key in the timeline at the time of reading</param>
     private readonly struct ChangesEtag(string cacheKey)
     {
         public string CacheKey { get; } = cacheKey;
@@ -68,6 +78,8 @@ public class TimelineService(IDatabase redis) : ITimelineService
 
             return new ChangesEtag(unencoded);
         }
+
+        public static implicit operator string(ChangesEtag etag) => etag.ToString();
 
         public override readonly string ToString() =>
             Convert.ToBase64String(Encoding.UTF8.GetBytes(CacheKey));

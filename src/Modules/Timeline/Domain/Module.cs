@@ -1,4 +1,5 @@
 using Autofac;
+using Pulse.Timeline.Api;
 using Pulse.Timeline.Consumers;
 using Pulse.Timeline.Contracts;
 using Pulse.Timeline.Services;
@@ -33,6 +34,8 @@ public class TimelineModule : Module
                 return redis.GetDatabase();
             })
             .As<IDatabase>();
+
+        RegisterEndpoints(builder);
     }
 
     private void RegisterEndpoints(ContainerBuilder builder)

@@ -1,75 +1,18 @@
 ﻿@using Pulse.Users.Contracts
 @using Pulse.Shared.Auth
 
-@inject IHttpContextAccessor HttpContextAccessor
+<header class="header top-0 shadow-xl bg-pulse-50/10 flex flex-row items-center justify-between px-8 py-2 w-full h-16">
+    <!-- logo -->
+    <span class="w-1/4 flex flex-row items-center justify-center">
+        <a href="/" class="mr-12">
+            <img src="/images/logo.svg" alt="Pulse" class="w-16 bg-red" />
+        </a>
+        <SearchBar />
+    </span>
 
-@code {
+    <nav class="nav font-semibold text-lg w-1/2">
+    </nav>
 
-    private List<NavItem> _items = new();
-
-    private User? currentUser;
-
-    private class NavItem
-    {
-        public required string Href { get; set; }
-        public required string Text { get; set; }
-        public required string Icon { get; set; }
-
-        public void Deconstruct(out string href, out string text, out string icon)
-        {
-            href = Href;
-            text = Text;
-            icon = Icon;
-        }
-    }
-
-    protected override Task OnInitializedAsync()
-    {
-        var context = HttpContextAccessor.HttpContext!;
-
-        currentUser = new User(
-            context.GetUserId(), 
-            context.User.Identity!.Name!, 
-            string.Empty, 
-            context.User.FindFirst("name")!.Value);
-
-        _items = new()    
-        {
-            new NavItem { Href = "/", Text = "Home", Icon = "<HiOutlineHome class=\"w-6 h-6\" />" },
-            new NavItem { Href = "/explore", Text = "Explore", Icon = "<HiHashtag class=\"w-6 h-6\" />" },
-            new NavItem { Href = "/notifications", Text = "Notifications", Icon = "<HiOutlineBell class=\"w-6 h-6\" />" },
-            new NavItem { Href = "/messages", Text = "Messages", Icon = "<HiOutlineEnvelope class=\"w-6 h-6\" />" },
-            new NavItem { Href = "/bookmarks", Text = "Bookmarks", Icon = "<HiOutlineBookmark class=\"w-6 h-6\" />" },
-            new NavItem { Href = $"/u/{currentUser.Username}", Text = "Profile", Icon = "<HiOutlineUser class=\"w-6 h-6\" />" },
-        };
-
-        return base.OnInitializedAsync();
-    }
-}
-
-<header class="hidden sm:flex w-24 xl:col-span-2">
-    <div class="flex flex-1 xl:w-60 flex-col fixed h-full">
-        <div class="flex flex-col flex-1">
-            <NavItem href="/" size="default">
-                @* <SiTwitter class="w-6 h-6" /> *@
-                Home
-            </NavItem>
-            @foreach (var (href, text, icon) in _items.Select((item, i) => (item.Href, item.Text, new MarkupString(item.Icon))))
-            {
-                <div class="rounded-lg focus:outline-none overflow-hidden">
-                    <NavItem href=@href size="default">
-                        @icon
-                        <div class="hidden xl:inline-flex flex-none text-lg font-medium">
-                            @text
-                        </div>
-                    </NavItem>
-                </div>
-            }
-            @* <PopoverDemo />
-            <DialogDemo /> *@
-        </div>
-        <div>
-            @* <AccountNavItem /> *@
-        </div>
+    <div class="w-1/4 flex justify-end">
     </div>
 </header>

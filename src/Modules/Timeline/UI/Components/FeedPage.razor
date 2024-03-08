@@ -1,34 +1,27 @@
 @using Pulse.Posts.UI.Components
 @using Pulse.Posts.UI.Models
+@using Pulse.Shared.UI.Components
 
 @code {
     [Parameter]
-    public required List<PostViewModel> EagerPosts { get; set; } = new List<PostViewModel>();
+    public required IEnumerable<PostViewModel> EagerPosts { get; set; } = new List<PostViewModel>();
 
     [Parameter]
-    public required List<Guid> LazyPostIds { get; set; } = new List<Guid>();
+    public required IEnumerable<Guid> LazyPostIds { get; set; } = new List<Guid>();
 
     [Parameter]
     public string? ContinuationToken { get; set; }
+
+    private string GetContinuationUrl() => !string.IsNullOrWhiteSpace(ContinuationToken) 
+            ? $"/api/timeline?continuationToken={ContinuationToken}"
+            : string.Empty;
 }
 
-@for (var i = 0; i < EagerPosts.Count; i++)
-{
-    @if (i != EagerPosts.Count - 1 || ContinuationToken == null)
-    {
-        <Post CurrentPost="@EagerPosts[i]" />
-    }
-    else
-    {
-        <div hx-get="/api/timeline/?ContinuationToken=@ContinuationToken" hx-target="#user-feed" hx-swap="afterend"
-    hx-trigger="revealed">
-            <Post CurrentPost="@EagerPosts[i]" />
-        </div>
-    }
-}
-
-@foreach (var postId in LazyPostIds)
-{
-    // Perform skeleton loading of posts
-
-}
+<InfinitelyScrollingFeedPage EagerItems="@EagerPosts.ToList()" ContinuationUrl="@GetContinuationUrl()"
+    FeedElementSelector="#user-feed" Context="post">
+    <ItemTemplate>
+        <Panel>
+            <Post CurrentPost="@post" />
+        </Panel>
+    </ItemTemplate>
+</InfinitelyScrollingFeedPage>
