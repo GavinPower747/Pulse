@@ -36,13 +36,12 @@
         >
         <script>
             function getCurrentColourValue(startColour, midColour, endColour, progress) {
-                let interpolatedRGB;
                 let adjustedProgress = progress <= 0.5 ? progress * 2 : (progress - 0.5) * 2;
                 let fromColour = progress <= 0.5 ? startColour : midColour;
                 let toColour = progress <= 0.5 ? midColour : endColour;
 
-                interpolatedRGB = fromColour.map((channel, index) => {
-                    return exponentialInterpolation(fromColour[index], toColour[index], adjustedProgress);
+                let interpolatedRGB = fromColour.map((channel, index) => {
+                    return exponentialInterpolation(channel, toColour[index], adjustedProgress);
                 });
 
                 return `rgb(${interpolatedRGB.join(', ')})`;
