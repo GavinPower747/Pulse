@@ -24,15 +24,51 @@
         hx-trigger="submit"
         hx-swap-oob="true"
         hx-on::after-request="this.reset(); document.body.dispatchEvent(new CustomEvent('pulse:post-created'));"
-        x-data="{ text: '' }"
+        x-data="{ 
+            text: '', 
+            postLength: 0, 
+            maxPostLength: 280, 
+            startColour: [255, 255, 255],
+            midColour: [255, 255, 0],
+            endColour: [255, 0, 0],
+            getCurrentColourValue: getCurrentColourValue
+        }"
         >
+        <script>
+            function getCurrentColourValue(startColour, midColour, endColour, progress) {
+                let interpolatedRGB;
+                let adjustedProgress = progress <= 0.5 ? progress * 2 : (progress - 0.5) * 2;
+                let fromColour = progress <= 0.5 ? startColour : midColour;
+                let toColour = progress <= 0.5 ? midColour : endColour;
+
+                interpolatedRGB = fromColour.map((channel, index) => {
+                    return exponentialInterpolation(fromColour[index], toColour[index], adjustedProgress);
+                });
+
+                return `rgb(${interpolatedRGB.join(', ')})`;
+            }
+
+            function exponentialInterpolation(startValue, endValue, progress) {
+                const valueRange = endValue - startValue;
+
+                const exponentialFactor = Math.pow(2, 10 * (progress - 1));
+                const interpolatedValue = startValue + valueRange * exponentialFactor;
+
+                return clamp(interpolatedValue, 0, 255);
+            }
+
+            function clamp(value, min, max) {
+                return Math.min(Math.max(value, min), max);
+            }
+        </script>
         <AntiforgeryToken />
         <div class="flex flex-1 p-4 space-x-5">
             <Avatar src="@_user?.ProfilePictureUrl" alt="@_user?.DisplayName" initials="@_user?.Initials" />
             <textarea
                 x-model="text"
                 x-on:input="$el.style.height = 'auto'; $el.style.height = ($el.scrollHeight) + 'px';"
-                rows="1"
+                maxlength="280"
+                rows="2"
                 name="content"
                 type="text"
                 placeholder="What's up?"
@@ -72,10 +108,32 @@
                     <span class="sr-only">Tag location</span>
                 </a>
             </div>
-            <div>
+            <div class="inline-flex justify-center items-center">
+                <div class="mr-4">
+                    <svg class="w-6 h-6" viewBox="0 0 36 36">
+                        <path
+                            stroke="#080E24"
+                            stroke-width="4"
+                            fill="none"
+                            d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                        <path
+                            x-show="text.length <= maxPostLength && text.length > 0"
+                            :style="'stroke-dasharray: ' + ((text.length / maxPostLength) * 100) + ' 100; stroke: ' + getCurrentColourValue(startColour, midColour, endColour, text.length / maxPostLength)"
+                            stroke-width="4"
+                            fill="none"
+                            stroke-dasharray="0 100"
+                            d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                    </svg>
+                </div>
                 <button
                     type="submit"
-                    class="m-2 inline-flex items-center font-bold rounded-full border px-4 py-2 text-sm bg-white text-black border-transparent disabled:opacity-50 transition-opacity duration-200">
+                    class="m-2 items-center font-bold rounded-full border px-4 py-2 text-sm bg-white text-black border-transparent disabled:opacity-50 transition-opacity duration-200">
                     Post
                 </button>
             </div>

@@ -20,8 +20,6 @@
 <InfinitelyScrollingFeedPage EagerItems="@EagerPosts.ToList()" ContinuationUrl="@GetContinuationUrl()"
     FeedElementSelector="#user-feed" Context="post">
     <ItemTemplate>
-        <Panel>
-            <Post CurrentPost="@post" />
-        </Panel>
+        <Post CurrentPost="@post" />
     </ItemTemplate>
 </InfinitelyScrollingFeedPage>
