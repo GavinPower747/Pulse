@@ -1,4 +1,5 @@
 using Autofac;
+using Pulse.Posts.API;
 using Pulse.Posts.Contracts;
 using Pulse.Posts.Data;
 using Pulse.Posts.Domain.Mapping;
@@ -6,7 +7,6 @@ using Pulse.Posts.Services;
 using Pulse.Posts.UI.Mapping;
 using Pulse.Shared.Data;
 using Pulse.Shared.Extensions;
-using Pulse.WebApp.Features.Posts.API;
 
 namespace Pulse.Posts;
 

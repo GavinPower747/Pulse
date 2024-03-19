@@ -3,9 +3,10 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Pulse.WebApp.Features.Posts.API.Create;
+using Pulse.Posts.API;
+using Pulse.Posts.API.Create;
 
-namespace Pulse.WebApp.Features.Posts.API;
+namespace Pulse.Posts;
 
 public static class Routes
 {

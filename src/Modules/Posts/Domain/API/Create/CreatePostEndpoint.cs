@@ -1,12 +1,10 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Pulse.Posts.Contracts;
-using Pulse.Posts.UI.Components;
 using Pulse.Posts.UI.Mapping;
 using Pulse.Shared.Auth;
-using Pulse.WebApp.Features.Posts.API.Create;
 
-namespace Pulse.WebApp.Features.Posts.API;
+namespace Pulse.Posts.API.Create;
 
 internal class CreatePostEndpoint(
     IPostCreator postCreator,
@@ -20,16 +18,46 @@ internal class CreatePostEndpoint(
 
     public async Task<IResult> Handle(CreatePostRequest request)
     {
-        var currentUser = _identityProvider.GetCurrentUser();
+        if (request.Content.Length > 280)
+            return BadRequest("Post content must be 280 characters or less.");
 
+        var currentUser = _identityProvider.GetCurrentUser();
         var post = await _postCreator.Create(currentUser.Id, request.Content);
-        var postModel = _mapper.MapToViewModel(post, currentUser.UserName, currentUser.DisplayName);
+
+        return Ok(post, currentUser);
+    }
+
+    private static RazorComponentResult<CreatePostResponse> BadRequest(string message)
+    {
+        var componentParams = new Dictionary<string, object?>
+        {
+            { nameof(CreatePostResponse.ErrorMessage), message }
+        };
+
+        var result = new RazorComponentResult<CreatePostResponse>(componentParams)
+        {
+            StatusCode = StatusCodes.Status400BadRequest
+        };
+
+        return result;
+    }
+
+    private RazorComponentResult<CreatePostResponse> Ok(
+        DisplayPost addedPost,
+        CurrentUser currentUser
+    )
+    {
+        var postVm = _mapper.MapToViewModel(
+            addedPost,
+            currentUser.UserName,
+            currentUser.DisplayName
+        );
 
         var componentParams = new Dictionary<string, object?>
         {
-            { nameof(Post.CurrentPost), postModel }
+            { nameof(CreatePostResponse.AddedPost), postVm }
         };
 
-        return new RazorComponentResult<Post>(componentParams);
+        return new RazorComponentResult<CreatePostResponse>(componentParams);
     }
 }

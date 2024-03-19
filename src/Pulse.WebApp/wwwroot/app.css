@@ -13,6 +13,7 @@ body {
 .TabsTrigger[data-state='active'] {
 	@apply text-slate-900;
 }
+
 .TabsTrigger[data-state='active'] span {
 	@apply bg-slate-900;
 }
@@ -20,6 +21,7 @@ body {
 .AccordionContent[data-state='open'] {
 	animation: slideDown 300ms cubic-bezier(0.87, 0, 0.13, 1);
 }
+
 .AccordionContent[data-state='closed'] {
 	animation: slideUp 300ms cubic-bezier(0.87, 0, 0.13, 1);
 }
@@ -27,7 +29,8 @@ body {
 .AccordionChevron {
 	transition: transform 300ms cubic-bezier(0.87, 0, 0.13, 1);
 }
-.AccordionTrigger[data-state='open'] > .AccordionChevron {
+
+.AccordionTrigger[data-state='open']>.AccordionChevron {
 	transform: rotate(180deg);
 }
 
@@ -35,6 +38,7 @@ body {
 	from {
 		height: 0;
 	}
+
 	to {
 		height: var(--radix-accordion-content-height);
 	}
@@ -44,6 +48,7 @@ body {
 	from {
 		height: var(--radix-accordion-content-height);
 	}
+
 	to {
 		height: 0;
 	}
@@ -61,6 +66,7 @@ body {
 	from {
 		opacity: 0;
 	}
+
 	to {
 		opacity: 1;
 	}
@@ -71,6 +77,7 @@ body {
 		opacity: 0;
 		transform: translate(-50%, -48%) scale(0.8);
 	}
+
 	to {
 		opacity: 1;
 		transform: translate(-50%, -50%) scale(1);
@@ -82,15 +89,19 @@ body {
 	animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 	will-change: transform, opacity;
 }
+
 .PopoverContent[data-state='open'][data-side='top'] {
 	animation-name: slideDownAndFade;
 }
+
 .PopoverContent[data-state='open'][data-side='right'] {
 	animation-name: slideLeftAndFade;
 }
+
 .PopoverContent[data-state='open'][data-side='bottom'] {
 	animation-name: slideUpAndFade;
 }
+
 .PopoverContent[data-state='open'][data-side='left'] {
 	animation-name: slideRightAndFade;
 }
@@ -100,6 +111,7 @@ body {
 		opacity: 0;
 		transform: translateY(2px);
 	}
+
 	to {
 		opacity: 1;
 		transform: translateY(0);
@@ -111,6 +123,7 @@ body {
 		opacity: 0;
 		transform: translateX(-2px);
 	}
+
 	to {
 		opacity: 1;
 		transform: translateX(0);
@@ -122,6 +135,7 @@ body {
 		opacity: 0;
 		transform: translateY(-2px);
 	}
+
 	to {
 		opacity: 1;
 		transform: translateY(0);
@@ -133,6 +147,7 @@ body {
 		opacity: 0;
 		transform: translateX(2px);
 	}
+
 	to {
 		opacity: 1;
 		transform: translateX(0);
@@ -150,8 +165,19 @@ body {
 		opacity: 0;
 		transform: scale(0.9);
 	}
+
 	to {
 		opacity: 1;
 		transform: scale(1);
 	}
+}
+
+.fade-in.htmx-swapping {
+	opacity: 0;
+	transition: opacity 1s ease-in;
+}
+
+.fade-in {
+	opacity: 1;
+	transition: opacity 1s ease-in;
 }

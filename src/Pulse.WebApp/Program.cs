@@ -6,11 +6,11 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Pulse.Followers;
+using Pulse.Posts;
 using Pulse.Shared.Auth;
 using Pulse.Timeline;
 using Pulse.WebApp.Client;
 using Pulse.WebApp.Configuration;
-using Pulse.WebApp.Features.Posts.API;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;

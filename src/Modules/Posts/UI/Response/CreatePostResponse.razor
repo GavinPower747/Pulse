@@ -1,0 +1,17 @@
+﻿@using Pulse.Posts.UI.Components;
+@using Pulse.Posts.UI.Models;
+@namespace Pulse.Posts.API.Create
+
+@code {
+    [Parameter] public PostViewModel? AddedPost { get; set; } 
+    [Parameter] public string? ErrorMessage { get; set; }
+}
+
+<PostForm ErrorMessage="@ErrorMessage"/>
+
+@if(AddedPost is not null)
+{
+    <div hx-swap-oob="afterbegin:.show-new-post">
+        <Post CurrentPost="@AddedPost"/>
+    </div>
+}

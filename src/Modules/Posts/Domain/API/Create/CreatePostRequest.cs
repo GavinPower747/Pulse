@@ -1,7 +1,6 @@
-namespace Pulse.WebApp.Features.Posts.API.Create
+namespace Pulse.Posts.API.Create;
+
+public record CreatePostRequest
 {
-    public record CreatePostRequest
-    {
-        public required string Content { get; set; }
-    }
+    public required string Content { get; set; }
 }

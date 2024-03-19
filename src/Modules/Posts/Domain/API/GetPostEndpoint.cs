@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Pulse.Posts.Contracts;
 using Pulse.Posts.UI.Components;
 
-namespace Pulse.WebApp.Features.Posts.API;
+namespace Pulse.Posts.API;
 
 public class GetPostEndpoint(IPostQueryService postQueryService)
 {

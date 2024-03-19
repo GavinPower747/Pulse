@@ -38,7 +38,7 @@
 }
 
 <LoadMoreButton Etag="@Etag" HasChanges="false"/>
-<div x-data="{ isEmpty: @IsEmpty.ToString().ToLower() }" x-on:pulse:post-created="isEmpty = false" id="user-feed">
+<div x-data="{ isEmpty: @IsEmpty.ToString().ToLower() }" x-on:pulse:post-created="isEmpty = false" id="user-feed" class="show-new-post">
     @if (FirstPage.Any())
     {
         <FeedPage EagerPosts="@FirstPage" ContinuationToken="@ContinuationToken"/>
