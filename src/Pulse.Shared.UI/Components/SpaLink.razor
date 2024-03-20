@@ -1,0 +1,8 @@
+﻿@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> InputAttributes { get; set; } = new Dictionary<string, object>();
+}
+
+<a hx-boost="true" hx-select-oob="main" hx-push-url="true" @attributes="InputAttributes">@ChildContent</a>
+
+

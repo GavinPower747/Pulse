@@ -13,6 +13,7 @@
     [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; } = new Dictionary<string, object>();
     
     private string BottomDivClasses => ShowCTA ? "border-b" : "p-4";
+    private string ProfileLink => $"/u/{Username}";
 
     private string initials => Name?.Split(' ').Select(x => x[0]).Aggregate(string.Empty, (x, y) => x + y) ?? string.Empty;
 }
@@ -48,7 +49,7 @@
                     }
                     else
                     {
-                        <a href="/u/@Username" class="font-normal hover:text-grey-400">View Profile</a>
+                        <SpaLink href="@ProfileLink" class="font-normal hover:text-grey-400">View Profile</SpaLink>
                     }
                 </div>
             </div>

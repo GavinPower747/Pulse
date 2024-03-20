@@ -4,7 +4,8 @@
 
 @code {
     [Parameter] public required PostViewModel CurrentPost { get; set; }
-    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string ProfileLink => $"/u/{CurrentPost.Username}";
 }
 
 <Panel>
@@ -13,7 +14,7 @@
             <Avatar src="" alt="@CurrentPost.DisplayName" initials="@CurrentPost.GetUserInitials()" />
         </div>
         <div class="flex flex-col flex-1 gap-y-2">
-            <a href="/u/@CurrentPost.Username" class="flex flex-1">
+            <SpaLink href="@ProfileLink" class="flex flex-1">
                 <div class="flex flex-col gap-y-0.5 text-sm">
                     <div class="flex-row">
                         <span class="text-lg mr-5">
@@ -25,7 +26,7 @@
                     </div>
                     <HumanReadableTimestamp Timestamp="@CurrentPost.CreatedAt" class="text-sm text-gray-600"/>
                 </div>
-            </a>
+            </SpaLink>
             <div class="text-sm mb-4">
                 @CurrentPost.Content
             </div>
