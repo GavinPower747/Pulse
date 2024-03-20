@@ -12,6 +12,8 @@ public class UsersModule : Module
     {
         builder.RegisterInstance(Configuration);
         builder.RegisterType<KeycloakUserQueries>().As<IUserQueries>();
+        builder.RegisterType<DumbUserRecos>().As<IUserRecos>();
+        builder.RegisterType<KeycloakClientFactory>().SingleInstance();
     }
 }
 

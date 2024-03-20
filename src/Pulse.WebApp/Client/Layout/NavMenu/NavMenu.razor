@@ -1,18 +1,19 @@
 ﻿@using Pulse.Users.Contracts
 @using Pulse.Shared.Auth
+@using Pulse.Shared.UI.Components
 
 <header class="header top-0 shadow-xl bg-pulse-50/10 flex flex-row items-center justify-between px-8 py-2 w-full h-16">
     <!-- logo -->
     <span class="w-1/4 flex flex-row items-center justify-center">
-        <a href="/" class="mr-12">
+        <SpaLink href="/" class="mr-12">
             <img src="/images/logo.svg" alt="Pulse" class="w-16 bg-red" />
-        </a>
-        <SearchBar />
+        </SpaLink>
     </span>
 
     <nav class="nav font-semibold text-lg w-1/2">
     </nav>
 
     <div class="w-1/4 flex justify-end">
+        <SearchBar />
     </div>
 </header>
