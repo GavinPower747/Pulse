@@ -10,8 +10,10 @@
 
 @if (HttpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated == true)
 {
-    <PostForm />
-    <Feed />
+    <div id="home-feed">
+        <PostForm />
+        <Feed />
+    </div>
 }
 else
 {

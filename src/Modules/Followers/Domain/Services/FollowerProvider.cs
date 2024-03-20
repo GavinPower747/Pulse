@@ -97,4 +97,22 @@ internal class FollowerProvider(FollowingContext dbContext, ILoggerFactory logge
 
         return following is not null;
     }
+
+    public async Task<int> GetFollowerCount(Guid userId, CancellationToken cancellationToken)
+    {
+        var count = await _dbContext
+            .Followings.Where(f => f.FollowingId == userId)
+            .CountAsync(cancellationToken);
+
+        return count;
+    }
+
+    public async Task<int> GetFollowingCount(Guid userId, CancellationToken cancellationToken)
+    {
+        var count = await _dbContext
+            .Followings.Where(f => f.UserId == userId)
+            .CountAsync(cancellationToken);
+
+        return count;
+    }
 }

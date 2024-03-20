@@ -25,6 +25,8 @@
     private bool isViewingOwnProfile => Username == currentUser.UserName;
     private bool showCTA => !isViewingOwnProfile;
     private List<PostViewModel> firstPage = new List<PostViewModel>();
+    private int followerCount;
+    private int followingCount;
     private string continuationToken = string.Empty;
     private string continuationUrl => !string.IsNullOrWhiteSpace(continuationToken) 
         ? $"/api/user/{user?.Id}/posts?continuationToken={continuationToken}"
@@ -48,10 +50,14 @@
             isFollowing = await FollowerProvider.IsFollowing(currentUser.Id, user.Id, CancellationToken.None);
 
         firstPage = posts.Select(x => PostMapper.MapToViewModel(x, user)).ToList();
+
+        followerCount = await FollowerProvider.GetFollowerCount(user.Id, CancellationToken.None);
+        followingCount = await FollowerProvider.GetFollowingCount(user.Id, CancellationToken.None);
     }
 }
 
 <div
+    id="user-profile"
     x-data="{ userCardInView: true }"
     x-init="() => {
           const observer = new IntersectionObserver(
@@ -78,7 +84,7 @@
         }
     </Header>
     <Panel>
-        <UserCard x-ref="userCard" UserId="@user?.Id" Name="@user?.DisplayName" Username="@Username" IsFollowing="@isFollowing" ShowCTA="@showCTA" Description="This is a sub heading" Followers="1000" Following="1999" ProfilePictureUrl="@string.Empty"/>
+        <UserCard x-ref="userCard" UserId="@user?.Id" Name="@user?.DisplayName" Username="@Username" IsFollowing="@isFollowing" ShowCTA="@showCTA" Description="This is a sub heading" Followers="@followerCount" Following="@followingCount" ProfilePictureUrl="@string.Empty"/>
     </Panel>
     <div id="user-feed" class="[&_p:last-child]:text-slate-500 [&_p:first-child]:text-lg">
         <InfinitelyScrollingFeedPage 
