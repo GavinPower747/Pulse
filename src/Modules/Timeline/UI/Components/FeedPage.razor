@@ -3,27 +3,22 @@
 @using Pulse.Shared.UI.Components
 
 @code {
-    [Parameter]
-    public required IEnumerable<PostViewModel> EagerPosts { get; set; } = new List<PostViewModel>();
-
-    [Parameter]
-    public required IEnumerable<Guid> LazyPostIds { get; set; } = new List<Guid>();
-
-    [Parameter]
-    public string? ContinuationToken { get; set; }
+    [Parameter] public required IEnumerable<PostViewModel> EagerPosts { get; set; } = new List<PostViewModel>();
+    [Parameter] public required IEnumerable<Guid> LazyPostIds { get; set; } = new List<Guid>();
+    [Parameter] public string? ContinuationToken { get; set; }
 
     private string GetContinuationUrl() => !string.IsNullOrWhiteSpace(ContinuationToken) 
             ? $"/api/timeline?continuationToken={ContinuationToken}"
             : string.Empty;
 }
 
-<InfinitelyScrollingFeedPage EagerItems="@EagerPosts.ToList()" ContinuationUrl="@GetContinuationUrl()"
-    FeedElementSelector="#user-feed" Context="post">
+<InfinitelyScrollingFeedPage EagerItems="@EagerPosts.ToList()" LazyItemIds="@LazyPostIds"  ContinuationUrl="@GetContinuationUrl()"
+    FeedElementSelector="#user-feed" Context="post" LazyItemUrlFormat="/Posts/{0}">
     <ItemTemplate>
         <Post CurrentPost="@post" />
     </ItemTemplate>
-    <LazyItemTemplate>
-        <div hx-get="@string.Format("/Posts/{0}", post)" hx-trigger="revealed" class="animate-pulse flex space-x-4">
+    <LazyItemPlaceholder>
+        <div class="animate-pulse flex space-x-4">
             <div class="rounded-full bg-blue-400 h-12 w-12"></div>
             <div class="flex-1 space-y-4 py-1">
                 <div class="h-4 bg-blue-400 rounded w-3/4"></div>
@@ -32,5 +27,5 @@
                 <div class="h-4 bg-blue-400 rounded w-5/6"></div>
             </div>
         </div>
-    </LazyItemTemplate>
+    </LazyItemPlaceholder>
 </InfinitelyScrollingFeedPage>

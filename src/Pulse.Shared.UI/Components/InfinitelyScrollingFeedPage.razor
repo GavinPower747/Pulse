@@ -1,33 +1,38 @@
 @typeparam TModel
 
 @code {
-    [Parameter] public List<TModel> EagerItems { get; set; } = new List<TModel>();
-    [Parameter] public List<Guid> LazyItemIds { get; set; } = new List<Guid>();
+    [Parameter] public IEnumerable<TModel> EagerItems { get; set; } = new List<TModel>();
+    [Parameter] public IEnumerable<Guid> LazyItemIds { get; set; } = new List<Guid>();
     [Parameter] public required string FeedElementSelector { get; set; }
     [Parameter] public string? ContinuationUrl { get; set; }
+    [Parameter] public string? LazyItemUrlFormat { get; set; }
 
     [Parameter] public required RenderFragment<TModel> ItemTemplate { get; set; }
-    [Parameter] public RenderFragment<Guid>? LazyItemTemplate { get; set; }
+    [Parameter] public RenderFragment<Guid>? LazyItemPlaceholder { get; set; }
 }
 
-@for (var i = 0; i < EagerItems.Count; i++)
+@for (var i = 0; i < EagerItems.Count(); i++)
 {
-    @if (i != EagerItems.Count - 1 || string.IsNullOrWhiteSpace(ContinuationUrl))
+    @*Render out all of the initial items, if there are more on the server wrap the last one in a div that sends a request when revealed for the next page*@
+    @if (i != EagerItems.Count() - 1 || string.IsNullOrWhiteSpace(ContinuationUrl))
     {
-        @ItemTemplate(EagerItems[i])
+        @ItemTemplate(EagerItems.ElementAt(i))
     }
     else
     {
         <div hx-get="@ContinuationUrl" hx-target="@FeedElementSelector" hx-swap="afterend" hx-trigger="revealed">
-            @ItemTemplate(EagerItems[i])
+            @ItemTemplate(EagerItems.ElementAt(i))
         </div>
     }
 }
 
-@if(LazyItemTemplate is not null)
+@if(LazyItemPlaceholder is not null && !string.IsNullOrWhiteSpace(LazyItemUrlFormat))
 {
     @foreach (var itemId in LazyItemIds)
-    {    
-        @LazyItemTemplate(itemId)
+    {
+        @*Render the initial placeholder on the server, then when revealed start a request to go get the actual content*@
+        <div hx-get="@string.Format(LazyItemUrlFormat, itemId)" hx-trigger="revealed" hx-swap="innerHTML" >
+            @LazyItemPlaceholder(itemId)
+        </div>
     }
 }
