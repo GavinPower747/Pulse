@@ -1,21 +1,21 @@
-﻿using MassTransit;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Pulse.Followers.Data;
 using Pulse.Followers.Domain;
 using Pulse.Posts.Contracts.Messages;
+using Pulse.Shared.Messaging;
 using Pulse.Timeline.Contracts.Commands;
 
 namespace Pulse.Followers.Consumer;
 
-internal class PostCreatedConsumer(FollowingContext dbContext, IBus messageBus)
+internal class PostCreatedConsumer(FollowingContext dbContext, IProducer messageBus)
     : IConsumer<PostCreatedEvent>
 {
     private readonly FollowingContext _dbContext = dbContext;
-    private readonly IBus _messageBus = messageBus;
+    private readonly IProducer _messageBus = messageBus;
 
-    public async Task Consume(ConsumeContext<PostCreatedEvent> context)
+    public async Task Consume(PostCreatedEvent evt, CancellationToken token)
     {
-        var followingId = context.Message.UserId;
+        var followingId = evt.UserId;
         var followers = await _dbContext
             .Followings.Where(f => f.FollowingId == followingId)
             .ToListAsync();
@@ -27,8 +27,8 @@ internal class PostCreatedConsumer(FollowingContext dbContext, IBus messageBus)
         {
             var command = new AddPostToTimelineCommand(
                 follower.UserId,
-                context.Message.Id,
-                context.Message.Created
+                evt.Id,
+                evt.Created
             );
 
             await _messageBus.Publish(command);

@@ -1,11 +1,11 @@
-﻿using MassTransit;
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using Pulse.Followers.Consumer;
 using Pulse.Followers.Data;
 using Pulse.Followers.Domain;
 using Pulse.Posts.Contracts.Messages;
+using Pulse.Shared.Messaging;
 using Pulse.Timeline.Contracts.Commands;
 
 namespace Pulse.Followers.Test;
@@ -13,7 +13,7 @@ namespace Pulse.Followers.Test;
 public class PostCreatedConsumerTests
 {
     private readonly FollowingContext _dbContext;
-    private readonly IBus _messageBus;
+    private readonly IProducer _messageBus;
     private readonly PostCreatedConsumer _consumer;
 
     public PostCreatedConsumerTests()
@@ -24,7 +24,7 @@ public class PostCreatedConsumerTests
 
         var mediator = Substitute.For<IMediator>();
         _dbContext = new FollowingContext(options, mediator);
-        _messageBus = Substitute.For<IBus>();
+        _messageBus = Substitute.For<IProducer>();
         _consumer = new PostCreatedConsumer(_dbContext, _messageBus);
     }
 
@@ -39,10 +39,7 @@ public class PostCreatedConsumerTests
         _dbContext.Followings.Add(new Following(followerId, userId));
         await _dbContext.SaveChangesAsync();
 
-        var context = Substitute.For<ConsumeContext<PostCreatedEvent>>();
-        context.Message.Returns(new PostCreatedEvent(postId, userId, created));
-
-        await _consumer.Consume(context);
+        await _consumer.Consume(new PostCreatedEvent(postId, userId, created), CancellationToken.None);
 
         await _messageBus
             .Received()
@@ -61,10 +58,7 @@ public class PostCreatedConsumerTests
         var postId = Guid.NewGuid();
         var created = DateTime.UtcNow;
 
-        var context = Substitute.For<ConsumeContext<PostCreatedEvent>>();
-        context.Message.Returns(new PostCreatedEvent(postId, userId, created));
-
-        await _consumer.Consume(context);
+        await _consumer.Consume(new PostCreatedEvent(postId, userId, created), CancellationToken.None);
 
         await _messageBus
             .Received()
