@@ -123,10 +123,7 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapAsyncApiDocuments();
-    endpoints.MapAsyncApiUi();
-});
+app.MapAsyncApiDocuments();
+app.MapAsyncApiUi();
 
 app.Run();
