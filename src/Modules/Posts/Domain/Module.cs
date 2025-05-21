@@ -1,4 +1,8 @@
 using Autofac;
+
+using Microsoft.Extensions.DependencyInjection;
+
+using Pulse.Followers.Contracts.Events;
 using Pulse.Posts.API;
 using Pulse.Posts.Contracts;
 using Pulse.Posts.Data;
@@ -28,6 +32,8 @@ public class PostsModule : Module
         );
 
         builder.AddPostEndpoints();
+
+        builder.RegisterConsumer<UserFollowedEvent, UserFollowedConsumer>();
     }
 }
 

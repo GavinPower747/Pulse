@@ -4,7 +4,7 @@ namespace Pulse.Followers.Contracts.Events;
 
 public class UserUnfollowedEvent(Guid userId, Guid followerId) : IntegrationEvent
 {
-    public override string EventName => nameof(UserUnfollowedEvent);
+    public override string EventName => "followers.userUnfollowed"; 
     public override string EventVersion => "v1";
     public override Uri Source => new("pulse://followers");
 

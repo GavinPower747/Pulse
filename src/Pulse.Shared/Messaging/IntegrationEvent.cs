@@ -12,4 +12,8 @@ public abstract class IntegrationEvent
 
     [JsonIgnore]
     public abstract Uri Source { get; }
+
+    public IntegrationEvent() { }
+
+    public string GetFullEventName() => $"{EventName}.{EventVersion}";
 }

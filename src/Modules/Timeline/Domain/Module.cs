@@ -1,7 +1,9 @@
 using Autofac;
+using Microsoft.Extensions.DependencyInjection;
 using Pulse.Timeline.Api;
 using Pulse.Timeline.Consumers;
 using Pulse.Timeline.Contracts;
+using Pulse.Timeline.Contracts.Commands;
 using Pulse.Timeline.Services;
 using StackExchange.Redis;
 
@@ -18,17 +20,6 @@ public class TimelineModule : Module
         builder
             .Register(cfg =>
             {
-                var timelineCapacity = Configuration.TimelineCapacity;
-                var redis = cfg.Resolve<IDatabase>();
-
-                return new AddToTimelineConsumer(redis, timelineCapacity);
-            })
-            .As<AddToTimelineConsumer>()
-            .AsImplementedInterfaces();
-
-        builder
-            .Register(cfg =>
-            {
                 var redis = ConnectionMultiplexer.Connect(Configuration.Redis.ConnectionString);
 
                 return redis.GetDatabase();
@@ -36,6 +27,8 @@ public class TimelineModule : Module
             .As<IDatabase>();
 
         RegisterEndpoints(builder);
+
+        builder.RegisterConsumer<AddPostToTimelineCommand, AddToTimelineConsumer>();
     }
 
     private void RegisterEndpoints(ContainerBuilder builder)

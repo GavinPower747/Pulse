@@ -7,7 +7,7 @@ namespace Pulse.Shared.Messaging;
 public class AmqpChannelPool(IConnection connection, ILogger<AmqpChannelPool> logger, int maxChannels = 10) : IAsyncDisposable
 {
     private readonly IConnection _connection = connection;
-    private readonly SemaphoreSlim _semaphore = new(0, maxChannels);
+    private readonly SemaphoreSlim _semaphore = new(maxChannels, maxChannels);
     private readonly ILogger<AmqpChannelPool> _logger = logger;
     private readonly ConcurrentBag<IChannel> _channels = [];
 

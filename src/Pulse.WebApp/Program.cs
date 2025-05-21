@@ -10,8 +10,6 @@ using Pulse.Shared.Auth;
 using Pulse.Timeline;
 using Pulse.WebApp.Client;
 using Pulse.WebApp.Configuration;
-using Saunter;
-using Saunter.AsyncApiSchema.v2;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -30,25 +28,6 @@ builder.Logging.AddJsonConsole();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddHttpClient();
 builder.Services.AddTransient<IdentityProvider>();
-
-builder.Services.AddAsyncApiSchemaGeneration(opt =>
-{
-    opt.AssemblyMarkerTypes =
-    [
-        typeof(Pulse.WebApp.Services.AmqpLifetimeService),
-        typeof(Pulse.Posts.Contracts.Messages.PostCreatedEvent),
-        typeof(Pulse.Followers.Contracts.Events.UserFollowedEvent),
-        typeof(Pulse.Timeline.Contracts.Commands.AddPostToTimelineCommand)
-    ];
-
-    opt.AsyncApi = new AsyncApiDocument
-    {
-        Info = new Info("Pulse API", "1.0.0")
-        {
-            Description = "Pulse API documentation"
-        }
-    };
-});
 
 builder
     .Services.AddAuthentication(opt =>
@@ -96,7 +75,15 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssemblies(moduleAssemblies!);
 });
 
-builder.Services.AddMessaging();
+builder.Services.AddMessaging(
+    [
+        typeof(PostsModule).Assembly,
+        typeof(FollowersModule).Assembly,
+        typeof(TimelineModule).Assembly,
+        typeof(Pulse.Followers.Contracts.AssemblyMarker).Assembly,
+        typeof(Pulse.Posts.Contracts.AssemblyMarker).Assembly,
+        typeof(Pulse.Timeline.Contracts.AssemblyMarker).Assembly,
+    ]);
 
 var app = builder.Build();
 
@@ -122,8 +109,5 @@ app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
-
-app.MapAsyncApiDocuments();
-app.MapAsyncApiUi();
 
 app.Run();
