@@ -6,11 +6,12 @@ services:
     ports:
       - "5000:8080"
     environment:
+      DOTNET_ENVIRONMENT: Development
       RabbitMQ__Host: rabbitmq
-      Authentication__Authority: http://keycloak/realms/Pulse
+      Authentication__Authority: http://auth.pulse.local:8080/realms/Pulse
       modules__0__properties__Configuration__Database__ConnectionString: Server=db;Port=5432;Database=pulseposts;User Id=postgres;Password=postgres;
       modules__1__properties__Configuration__Redis__ConnectionString: redis:6379
-      modules__2__properties__Configuration__Keycloak__ApiBase: http://keycloak:8080
+      modules__2__properties__Configuration__Keycloak__ApiBase: http://auth.pulse.local:8080
       modules__3__properties__Configuration__Database__ConnectionString: Server=db;Port=5432;Database=pulsefollowers;User Id=postgres;Password=postgres;
     depends_on:
       keycloak:
@@ -23,21 +24,22 @@ services:
         condition: service_healthy
   keycloak:
     image: quay.io/keycloak/keycloak
+    hostname: auth.pulse.local
     container_name: keycloak
     restart: unless-stopped
-    command: start-dev
+    command: ["start-dev", "--import-realm"]
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-      DB_VENDOR: POSTGRES
-      DB_ADDR: db
-      DB_DATABASE: postgres
-      DB_USER: postgres
-      DB_PASSWORD: postgres
+      KC_HTTP_ENABLED: true
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/pulseauth
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
     ports:
       - "8080:8080"
     volumes:
-      - ./build/keycloak/realm-export.json:/opt/keycloak/data/import/pulse.json
+      - ./build/keycloak/realms:/opt/keycloak/data/import
   db:
     image: postgres
     container_name: db

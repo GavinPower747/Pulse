@@ -15,6 +15,11 @@ public class AmqpConsumerService<T>(IConnection connection, IConsumer<T> consume
     private IChannel? _channel;
     private readonly IConsumer<T> _consumer = consumer;
     private readonly ILogger<AmqpConsumerService<T>> _logger = logger;
+    private readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+    };
 
     public async Task StartAsync(CancellationToken ct)
     {
@@ -50,8 +55,10 @@ public class AmqpConsumerService<T>(IConnection connection, IConsumer<T> consume
         try
         {
             var formatter = new JsonEventFormatter();
-            var cloudEvent = formatter.DecodeStructuredModeMessage(args.Body, new ContentType("application/cloudevents+json"), null) ?? throw new JsonException("Failed to decode the message body.");
-            var integrationEvent = cloudEvent.Data as T ?? throw new JsonException("Failed to deserialize the event data.");
+            var contentType = args.BasicProperties.ContentType ?? "application/json";
+            var cloudEvent = formatter.DecodeStructuredModeMessage(args.Body, new ContentType(contentType), null) ?? throw new JsonException("Failed to decode the message body.");
+            var jsonElement = cloudEvent.Data as JsonElement? ?? throw new JsonException("Cloud event data is not a valid JSON element.");
+            var integrationEvent = JsonSerializer.Deserialize<T>(jsonElement.GetRawText(), _jsonOptions) ?? throw new JsonException($"Failed to deserialize message of type {typeof(T).Name}.");
 
             var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             await _consumer.Consume(integrationEvent, cts.Token);

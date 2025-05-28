@@ -22,7 +22,7 @@ public class AmqpPublisher(ILogger<AmqpPublisher> logger, AmqpChannelPool channe
 
         var eventId = Guid.NewGuid().ToString();
 
-        var evtWrapper = new CloudEvent()
+        CloudEvent evtWrapper = new()
         {
             Type = eventType,
             Source = evt.Source,

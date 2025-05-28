@@ -17,12 +17,7 @@ public class AddToTimelineConsumer(IDatabase redis)
 
         double score = evt.Created.ToUnixTimeSeconds();
 
-        bool added = await _redis.SortedSetAddAsync(timelineKey, postId, score);
-
-        if (!added)
-        {
-            throw new InvalidOperationException("Failed to add post to timeline");
-        }
+        await _redis.SortedSetAddAsync(timelineKey, postId, score);
 
         // If the timeline is full, remove the lowest ranked (oldest) post
         long size = await _redis.SortedSetLengthAsync(timelineKey);

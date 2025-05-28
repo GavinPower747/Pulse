@@ -6,7 +6,6 @@ internal class Post
     public Guid UserId { get; set; }
     public string Content { get; set; }
     public DateTime CreatedAt { get; set; }
-    public DateTime? ScheduledAt { get; set; }
     public DateTime? PublishedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 
@@ -15,7 +14,6 @@ internal class Post
         Guid userId,
         string content,
         DateTime createdAt,
-        DateTime? scheduledAt,
         DateTime? publishedAt
     )
     {
@@ -23,7 +21,6 @@ internal class Post
         UserId = userId;
         Content = content;
         CreatedAt = createdAt;
-        ScheduledAt = scheduledAt;
         PublishedAt = publishedAt;
     }
 

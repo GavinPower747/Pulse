@@ -15,7 +15,7 @@ internal class PostCreator(PostsContext db, IProducer messageBus, DomainDtoMappe
 
     public async Task<DisplayPost> Create(Guid userId, string content)
     {
-        var post = new Post(Guid.NewGuid(), userId, content, DateTime.UtcNow, null, null);
+        var post = new Post(Guid.NewGuid(), userId, content, DateTime.UtcNow, null);
 
         await using var transaction = await _dbConnection.Database.BeginTransactionAsync();
 

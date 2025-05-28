@@ -18,7 +18,7 @@ internal class PostCreatedConsumer(FollowingContext dbContext, IProducer message
         var followingId = evt.UserId;
         var followers = await _dbContext
             .Followings.Where(f => f.FollowingId == followingId)
-            .ToListAsync();
+            .ToListAsync(token);
 
         //Ensure we add the users post to their own timeline.
         followers.Add(new Following(followingId, followingId));
@@ -31,7 +31,7 @@ internal class PostCreatedConsumer(FollowingContext dbContext, IProducer message
                 evt.Created
             );
 
-            await _messageBus.Publish(command);
+            await _messageBus.Publish(command, token);
         }
     }
 }

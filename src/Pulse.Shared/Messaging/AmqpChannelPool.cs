@@ -69,7 +69,6 @@ public class AmqpChannelPool(IConnection connection, ILogger<AmqpChannelPool> lo
             channel = await RentChannel(cts.Token);
 
             await action(channel);
-            ReturnChannel(channel);
         }
         catch (OperationCanceledException)
         {

@@ -58,6 +58,7 @@ public static class AmqpDIExtensions
     {
         services.RegisterType<THandler>().As<IConsumer>().SingleInstance();
         services.RegisterType<THandler>().As<IConsumer<TMsg>>().SingleInstance();
+        services.RegisterType<THandler>().AsSelf().SingleInstance();
         services.Register(sp =>
         {
             var connection = sp.Resolve<IConnection>();
@@ -65,7 +66,7 @@ public static class AmqpDIExtensions
             var logger = sp.Resolve<ILogger<AmqpConsumerService<TMsg>>>();
 
             return new AmqpConsumerService<TMsg>(connection, consumer!, logger);
-        });
+        }).As<IHostedService>().SingleInstance();
 
         return services;
     }
