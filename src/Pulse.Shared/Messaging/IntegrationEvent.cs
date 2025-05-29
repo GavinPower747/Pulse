@@ -17,8 +17,6 @@ public abstract class IntegrationEvent
     [JsonIgnore]
     public abstract Uri Source { get; }
 
-    public IntegrationEvent() { }
-
     public string GetFullEventName() => $"{EventName}.{EventVersion}";
 
     internal static EventMetadata GetEventMetadata<T>() where T : IntegrationEvent
@@ -40,13 +38,8 @@ public abstract class IntegrationEvent
         );
 }
 
-internal class EventMetadata(string fullName, string eventName, string eventVersion, Uri source)
+internal record EventMetadata(string FullName, string EventName, string EventVersion, Uri Source)
 {
-    internal string FullName { get; } = fullName;
-    internal string EventName { get; } = eventName;
-    internal string EventVersion { get; } = eventVersion;
-    internal Uri Source { get; } = source;
-
     internal string GetExchangeName() => FullName;
     internal string GetQueueName(IConsumer consumer) => GetQueueName(consumer.GetType().Name);
     internal string GetQueueName<T>(IConsumer<T> consumer) where T : IntegrationEvent => GetQueueName(consumer.GetType().Name);
