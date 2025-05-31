@@ -1,16 +1,17 @@
 using FluentAssertions;
-using MassTransit;
 using NSubstitute;
 using Pulse.Posts.Contracts.Messages;
 using Pulse.Posts.Domain.Mapping;
 using Pulse.Posts.Services;
 using Pulse.Posts.Tests.Fixtures;
+using Pulse.Shared.Messaging;
 
 namespace Pulse.Posts.Tests.Services;
 
+[Collection("Database")]
 public class PostCreatorTests : IClassFixture<DatabaseFixture>
 {
-    private readonly IBus _messageBus = Substitute.For<IBus>();
+    private readonly IProducer _messageBus = Substitute.For<IProducer>();
     private readonly PostCreator _sut;
 
     public PostCreatorTests(DatabaseFixture databaseFixture)

@@ -11,12 +11,13 @@ RUN curl -SLO https://deb.nodesource.com/nsolid_setup_deb.sh
 RUN chmod 500 nsolid_setup_deb.sh
 RUN ./nsolid_setup_deb.sh 21
 RUN apt-get install nodejs -y
+RUN npm install -g tailwindcss
 
 # Build the Application
 WORKDIR /src
 COPY . .
 RUN dotnet restore "src/Pulse.WebApp/Pulse.WebApp.csproj"
-RUN dotnet build "src/Pulse.WebApp/Pulse.WebApp.csproj" -c Release -o /app/build
+RUN dotnet build "src/Pulse.WebApp/Pulse.WebApp.csproj" --no-restore -c Release -o /app/build
 
 FROM build AS publish
 RUN dotnet publish "src/Pulse.WebApp/Pulse.WebApp.csproj" -c Release -o /app/publish

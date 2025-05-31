@@ -1,4 +1,5 @@
 using FluentMigrator.Runner;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Pulse.Posts.Data;
@@ -10,16 +11,15 @@ public class DatabaseFixture : IDisposable
 {
     public readonly string DatabaseId = Guid.NewGuid().ToString();
     internal PostsContext Posts { get; init; }
-
-    private string ConnectionString => $"Data Source={DatabaseId};Mode=Memory;Cache=Shared";
+    
+    // Store a reference to the connection that we use for migrations and DbContext
+    private readonly SqliteConnection _connection;
 
     public DatabaseFixture()
     {
-        var options = new DbContextOptionsBuilder<PostsContext>()
-            .UseInMemoryDatabase(DatabaseId)
-            .Options;
-
-        Posts = new PostsContext(options);
+        var connectionString = $"DataSource=file:{DatabaseId}?mode=memory&cache=shared";
+        _connection = new SqliteConnection(connectionString);
+        _connection.Open();
 
         using (var services = CreateServices())
         using (var scope = services.CreateScope())
@@ -27,16 +27,20 @@ public class DatabaseFixture : IDisposable
             var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
             runner.MigrateUp();
         }
+
+        var options = new DbContextOptionsBuilder<PostsContext>()
+            .UseSqlite(_connection)
+            .Options;
+
+        Posts = new PostsContext(options);
     }
 
     public void Dispose()
     {
-        using (var services = CreateServices())
-        using (var scope = services.CreateScope())
-        {
-            var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
-            runner.MigrateDown(0);
-        }
+        Posts?.Dispose();
+        
+        _connection?.Close();
+        _connection?.Dispose();
     }
 
     private ServiceProvider CreateServices()
@@ -45,7 +49,7 @@ public class DatabaseFixture : IDisposable
             .AddFluentMigratorCore()
             .ConfigureRunner(rb =>
                 rb.AddSQLite()
-                    .WithGlobalConnectionString(ConnectionString)
+                    .WithGlobalConnectionString(_connection.ConnectionString)
                     .ScanIn(typeof(AddPostsTable).Assembly)
                     .For.Migrations()
             )

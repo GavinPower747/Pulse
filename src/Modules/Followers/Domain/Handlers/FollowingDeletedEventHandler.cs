@@ -1,13 +1,13 @@
-﻿using MassTransit;
-using MediatR;
+﻿using MediatR;
 using Pulse.Followers.Contracts.Events;
+using Pulse.Shared.Messaging;
 
 namespace Pulse.Followers;
 
-internal class FollowingDeletedEventHandler(IBus messageBus)
+internal class FollowingDeletedEventHandler(IProducer messageBus)
     : INotificationHandler<FollowingDeletedEvent>
 {
-    private readonly IBus _messageBus = messageBus;
+    private readonly IProducer _messageBus = messageBus;
 
     public Task Handle(FollowingDeletedEvent notification, CancellationToken cancellationToken)
     {

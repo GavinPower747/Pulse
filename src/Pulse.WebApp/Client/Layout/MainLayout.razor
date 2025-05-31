@@ -44,7 +44,7 @@
             @foreach(var user in RecommendedUsers)
             {
                 <div class="flex flex-row mx-auto space-x-5 px-4 my-2">
-                    <Avatar ImageSize="Avatar.Size.Small" Initials="@GetUserInitials(user)" />
+                    <Avatar ImageSize="Avatar.Size.Medium" Initials="@GetUserInitials(user)" />
                     <div class="flex flex-col">
                         <SpaLink href="@GetUserProfileLink(user)" class="font-bold">
                             @user.DisplayName

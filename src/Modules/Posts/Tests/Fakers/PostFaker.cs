@@ -19,7 +19,6 @@ internal class PostFaker : Faker<Post>
             UserId = userId,
             Content = f.Rant.Review(),
             CreatedAt = f.Date.Past(),
-            ScheduledAt = f.Date.Future(),
             PublishedAt = f.Date.Future()
         });
 }

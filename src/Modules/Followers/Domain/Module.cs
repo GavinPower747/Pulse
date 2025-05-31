@@ -1,7 +1,13 @@
 ﻿using Autofac;
+
+using Microsoft.Extensions.DependencyInjection;
+
 using Pulse.Followers.Api.Endpoints;
+using Pulse.Followers.Consumer;
+using Pulse.Followers.Contracts.Events;
 using Pulse.Followers.Data;
 using Pulse.Followers.Domain.Services;
+using Pulse.Posts.Contracts.Messages;
 using Pulse.Shared.Data;
 using Pulse.Shared.Extensions;
 
@@ -23,12 +29,18 @@ public class FollowersModule : Module
         );
 
         RegisterEndpoints(builder);
+        RegisterMessageConsumers(builder);
     }
 
     private static void RegisterEndpoints(ContainerBuilder builder)
     {
         builder.RegisterType<AddFollowerEndpoint>().AsSelf();
         builder.RegisterType<RemoveFollowerEndpoint>().AsSelf();
+    }
+
+    private static void RegisterMessageConsumers(ContainerBuilder builder)
+    {
+        builder.RegisterConsumer<PostCreatedEvent, PostCreatedConsumer>();
     }
 }
 

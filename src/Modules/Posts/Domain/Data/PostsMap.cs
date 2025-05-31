@@ -17,7 +17,6 @@ internal class PostsMap : IEntityTypeConfiguration<Post>
         builder.Property(p => p.UserId).HasColumnName("user_id").IsRequired();
         builder.Property(p => p.UpdatedAt).HasColumnName("updated_at").IsRequired(false);
         builder.Property(p => p.PublishedAt).HasColumnName("published_at").IsRequired(false);
-        builder.Property(p => p.ScheduledAt).HasColumnName("scheduled_at").IsRequired(false);
 
         builder.HasIndex(p => p.UserId);
     }

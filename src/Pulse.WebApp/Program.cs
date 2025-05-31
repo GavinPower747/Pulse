@@ -1,7 +1,6 @@
 using Autofac;
 using Autofac.Configuration;
 using Autofac.Extensions.DependencyInjection;
-using MassTransit;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
@@ -76,48 +75,15 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssemblies(moduleAssemblies!);
 });
 
-builder.Services.AddMassTransit(cfg =>
-{
-    var autofacModuleAssemblies = builder
-        .Configuration.GetSection("modules")
-        .Get<List<ModuleInfo>>();
-
-    var moduleAssemblies = autofacModuleAssemblies!
-        .Select(m => Type.GetType(m.Type)?.Assembly)
-        .ToList();
-
-    var consumerTypes = moduleAssemblies
-        .SelectMany(a => a!.GetTypes())
-        .Where(t =>
-            t.IsClass
-            && !t.IsAbstract
-            && t.GetInterfaces()
-                .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IConsumer<>))
-        )
-        .ToList();
-
-    foreach (var type in consumerTypes)
-    {
-        cfg.AddConsumer(type);
-    }
-
-    cfg.UsingRabbitMq(
-        (context, cfg) =>
-        {
-            cfg.Host(
-                config["RabbitMQ:Host"],
-                config["RabbitMQ:VirtualHost"],
-                h =>
-                {
-                    h.Username(config["RabbitMQ:Username"]);
-                    h.Password(config["RabbitMQ:Password"]);
-                }
-            );
-
-            cfg.ConfigureEndpoints(context);
-        }
-    );
-});
+builder.Services.AddMessaging(
+    [
+        typeof(PostsModule).Assembly,
+        typeof(FollowersModule).Assembly,
+        typeof(TimelineModule).Assembly,
+        typeof(Pulse.Followers.Contracts.AssemblyMarker).Assembly,
+        typeof(Pulse.Posts.Contracts.AssemblyMarker).Assembly,
+        typeof(Pulse.Timeline.Contracts.AssemblyMarker).Assembly,
+    ]);
 
 var app = builder.Build();
 
