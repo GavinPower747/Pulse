@@ -58,7 +58,7 @@ internal class PostQueryService(PostsContext connection, DomainDtoMapper mapper)
 
         if (token is not null)
             postsQuery = postsQuery.Where(p =>
-                p.CreatedAt >= token.Value.OlderThan && p.Id >= token.Value.LastRecord
+                p.CreatedAt >= token.Value.OlderThan 
             );
 
         postsQuery = postsQuery

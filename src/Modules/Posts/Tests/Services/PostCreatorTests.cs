@@ -8,6 +8,7 @@ using Pulse.Shared.Messaging;
 
 namespace Pulse.Posts.Tests.Services;
 
+[Collection("Database")]
 public class PostCreatorTests : IClassFixture<DatabaseFixture>
 {
     private readonly IProducer _messageBus = Substitute.For<IProducer>();
