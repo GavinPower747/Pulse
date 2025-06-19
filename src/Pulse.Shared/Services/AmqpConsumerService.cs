@@ -4,17 +4,24 @@ using CloudNative.CloudEvents.SystemTextJson;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Pulse.Shared.Messaging;
+using Pulse.Shared.Messaging.Resiliance;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace Pulse.WebApp.Services;
+namespace Pulse.Shared.Services;
 
-public class AmqpConsumerService<T>(IConnection connection, IConsumer<T> consumer, ILogger<AmqpConsumerService<T>> logger) : IHostedService where T : IntegrationEvent
+internal class AmqpConsumerService<T>(
+    IConnection connection,
+    IConsumer<T> consumer,
+    ILogger<AmqpConsumerService<T>> logger,
+    ImmediateRetryHandler immediateRetry
+) : IHostedService where T : IntegrationEvent
 {
     private readonly IConnection _connection = connection;
     private IChannel? _channel;
     private readonly IConsumer<T> _consumer = consumer;
     private readonly ILogger<AmqpConsumerService<T>> _logger = logger;
+    private readonly ImmediateRetryHandler _immediateRetry = immediateRetry;
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -24,7 +31,7 @@ public class AmqpConsumerService<T>(IConnection connection, IConsumer<T> consume
     public async Task StartAsync(CancellationToken ct)
     {
         var metadata = IntegrationEvent.GetEventMetadata<T>();
-        var queue = metadata.GetQueueName(_consumer); 
+        var queue = metadata.GetQueueName(_consumer);
 
         if (string.IsNullOrEmpty(queue))
         {
@@ -52,14 +59,28 @@ public class AmqpConsumerService<T>(IConnection connection, IConsumer<T> consume
 
     private async Task OnEventRecieved(object sender, BasicDeliverEventArgs args)
     {
+        T integrationEvent;
         try
         {
             var formatter = new JsonEventFormatter();
             var contentType = args.BasicProperties.ContentType ?? "application/json";
             var cloudEvent = formatter.DecodeStructuredModeMessage(args.Body, new ContentType(contentType), null) ?? throw new JsonException("Failed to decode the message body.");
             var jsonElement = cloudEvent.Data as JsonElement? ?? throw new JsonException("Cloud event data is not a valid JSON element.");
-            var integrationEvent = JsonSerializer.Deserialize<T>(jsonElement.GetRawText(), _jsonOptions) ?? throw new JsonException($"Failed to deserialize message of type {typeof(T).Name}.");
 
+            integrationEvent = JsonSerializer.Deserialize<T>(jsonElement.GetRawText(), _jsonOptions) ?? throw new JsonException($"Failed to deserialize message of type {typeof(T).Name}.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Malformed message recieved for type {EventName}", typeof(T).Name);
+
+            // We literally can't do anything with this message, so just nack it without requeueing
+            // Realistically you'd probably want to send this to a dead letter exchange or something of the like
+            await _channel!.BasicNackAsync(args.DeliveryTag, false, false);
+            return;
+        }
+
+        try
+        {
             var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             await _consumer.Consume(integrationEvent, cts.Token);
 
@@ -67,10 +88,41 @@ public class AmqpConsumerService<T>(IConnection connection, IConsumer<T> consume
         }
         catch (Exception ex)
         {
-            await _channel!.BasicNackAsync(args.DeliveryTag, false, false);
             _logger.LogError(ex, "Error processing message of type {EventName}", typeof(T).Name);
-
-            throw;
+            await HandleFailure(args, integrationEvent!);
         }
+    }
+
+    private async Task HandleFailure(BasicDeliverEventArgs args, IntegrationEvent evt, CancellationToken ct = default)
+    {
+        var handler = GetFailureHandler(args, evt);
+
+        try
+        {
+            await handler.HandleFailure(args, evt, ct);
+            await _channel!.BasicAckAsync(args.DeliveryTag, false, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Could not handle failure for event {EventName} using policy {PolicyName}", evt.GetType().Name, handler.GetType().Name);
+
+            // If for whatever reason the failure handler can't handle then just nack and requeue the message
+            await _channel!.BasicNackAsync(args.DeliveryTag, false, true, ct);
+        }
+    }
+
+    private IFailureHandler GetFailureHandler(BasicDeliverEventArgs args, IntegrationEvent evt)
+    {
+        var retryCount = args?.BasicProperties.Headers?.ContainsKey("x-retry-count") == true
+            ? args.BasicProperties.Headers["x-retry-count"] as int? ?? 0
+            : 0;
+
+        // This could probably be config, but where's the value?
+        return retryCount switch
+        {
+            < 3 => _immediateRetry,
+            < 5 => new ExponentialDelayRetryHandler(),
+            _ => new DeadLetterHandler()
+        };
     }
 }
