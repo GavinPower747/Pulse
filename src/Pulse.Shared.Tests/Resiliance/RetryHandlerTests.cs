@@ -23,13 +23,33 @@ public class ResilianceTests
         _connection = new(_rabbitServer);
         var amqpPool = new AmqpChannelPool(_connection, Substitute.For<ILogger<AmqpChannelPool>>());
         var immediateRetryHandler = new ImmediateRetryHandler(amqpPool);
-        _sut = new AmqpConsumerService<TestEvent>(_connection, new TestConsumer(), Substitute.For<ILogger<AmqpConsumerService<TestEvent>>>(), immediateRetryHandler);
+        var exponentialRetryHandler = new ExponentialDelayRetryHandler(amqpPool);
+        _sut = new AmqpConsumerService<TestEvent>(_connection, new TestConsumer(), Substitute.For<ILogger<AmqpConsumerService<TestEvent>>>(), immediateRetryHandler, exponentialRetryHandler);
 
         using var channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
         var evtMetadata = IntegrationEvent.GetEventMetadata<TestEvent>();
 
-        channel.ExchangeDeclareAsync("pulse.retry", ExchangeType.Fanout, true, false, null).GetAwaiter().GetResult();
+        channel.ExchangeDeclareAsync(Messaging.Constants.RetryQueue, ExchangeType.Fanout, true, false, null).GetAwaiter().GetResult();
         channel.ExchangeDeclareAsync(evtMetadata.GetExchangeName(), ExchangeType.Fanout, true, false, null).GetAwaiter().GetResult();
+
+        channel.QueueDeclareAsync(
+            Messaging.Constants.RetryQueue,
+            true,
+            false,
+            false,
+            null,
+            false,
+            CancellationToken.None
+        ).GetAwaiter().GetResult();
+        
+        channel.QueueBindAsync(
+            Messaging.Constants.RetryQueue,
+            Messaging.Constants.RetryQueue,
+            "#",
+            null,
+            false,
+            CancellationToken.None
+        ).GetAwaiter().GetResult();
 
         _sut.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
     }
@@ -47,7 +67,7 @@ public class ResilianceTests
             DeliveryMode = DeliveryModes.Persistent,
             Headers = new Dictionary<string, object?>
             {
-                { "x-retry-count", 0 }
+                { Messaging.Constants.Headers.RetryCount, 0 }
             }
         };
 
@@ -67,9 +87,49 @@ public class ResilianceTests
         Assert.Equal(2, messages.Count());
 
         var message = messages.First();
-        message.BasicProperties.Headers!.TryGetValue("x-retry-count", out var retryCount);
+        message.BasicProperties.Headers!.TryGetValue(Messaging.Constants.Headers.RetryCount, out var retryCount);
         Assert.NotNull(retryCount);
         Assert.Equal(1, retryCount);
+    }
+
+    [Fact]
+    public async Task RetryHandler_Should_SendToDelayQueue_When_UsingImmediateRetriesAndMaxRetriesReached()
+    {
+        // Arrange
+        TestEvent evt = new() { Id = 1, Name = "Test Event" };
+        var evtMetadata = IntegrationEvent.GetEventMetadata<TestEvent>();
+        var channel = await _connection.CreateChannelAsync() as FakeChannel;
+        var properties = new BasicProperties
+        {
+            ContentType = "application/json",
+            DeliveryMode = DeliveryModes.Persistent,
+            Headers = new Dictionary<string, object?>
+            {
+                { Messaging.Constants.Headers.RetryCount, 3 }
+            }
+        };
+
+        // Act
+        await channel!.BasicPublishAsync(
+            evtMetadata.GetExchangeName(),
+            "#",
+            true,
+            properties,
+            WrapMessageAndSerialize(evt, evtMetadata),
+            CancellationToken.None
+        );
+
+        var delayMessages = channel.GetMessagesOnQueue(Messaging.Constants.RetryQueue);
+
+        // Assert
+        Assert.Single(delayMessages);
+
+        var message = delayMessages.First();
+        message.BasicProperties.Headers!.TryGetValue(Messaging.Constants.Headers.RetryCount, out var retryCount);
+        Assert.NotNull(retryCount);
+        Assert.Equal(4, retryCount);
+        Assert.Equal(evtMetadata.GetExchangeName(), message.BasicProperties.Headers![Messaging.Constants.Headers.RetryRepublishExchange]);
+        Assert.Equal("#", message.BasicProperties.Headers![Messaging.Constants.Headers.RetryRepublishRoutingKey]);
     }
 
     private static ReadOnlyMemory<byte> WrapMessageAndSerialize(object? message, EventMetadata metadata)

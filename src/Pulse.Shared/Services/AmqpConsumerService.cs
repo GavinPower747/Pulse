@@ -14,19 +14,29 @@ internal class AmqpConsumerService<T>(
     IConnection connection,
     IConsumer<T> consumer,
     ILogger<AmqpConsumerService<T>> logger,
-    ImmediateRetryHandler immediateRetry
-) : IHostedService where T : IntegrationEvent
+    ImmediateRetryHandler immediateRetry,
+    ExponentialDelayRetryHandler exponentialRetry
+) : IHostedService
+    where T : IntegrationEvent
 {
     private readonly IConnection _connection = connection;
     private IChannel? _channel;
     private readonly IConsumer<T> _consumer = consumer;
     private readonly ILogger<AmqpConsumerService<T>> _logger = logger;
     private readonly ImmediateRetryHandler _immediateRetry = immediateRetry;
-    private readonly JsonSerializerOptions _jsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-    };
+    private readonly ExponentialDelayRetryHandler _exponentialRetry = exponentialRetry;
+
+    private readonly JsonSerializerOptions _jsonOptions =
+        new()
+        {
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = System
+                .Text
+                .Json
+                .Serialization
+                .JsonIgnoreCondition
+                .WhenWritingNull
+        };
 
     public async Task StartAsync(CancellationToken ct)
     {
@@ -40,7 +50,13 @@ internal class AmqpConsumerService<T>(
 
         _channel = await _connection.CreateChannelAsync(cancellationToken: ct);
         await _channel.QueueDeclareAsync(queue, true, false, false, null, cancellationToken: ct);
-        await _channel.QueueBindAsync(queue, metadata.GetExchangeName(), string.Empty, null, cancellationToken: ct);
+        await _channel.QueueBindAsync(
+            queue,
+            metadata.GetExchangeName(),
+            string.Empty,
+            null,
+            cancellationToken: ct
+        );
 
         var consumer = new AsyncEventingBasicConsumer(_channel);
         consumer.ReceivedAsync += OnEventRecieved;
@@ -64,10 +80,18 @@ internal class AmqpConsumerService<T>(
         {
             var formatter = new JsonEventFormatter();
             var contentType = args.BasicProperties.ContentType ?? "application/json";
-            var cloudEvent = formatter.DecodeStructuredModeMessage(args.Body, new ContentType(contentType), null) ?? throw new JsonException("Failed to decode the message body.");
-            var jsonElement = cloudEvent.Data as JsonElement? ?? throw new JsonException("Cloud event data is not a valid JSON element.");
+            var cloudEvent =
+                formatter.DecodeStructuredModeMessage(args.Body, new ContentType(contentType), null)
+                ?? throw new JsonException("Failed to decode the message body.");
+            var jsonElement =
+                cloudEvent.Data as JsonElement?
+                ?? throw new JsonException("Cloud event data is not a valid JSON element.");
 
-            integrationEvent = JsonSerializer.Deserialize<T>(jsonElement.GetRawText(), _jsonOptions) ?? throw new JsonException($"Failed to deserialize message of type {typeof(T).Name}.");
+            integrationEvent =
+                JsonSerializer.Deserialize<T>(jsonElement.GetRawText(), _jsonOptions)
+                ?? throw new JsonException(
+                    $"Failed to deserialize message of type {typeof(T).Name}."
+                );
         }
         catch (Exception ex)
         {
@@ -93,35 +117,55 @@ internal class AmqpConsumerService<T>(
         }
     }
 
-    private async Task HandleFailure(BasicDeliverEventArgs args, IntegrationEvent evt, CancellationToken ct = default)
+    private async Task HandleFailure(
+        BasicDeliverEventArgs args,
+        IntegrationEvent evt,
+        CancellationToken ct = default
+    )
     {
         var handler = GetFailureHandler(args, evt);
+
+        IncrementRetryCount();
 
         try
         {
             await handler.HandleFailure(args, evt, ct);
-            await _channel!.BasicAckAsync(args.DeliveryTag, false, ct);
+            await _channel!.BasicNackAsync(args.DeliveryTag, false, false, ct);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Could not handle failure for event {EventName} using policy {PolicyName}", evt.GetType().Name, handler.GetType().Name);
+            _logger.LogError(
+                ex,
+                "Could not handle failure for event {EventName} using policy {PolicyName}",
+                evt.GetType().Name,
+                handler.GetType().Name
+            );
 
             // If for whatever reason the failure handler can't handle then just nack and requeue the message
             await _channel!.BasicNackAsync(args.DeliveryTag, false, true, ct);
+        }
+
+        void IncrementRetryCount()
+        { 
+            args.BasicProperties.Headers![Messaging.Constants.Headers.RetryCount] =
+                args.BasicProperties.Headers.TryGetValue(Messaging.Constants.Headers.RetryCount, out object? value) && value is int v
+                    ? v + 1 
+                    : 1;
         }
     }
 
     private IFailureHandler GetFailureHandler(BasicDeliverEventArgs args, IntegrationEvent evt)
     {
-        var retryCount = args?.BasicProperties.Headers?.ContainsKey("x-retry-count") == true
-            ? args.BasicProperties.Headers["x-retry-count"] as int? ?? 0
-            : 0;
+        var retryCount =
+            args?.BasicProperties.Headers?.ContainsKey(Messaging.Constants.Headers.RetryCount) == true
+                ? args.BasicProperties.Headers[Messaging.Constants.Headers.RetryCount] as int? ?? 0
+                : 0;
 
         // This could probably be config, but where's the value?
         return retryCount switch
         {
             < 3 => _immediateRetry,
-            < 5 => new ExponentialDelayRetryHandler(),
+            < 5 => _exponentialRetry,
             _ => new DeadLetterHandler()
         };
     }

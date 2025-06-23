@@ -41,6 +41,7 @@ public static class AmqpDIExtensions
         services.AddSingleton<AmqpChannelPool>();
         services.AddSingleton<IProducer, AmqpPublisher>();
         services.AddSingleton<ImmediateRetryHandler>();
+        services.AddSingleton<ExponentialDelayRetryHandler>();
 
         services.AddSingleton<IHostedService, AmqpService>(sp =>
         {
@@ -68,8 +69,9 @@ public static class AmqpDIExtensions
             var consumer = sp.Resolve(typeof(THandler)) as IConsumer<TMsg>;
             var logger = sp.Resolve<ILogger<AmqpConsumerService<TMsg>>>();
             var immediateRetry = sp.Resolve<ImmediateRetryHandler>();
+            var exponentialRetry = sp.Resolve<ExponentialDelayRetryHandler>();
 
-            return new AmqpConsumerService<TMsg>(connection, consumer!, logger, immediateRetry);
+            return new AmqpConsumerService<TMsg>(connection, consumer!, logger, immediateRetry, exponentialRetry);
         }).As<IHostedService>().SingleInstance();
 
         return services;
