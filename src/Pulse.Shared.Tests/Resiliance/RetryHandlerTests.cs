@@ -24,7 +24,15 @@ public class ResilianceTests
         var amqpPool = new AmqpChannelPool(_connection, Substitute.For<ILogger<AmqpChannelPool>>());
         var immediateRetryHandler = new ImmediateRetryHandler(amqpPool);
         var exponentialRetryHandler = new ExponentialDelayRetryHandler(amqpPool);
-        _sut = new AmqpConsumerService<TestEvent>(_connection, new TestConsumer(), Substitute.For<ILogger<AmqpConsumerService<TestEvent>>>(), immediateRetryHandler, exponentialRetryHandler);
+        var deadLetterHandler = new DeadLetterHandler(Substitute.For<ILogger<DeadLetterHandler>>(), amqpPool);
+        _sut = new AmqpConsumerService<TestEvent>(
+            _connection,
+            new TestConsumer(),
+            Substitute.For<ILogger<AmqpConsumerService<TestEvent>>>(),
+            immediateRetryHandler,
+            exponentialRetryHandler,
+            deadLetterHandler
+        );
 
         using var channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
         var evtMetadata = IntegrationEvent.GetEventMetadata<TestEvent>();
@@ -130,6 +138,39 @@ public class ResilianceTests
         Assert.Equal(4, retryCount);
         Assert.Equal(evtMetadata.GetExchangeName(), message.BasicProperties.Headers![Messaging.Constants.Headers.RetryRepublishExchange]);
         Assert.Equal("#", message.BasicProperties.Headers![Messaging.Constants.Headers.RetryRepublishRoutingKey]);
+    }
+
+    [Fact]
+    public async Task RetryHandler_Should_SendToDeadLetterQueue_When_UsingExponentialRetriesAndMaxRetriesReached()
+    { 
+        // Arrange
+        TestEvent evt = new() { Id = 1, Name = "Test Event" };
+        var evtMetadata = IntegrationEvent.GetEventMetadata<TestEvent>();
+        var channel = await _connection.CreateChannelAsync() as FakeChannel;
+        var properties = new BasicProperties
+        {
+            ContentType = "application/json",
+            DeliveryMode = DeliveryModes.Persistent,
+            Headers = new Dictionary<string, object?>
+            {
+                { Messaging.Constants.Headers.RetryCount, 6 }
+            }
+        };
+
+        // Act
+        await channel!.BasicPublishAsync(
+            evtMetadata.GetExchangeName(),
+            "#",
+            true,
+            properties,
+            WrapMessageAndSerialize(evt, evtMetadata),
+            CancellationToken.None
+        );
+
+        var deadLetterMessages = channel.GetMessagesOnQueue(Messaging.Constants.DeadLetterQueue);
+
+        // Assert
+        Assert.Single(deadLetterMessages);
     }
 
     private static ReadOnlyMemory<byte> WrapMessageAndSerialize(object? message, EventMetadata metadata)

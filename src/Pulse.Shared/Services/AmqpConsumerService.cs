@@ -15,7 +15,8 @@ internal class AmqpConsumerService<T>(
     IConsumer<T> consumer,
     ILogger<AmqpConsumerService<T>> logger,
     ImmediateRetryHandler immediateRetry,
-    ExponentialDelayRetryHandler exponentialRetry
+    ExponentialDelayRetryHandler exponentialRetry,
+    DeadLetterHandler deadLetterHandler
 ) : IHostedService
     where T : IntegrationEvent
 {
@@ -25,6 +26,7 @@ internal class AmqpConsumerService<T>(
     private readonly ILogger<AmqpConsumerService<T>> _logger = logger;
     private readonly ImmediateRetryHandler _immediateRetry = immediateRetry;
     private readonly ExponentialDelayRetryHandler _exponentialRetry = exponentialRetry;
+    private readonly DeadLetterHandler _deadLetterHandler = deadLetterHandler;
 
     private readonly JsonSerializerOptions _jsonOptions =
         new()
@@ -45,7 +47,7 @@ internal class AmqpConsumerService<T>(
 
         if (string.IsNullOrEmpty(queue))
         {
-            throw new ArgumentException("Queue name cannot be null or empty.", nameof(queue));
+            throw new InvalidOperationException("Queue name cannot be null or empty.");
         }
 
         _channel = await _connection.CreateChannelAsync(cancellationToken: ct);
@@ -97,9 +99,9 @@ internal class AmqpConsumerService<T>(
         {
             _logger.LogError(ex, "Malformed message recieved for type {EventName}", typeof(T).Name);
 
-            // We literally can't do anything with this message, so just nack it without requeueing
-            // Realistically you'd probably want to send this to a dead letter exchange or something of the like
-            await _channel!.BasicNackAsync(args.DeliveryTag, false, false);
+            // If we can't even deserialize the message, just dead letter it immediately.
+            SetFailureHeaders(args, "Malformed message", ex);
+            await _deadLetterHandler.HandleFailure(args, null!, CancellationToken.None);
             return;
         }
 
@@ -113,19 +115,21 @@ internal class AmqpConsumerService<T>(
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing message of type {EventName}", typeof(T).Name);
-            await HandleFailure(args, integrationEvent!);
+            await HandleFailure(args, integrationEvent!, "Error processing message", ex);
         }
     }
 
     private async Task HandleFailure(
         BasicDeliverEventArgs args,
         IntegrationEvent evt,
+        string reason,
+        Exception? exception = null,
         CancellationToken ct = default
     )
     {
         var handler = GetFailureHandler(args, evt);
 
-        IncrementRetryCount();
+        SetFailureHeaders(args, reason, exception);
 
         try
         {
@@ -143,15 +147,7 @@ internal class AmqpConsumerService<T>(
 
             // If for whatever reason the failure handler can't handle then just nack and requeue the message
             await _channel!.BasicNackAsync(args.DeliveryTag, false, true, ct);
-        }
-
-        void IncrementRetryCount()
-        { 
-            args.BasicProperties.Headers![Messaging.Constants.Headers.RetryCount] =
-                args.BasicProperties.Headers.TryGetValue(Messaging.Constants.Headers.RetryCount, out object? value) && value is int v
-                    ? v + 1 
-                    : 1;
-        }
+        } 
     }
 
     private IFailureHandler GetFailureHandler(BasicDeliverEventArgs args, IntegrationEvent evt)
@@ -166,7 +162,30 @@ internal class AmqpConsumerService<T>(
         {
             < 3 => _immediateRetry,
             < 5 => _exponentialRetry,
-            _ => new DeadLetterHandler()
+            _ => _deadLetterHandler
         };
+    }
+
+    private static void SetFailureHeaders(BasicDeliverEventArgs args, string reason, Exception? exception = null)
+    {
+        var retryCount = 1;
+
+        if (args.BasicProperties.Headers!.TryGetValue(Messaging.Constants.Headers.RetryCount, out object? value) && value is int v)
+        {
+            retryCount = v + 1;
+        }
+
+        args.BasicProperties.Headers![Messaging.Constants.Headers.RetryCount] = retryCount;
+        
+        if (retryCount == 1)
+        {
+            args.BasicProperties.Headers[Messaging.Constants.Headers.FirstFailedAt] = DateTime.UtcNow.ToString("O");
+            args.BasicProperties.Headers[Messaging.Constants.Headers.FirstFailureReason] = reason;
+            args.BasicProperties.Headers[Messaging.Constants.Headers.FirstFailureException] = exception?.ToString() ?? string.Empty;
+        }
+        
+        args.BasicProperties.Headers[Messaging.Constants.Headers.LastFailedAt] = DateTime.UtcNow.ToString("O");
+        args.BasicProperties.Headers[Messaging.Constants.Headers.LastFailureReason] = reason;
+        args.BasicProperties.Headers[Messaging.Constants.Headers.LastFailureException] = exception?.ToString() ?? string.Empty;
     }
 }

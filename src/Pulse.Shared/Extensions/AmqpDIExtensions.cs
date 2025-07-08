@@ -42,6 +42,7 @@ public static class AmqpDIExtensions
         services.AddSingleton<IProducer, AmqpPublisher>();
         services.AddSingleton<ImmediateRetryHandler>();
         services.AddSingleton<ExponentialDelayRetryHandler>();
+        services.AddSingleton<DeadLetterHandler>();
 
         services.AddSingleton<IHostedService, AmqpService>(sp =>
         {
@@ -70,8 +71,9 @@ public static class AmqpDIExtensions
             var logger = sp.Resolve<ILogger<AmqpConsumerService<TMsg>>>();
             var immediateRetry = sp.Resolve<ImmediateRetryHandler>();
             var exponentialRetry = sp.Resolve<ExponentialDelayRetryHandler>();
+            var deadLetterHandler = sp.Resolve<DeadLetterHandler>();
 
-            return new AmqpConsumerService<TMsg>(connection, consumer!, logger, immediateRetry, exponentialRetry);
+            return new AmqpConsumerService<TMsg>(connection, consumer!, logger, immediateRetry, exponentialRetry, deadLetterHandler);
         }).As<IHostedService>().SingleInstance();
 
         return services;

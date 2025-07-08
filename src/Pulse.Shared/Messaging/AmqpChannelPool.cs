@@ -91,7 +91,7 @@ public class AmqpChannelPool(
         }
         finally
         {
-            if (channel is not null && channel.IsOpen)
+            if (channel is not null)
             {
                 ReturnChannel(channel);
             }
