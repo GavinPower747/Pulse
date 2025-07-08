@@ -17,28 +17,24 @@ internal class ExponentialDelayRetryHandler(AmqpChannelPool channelPool) : IFail
             var retryCount = retryCountRaw is int count ? count : 0;
 
             var delay = TimeSpan.FromSeconds(Math.Pow(2, retryCount));
+            var basicProperties = new BasicProperties(args.BasicProperties);
+            var evtMetadata = IntegrationEvent.GetEventMetadata(evt.GetType());
 
-            await _channelPool.UseChannel(async channel =>
-            {
-                var basicProperties = new BasicProperties(args.BasicProperties);
-                var evtMetadata = IntegrationEvent.GetEventMetadata(evt.GetType());
+            basicProperties.Headers ??= new Dictionary<string, object?>();
 
-                basicProperties.Headers ??= new Dictionary<string, object?>();
+            // Set it so that when the ttl of the message (i.e. the delay) expires, it will be "dead lettered" (republished in our case) to the original exchange and thus retried
+            basicProperties.Expiration = delay.TotalMilliseconds.ToString();
+            basicProperties.Headers[Constants.Headers.RetryRepublishExchange] = evtMetadata.GetExchangeName();
+            basicProperties.Headers[Constants.Headers.RetryRepublishRoutingKey] = "#";
 
-                // Set it so that when the ttl of the message (i.e. the delay) expires, it will be "dead lettered" (republished in our case) to the original exchange and thus retried
-                basicProperties.Expiration = delay.TotalMilliseconds.ToString();
-                basicProperties.Headers[Constants.Headers.RetryRepublishExchange] = evtMetadata.GetExchangeName();
-                basicProperties.Headers[Constants.Headers.RetryRepublishRoutingKey] = "#";
-
-                await channel.BasicPublishAsync(
-                    exchange: Constants.RetryQueue,
-                    routingKey: "#",
-                    mandatory: true,
-                    basicProperties: basicProperties,
-                    body: args.Body,
-                    cancellationToken: ct
-                );
-            });
+            await channel.BasicPublishAsync(
+                exchange: Constants.RetryQueue,
+                routingKey: "#",
+                mandatory: true,
+                basicProperties: basicProperties,
+                body: args.Body,
+                cancellationToken: ct
+            );
         });
     }
 
