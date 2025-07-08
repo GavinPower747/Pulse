@@ -1,10 +1,7 @@
 using System.Text;
-
 using CloudNative.CloudEvents;
 using CloudNative.CloudEvents.SystemTextJson;
-
 using Microsoft.Extensions.Logging;
-
 using RabbitMQ.Client;
 
 namespace Pulse.Shared.Messaging;
@@ -22,26 +19,24 @@ public class AmqpPublisher(ILogger<AmqpPublisher> logger, AmqpChannelPool channe
 
         var eventId = Guid.NewGuid().ToString();
 
-        CloudEvent evtWrapper = new()
-        {
-            Type = eventType,
-            Source = evt.Source,
-            Time = DateTimeOffset.UtcNow,
-            DataContentType = MessageContentType,
-            Id = eventId,
-            Data = evt,
-        };
+        CloudEvent evtWrapper =
+            new()
+            {
+                Type = eventType,
+                Source = evt.Source,
+                Time = DateTimeOffset.UtcNow,
+                DataContentType = MessageContentType,
+                Id = eventId,
+                Data = evt,
+            };
 
         var evtFormatter = new JsonEventFormatter();
         var json = evtFormatter.ConvertToJsonElement(evtWrapper).ToString();
 
         await _channelPool.UseChannel(async channel =>
         {
-            BasicProperties properties = new()
-            {
-                ContentType = MessageContentType,
-                DeliveryMode = DeliveryModes.Persistent
-            };
+            BasicProperties properties =
+                new() { ContentType = MessageContentType, DeliveryMode = DeliveryModes.Persistent };
 
             await channel.BasicPublishAsync(
                 exchange: eventType,

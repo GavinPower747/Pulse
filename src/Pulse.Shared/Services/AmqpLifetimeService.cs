@@ -17,6 +17,7 @@ public class AmqpService(IConnection connection, AmqpChannelPool channelPool, IL
     public async Task StartAsync(CancellationToken ct)
     {
         await SetupExchanges(ct);
+        await SetupRetryQueue(ct);
     }
 
     public async Task StopAsync(CancellationToken ct)
@@ -50,6 +51,7 @@ public class AmqpService(IConnection connection, AmqpChannelPool channelPool, IL
                     cancellationToken: ct
                 );
             }
+
         }
         catch (Exception ex)
         {
@@ -63,5 +65,38 @@ public class AmqpService(IConnection connection, AmqpChannelPool channelPool, IL
                 _channelPool.ReturnChannel(channel);
             }
         }
+    }
+
+    private async Task SetupRetryQueue(CancellationToken ct)
+    {
+        await _channelPool.UseChannel(async channel =>
+        { 
+            await channel.ExchangeDeclareAsync(
+                Shared.Messaging.Constants.RetryQueue,
+                ExchangeType.Fanout,
+                true,
+                false,
+                null,
+                cancellationToken: ct
+            );
+
+            await channel.QueueDeclareAsync(
+                Shared.Messaging.Constants.RetryQueue,
+                true,
+                false,
+                false,
+                null,
+                cancellationToken: ct
+            );
+
+            await channel.QueueBindAsync(
+                Shared.Messaging.Constants.RetryQueue,
+                Shared.Messaging.Constants.RetryQueue,
+                string.Empty,
+                null,
+                cancellationToken: ct
+            );
+ 
+        });
     }
 }

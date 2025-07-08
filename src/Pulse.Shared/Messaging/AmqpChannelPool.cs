@@ -4,7 +4,11 @@ using RabbitMQ.Client;
 
 namespace Pulse.Shared.Messaging;
 
-public class AmqpChannelPool(IConnection connection, ILogger<AmqpChannelPool> logger, int maxChannels = 10) : IAsyncDisposable
+public class AmqpChannelPool(
+    IConnection connection,
+    ILogger<AmqpChannelPool> logger,
+    int maxChannels = 10
+) : IAsyncDisposable
 {
     private readonly IConnection _connection = connection;
     private readonly SemaphoreSlim _semaphore = new(maxChannels, maxChannels);
@@ -48,13 +52,16 @@ public class AmqpChannelPool(IConnection connection, ILogger<AmqpChannelPool> lo
         }
         else
         {
-            channel.DisposeAsync().AsTask().ContinueWith(t =>
-            {
-                if (t.Exception is not null)
+            channel
+                .DisposeAsync()
+                .AsTask()
+                .ContinueWith(t =>
                 {
-                    _logger.LogError(t.Exception, "Error disposing channel");
-                }
-            });
+                    if (t.Exception is not null)
+                    {
+                        _logger.LogError(t.Exception, "Error disposing channel");
+                    }
+                });
         }
 
         _semaphore.Release();
@@ -84,7 +91,7 @@ public class AmqpChannelPool(IConnection connection, ILogger<AmqpChannelPool> lo
         }
         finally
         {
-            if (channel is not null && channel.IsOpen)
+            if (channel is not null)
             {
                 ReturnChannel(channel);
             }

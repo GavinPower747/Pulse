@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Pulse.Shared.Messaging;
+using Pulse.Shared.Messaging.Resiliance;
+using Pulse.Shared.Services;
 using Pulse.WebApp.Configuration;
 using Pulse.WebApp.Services;
 using RabbitMQ.Client;
@@ -38,6 +40,9 @@ public static class AmqpDIExtensions
 
         services.AddSingleton<AmqpChannelPool>();
         services.AddSingleton<IProducer, AmqpPublisher>();
+        services.AddSingleton<ImmediateRetryHandler>();
+        services.AddSingleton<ExponentialDelayRetryHandler>();
+        services.AddSingleton<DeadLetterHandler>();
 
         services.AddSingleton<IHostedService, AmqpService>(sp =>
         {
@@ -64,8 +69,11 @@ public static class AmqpDIExtensions
             var connection = sp.Resolve<IConnection>();
             var consumer = sp.Resolve(typeof(THandler)) as IConsumer<TMsg>;
             var logger = sp.Resolve<ILogger<AmqpConsumerService<TMsg>>>();
+            var immediateRetry = sp.Resolve<ImmediateRetryHandler>();
+            var exponentialRetry = sp.Resolve<ExponentialDelayRetryHandler>();
+            var deadLetterHandler = sp.Resolve<DeadLetterHandler>();
 
-            return new AmqpConsumerService<TMsg>(connection, consumer!, logger);
+            return new AmqpConsumerService<TMsg>(connection, consumer!, logger, immediateRetry, exponentialRetry, deadLetterHandler);
         }).As<IHostedService>().SingleInstance();
 
         return services;
