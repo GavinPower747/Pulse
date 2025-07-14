@@ -1,4 +1,4 @@
-namespace Pulse.Posts.API.Create;
+namespace Pulse.Posts.API.Posts.Create;
 
 public record CreatePostRequest
 {

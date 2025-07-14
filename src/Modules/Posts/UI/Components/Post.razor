@@ -30,6 +30,11 @@
             <div class="text-sm mb-4">
                 @CurrentPost.Content
             </div>
+            
+            @if (CurrentPost.AttachmentUrls.Any())
+            {
+                <AttachmentPreview AttachmentUrls="CurrentPost.AttachmentUrls" IsEditable="false" />
+            }
         </div>
     </div>
 </Panel>

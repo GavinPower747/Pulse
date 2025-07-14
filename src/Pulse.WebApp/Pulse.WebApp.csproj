@@ -44,5 +44,4 @@
     <UpToDateCheckBuilt Include="postcss.config.js" Set="Css" />
     <UpToDateCheckBuilt Include="tailwind.config.js" Set="Css" />
   </ItemGroup>
-
 </Project>

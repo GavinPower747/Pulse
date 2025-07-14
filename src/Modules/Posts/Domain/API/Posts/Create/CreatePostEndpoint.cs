@@ -4,7 +4,7 @@ using Pulse.Posts.Contracts;
 using Pulse.Posts.UI.Mapping;
 using Pulse.Shared.Auth;
 
-namespace Pulse.Posts.API.Create;
+namespace Pulse.Posts.API.Posts.Create;
 
 internal class CreatePostEndpoint(
     IPostCreator postCreator,

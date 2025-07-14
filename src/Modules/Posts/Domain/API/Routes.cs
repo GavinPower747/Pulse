@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Pulse.Posts.API;
-using Pulse.Posts.API.Create;
+using Pulse.Posts.API.Posts;
+using Pulse.Posts.API.Posts.Create;
 
 namespace Pulse.Posts;
 

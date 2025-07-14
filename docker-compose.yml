@@ -2,17 +2,28 @@ services:
   webapp:
     build:
       context: .
-      dockerfile: ./src/Pulse.WebApp/Dockerfile
+      dockerfile: ./src/Pulse.WebApp/Dockerfile.Development
     ports:
       - "5000:8080"
+      - "5001:8081"
+      - "34995:34995"
     environment:
       DOTNET_ENVIRONMENT: Development
+      DOTNET_URLS: http://*:8080
+      DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER: true
+      DOTNET_WATCH_RESTART_ON_RUDE_EDIT: true
+      ASPNETCORE_AUTO_RELOAD_WS_ENDPOINT: ws://localhost:34995
       RabbitMQ__Host: rabbitmq
       Authentication__Authority: http://auth.pulse.local:8080/realms/Pulse
       modules__0__properties__Configuration__Database__ConnectionString: Server=db;Port=5432;Database=pulseposts;User Id=postgres;Password=postgres;
       modules__1__properties__Configuration__Redis__ConnectionString: redis:6379
       modules__2__properties__Configuration__Keycloak__ApiBase: http://auth.pulse.local:8080
       modules__3__properties__Configuration__Database__ConnectionString: Server=db;Port=5432;Database=pulsefollowers;User Id=postgres;Password=postgres;
+    volumes:
+      - .:/app
+      - /app/src/Pulse.WebApp/bin
+      - /app/src/Pulse.WebApp/obj
+      - ~/.aspnet/https:/https:ro
     depends_on:
       keycloak:
         condition: service_started
