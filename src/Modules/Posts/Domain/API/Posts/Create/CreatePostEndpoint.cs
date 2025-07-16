@@ -22,7 +22,7 @@ internal class CreatePostEndpoint(
             return BadRequest("Post content must be 280 characters or less.");
 
         var currentUser = _identityProvider.GetCurrentUser();
-        var post = await _postCreator.Create(currentUser.Id, request.Content);
+        var post = await _postCreator.Create(request.PostId, currentUser.Id, request.Content);
 
         return Ok(post, currentUser);
     }

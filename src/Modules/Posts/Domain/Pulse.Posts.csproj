@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="autofac" Version="8.0.0" />
+    <PackageReference Include="AWSSDK.S3" Version="4.0.5" />
     <PackageReference Include="Dapper" Version="2.1.28" />
     <PackageReference Include="FluentMigrator" Version="5.1.0" />
     <PackageReference Include="FluentMigrator.Runner" Version="5.1.0" />

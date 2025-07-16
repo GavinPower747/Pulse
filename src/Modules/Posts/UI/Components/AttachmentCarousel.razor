@@ -1,0 +1,181 @@
+@code {
+    [Parameter] public IEnumerable<string> AttachmentUrls { get; set; } = [];
+    [Parameter] public bool IsEditable { get; set; } = true;
+
+    private string carouselId = Guid.NewGuid().ToString();
+}
+
+@if (AttachmentUrls.Any())
+{
+    <div class="mt-3 mb-2">
+        <div class="relative">
+            <button type="button"
+                class="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 w-8 h-8 bg-white dark:bg-gray-800 shadow-lg rounded-full flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600 hidden"
+                onclick="scrollCarousel('@carouselId', -1)" title="Previous">
+                <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+
+            <button type="button"
+                class="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 w-8 h-8 bg-white dark:bg-gray-800 shadow-lg rounded-full flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600 hidden"
+                onclick="scrollCarousel('@carouselId', 1)" title="Next">
+                <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
+
+            <!-- Carousel Container -->
+            <div id="@carouselId" class="flex gap-2 overflow-x-auto scrollbar-hide pb-2 max-w-full pt-2.5 px-10"
+                style="scroll-behavior: smooth;" onscroll="updateCarouselArrows('@carouselId')">
+                @foreach (var url in AttachmentUrls)
+                {
+                    <div class="relative flex-shrink-0 group min-w-0">
+                        <img src="@url" alt="Attachment preview"
+                            class="w-32 h-32 object-cover rounded-lg border border-gray-200 dark:border-gray-700 hover:opacity-90 transition-opacity cursor-pointer" />
+
+                        @if (IsEditable)
+                        {
+                            <button type="button"
+                                class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors opacity-0 group-hover:opacity-100"
+                                title="Remove attachment">
+                                ×
+                            </button>
+                        }
+                    </div>
+                }
+
+                @if (IsEditable)
+                {
+                    <!-- Uploading loading spinner -->
+                    <div class="carousel-loading-spinner relative flex-shrink-0 min-w-0">
+                        <div class="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+                            <div class="flex flex-col items-center justify-center space-y-2">
+                                <svg class="animate-spin h-6 w-6 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Uploading...</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+</style>
+
+<script>
+    function scrollCarousel(carouselId, direction) {
+        const carousel = document.getElementById(carouselId);
+        if (!carousel) return;
+
+        const scrollAmount = 140; // Width of image (128px) + gap (8px) + some padding
+        carousel.scrollLeft += direction * scrollAmount;
+
+        // Update arrows after scroll
+        setTimeout(() => updateCarouselArrows(carouselId), 100);
+    }
+
+    function checkIfArrowsNeeded(carouselId) {
+        const carousel = document.getElementById(carouselId);
+        if (!carousel) return false;
+
+        // Check if content overflows (scrollable)
+        const needsScrolling = carousel.scrollWidth > carousel.clientWidth;
+
+        // Find the component's root element to update the showArrows state
+        const component = carousel.closest('.relative').parentElement.parentElement;
+        const leftArrow = component.querySelector('button[title="Previous"]');
+        const rightArrow = component.querySelector('button[title="Next"]');
+
+        if (needsScrolling) {
+            // Show arrows and add padding
+            if (leftArrow) leftArrow.style.display = 'flex';
+            if (rightArrow) rightArrow.style.display = 'flex';
+            carousel.classList.add('px-10');
+        } else {
+            // Hide arrows and remove padding
+            if (leftArrow) leftArrow.style.display = 'none';
+            if (rightArrow) rightArrow.style.display = 'none';
+            carousel.classList.remove('px-10');
+        }
+
+        return needsScrolling;
+    }
+
+    function updateCarouselArrows(carouselId) {
+        const carousel = document.getElementById(carouselId);
+        if (!carousel) return;
+
+        // First check if arrows are needed at all
+        const needsArrows = checkIfArrowsNeeded(carouselId);
+        if (!needsArrows) return;
+
+        const component = carousel.closest('.relative').parentElement.parentElement;
+        const leftArrow = component.querySelector('button[title="Previous"]');
+        const rightArrow = component.querySelector('button[title="Next"]');
+
+        if (leftArrow && rightArrow) {
+            // Check if we can scroll left
+            const canScrollLeft = carousel.scrollLeft > 0;
+            leftArrow.classList.toggle('opacity-50', !canScrollLeft);
+            leftArrow.classList.toggle('pointer-events-none', !canScrollLeft);
+            leftArrow.classList.toggle('opacity-100', canScrollLeft);
+
+            // Check if we can scroll right
+            const canScrollRight = carousel.scrollLeft < (carousel.scrollWidth - carousel.clientWidth);
+            rightArrow.classList.toggle('opacity-50', !canScrollRight);
+            rightArrow.classList.toggle('pointer-events-none', !canScrollRight);
+            rightArrow.classList.toggle('opacity-100', canScrollRight);
+        }
+    }
+
+    function initializeCarousel(carouselId) {
+        // Small delay to ensure DOM is fully rendered
+        setTimeout(() => {
+            checkIfArrowsNeeded(carouselId);
+            updateCarouselArrows(carouselId);
+        }, 50);
+    }
+
+    // Initialize arrows when component loads
+    document.addEventListener('DOMContentLoaded', function () {
+        const carousels = document.querySelectorAll('[id^="@carouselId"]');
+        carousels.forEach(carousel => {
+            initializeCarousel(carousel.id);
+        });
+    });
+
+    // Re-check on window resize
+    window.addEventListener('resize', function () {
+        const carousels = document.querySelectorAll('[id^="@carouselId"]');
+        carousels.forEach(carousel => {
+            initializeCarousel(carousel.id);
+        });
+    });
+
+    // Also initialize when images load (in case they affect layout)
+    document.addEventListener('DOMContentLoaded', function () {
+        const carousels = document.querySelectorAll('[id^="@carouselId"]');
+        carousels.forEach(carousel => {
+            const images = carousel.querySelectorAll('img');
+            images.forEach(img => {
+                img.addEventListener('load', () => {
+                    initializeCarousel(carousel.id);
+                });
+            });
+        });
+    });
+</script>

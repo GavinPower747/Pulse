@@ -1,9 +1,6 @@
 using Autofac;
-
 using Microsoft.Extensions.DependencyInjection;
-
 using Pulse.Followers.Contracts.Events;
-using Pulse.Posts.API;
 using Pulse.Posts.Contracts;
 using Pulse.Posts.Data;
 using Pulse.Posts.Domain.Mapping;
@@ -22,8 +19,10 @@ public class PostsModule : Module
     {
         builder.RegisterType<PostQueryService>().As<IPostQueryService>().SingleInstance();
         builder.RegisterType<PostCreator>().As<IPostCreator>().SingleInstance();
+        builder.RegisterType<AttachmentService>().AsSelf().SingleInstance();
         builder.RegisterType<DomainDtoMapper>().AsSelf().SingleInstance();
         builder.RegisterDbContext<PostsContext>(Configuration.Database.ConnectionString);
+        builder.RegisterDbContext<AttachmentContext>(Configuration.Database.ConnectionString);
         builder.RegisterType<PostMapper>().AsSelf();
 
         DataJobs.MigrateDatabase(
