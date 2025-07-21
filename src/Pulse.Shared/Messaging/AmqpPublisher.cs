@@ -1,14 +1,12 @@
 using System.Text;
 using CloudNative.CloudEvents;
 using CloudNative.CloudEvents.SystemTextJson;
-using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
 namespace Pulse.Shared.Messaging;
 
-public class AmqpPublisher(ILogger<AmqpPublisher> logger, AmqpChannelPool channelPool) : IProducer
+public class AmqpPublisher(AmqpChannelPool channelPool) : IProducer
 {
-    private readonly ILogger<AmqpPublisher> _logger = logger;
     private readonly AmqpChannelPool _channelPool = channelPool;
 
     public const string MessageContentType = "application/json";

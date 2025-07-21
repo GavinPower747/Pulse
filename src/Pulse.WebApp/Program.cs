@@ -1,3 +1,4 @@
+using Amazon.S3;
 using Autofac;
 using Autofac.Configuration;
 using Autofac.Extensions.DependencyInjection;
@@ -38,6 +39,7 @@ builder
     .AddCookie(opt =>
     {
         opt.LoginPath = "/Account/Login";
+        opt.Cookie.Name = "PulseWebSession";
     })
     .AddOpenIdConnect(options =>
     {
@@ -108,6 +110,7 @@ app.UseAuthorization();
 
 app.UseAntiforgery();
 
-app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
 app.Run();

@@ -1,3 +1,5 @@
+using Amazon.Runtime;
+using Amazon.S3;
 using Autofac;
 using Microsoft.Extensions.DependencyInjection;
 using Pulse.Followers.Contracts.Events;
@@ -25,6 +27,20 @@ public class PostsModule : Module
         builder.RegisterDbContext<AttachmentContext>(Configuration.Database.ConnectionString);
         builder.RegisterType<PostMapper>().AsSelf();
 
+        builder.Register((cfg) =>
+        {
+            var credentials = new BasicAWSCredentials(Configuration.BlobStorage.AccessKey, Configuration.BlobStorage.SecretKey);
+            var config = new AmazonS3Config()
+            {
+                ServiceURL = Configuration.BlobStorage.Endpoint,
+                ForcePathStyle = true,
+                UseHttp = true,
+                SignatureMethod = SigningAlgorithm.HmacSHA256
+            };
+
+            return new AmazonS3Client(credentials, config);
+        }).As<IAmazonS3>();
+
         DataJobs.MigrateDatabase(
             Configuration.Database.ConnectionString,
             typeof(PostsModule).Assembly
@@ -39,9 +55,17 @@ public class PostsModule : Module
 public class PostsConfiguration
 {
     public DatabaseConfig Database { get; set; } = default!;
+    public BlobStorageConfig BlobStorage { get; set; } = default!;
 }
 
 public class DatabaseConfig
 {
     public string ConnectionString { get; set; } = default!;
+}
+
+public class BlobStorageConfig
+{
+    public string Endpoint { get; set; } = default!;
+    public string AccessKey { get; set; } = default!;
+    public string SecretKey { get; set; } = default!;
 }

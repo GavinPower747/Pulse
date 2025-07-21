@@ -16,6 +16,7 @@ services:
       RabbitMQ__Host: rabbitmq
       Authentication__Authority: http://auth.pulse.local:8080/realms/Pulse
       modules__0__properties__Configuration__Database__ConnectionString: Server=db;Port=5432;Database=pulseposts;User Id=postgres;Password=postgres;
+      modules__0__properties__Configuration__BlobStorage__Endpoint: http://storage.pulse.local:9000
       modules__1__properties__Configuration__Redis__ConnectionString: redis:6379
       modules__2__properties__Configuration__Keycloak__ApiBase: http://auth.pulse.local:8080
       modules__3__properties__Configuration__Database__ConnectionString: Server=db;Port=5432;Database=pulsefollowers;User Id=postgres;Password=postgres;
@@ -45,9 +46,9 @@ services:
       sh -c "
         apk add --no-cache rsync inotify-tools
         echo 'Initial sync...'
-        rsync -av --delete --exclude='**/.git/' --exclude='**/bin/' --exclude='**/obj/' --exclude='**/.vs/' --exclude='**/.vscode/' --exclude='**/node_modules/' /source/ /app/
+        rsync -av --delete --exclude='**/.git/' --exclude='**/bin/' --exclude='**/obj/' --exclude='**/.vs/' --exclude='**/.vscode/' --exclude='**/node_modules/' --exclude='**/data/' /source/ /app/
         echo 'Watching for changes...'
-        while inotifywait -r -e modify,create,delete,move --exclude '.*/data/.*' --exclude '.*/\.git/.*' --exclude '.*/bin/.*' --exclude '.*/obj/.*' --exclude '.*/node_modules/.*' /source/; do
+        while inotifywait -r -e modify,create,delete,move --exclude '(.*/data/.*|.*/\.git/.*|.*/bin/.*|.*/obj/.*|.*/node_modules/.*)' /source/; do
           echo 'Files changed, syncing...'
           rsync -av --delete --exclude='**/.git/' --exclude='**/data/' --exclude='**/bin/' --exclude='**/obj/' --exclude='**/.vs/' --exclude='**/.vscode/' --exclude='**/node_modules/' /source/ /app/
         done
@@ -72,6 +73,9 @@ services:
       - "8080:8080"
     volumes:
       - ./build/keycloak/realms:/opt/keycloak/data/import
+    depends_on:
+      db:
+        condition: service_healthy
   db:
     image: postgres
     container_name: db
@@ -79,7 +83,7 @@ services:
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
-      POSTGRES_MULTIPLE_DATABASES: PulsePosts,postgres:PulseFollowers,postgres
+      POSTGRES_MULTIPLE_DATABASES: PulsePosts,postgres:PulseFollowers,postgres,pulseauth,postgres
     ports:
       - "5432:5432"
     volumes:
@@ -110,6 +114,20 @@ services:
       - "6379:6379"
     volumes:
       - ./data/redis/data:/data
+  minio:
+    image: 'minio/minio:latest'
+    hostname: storage.pulse.local
+    ports: 
+      - 9000:9000
+      - 9090:9090
+    environment:
+      MINIO_ROOT_USER: 'root'
+      MINIO_ROOT_PASSWORD: 'password'
+    volumes:
+      - ./data/minio:/data/minio
+    command: minio server /data/minio --console-address ":9090"
+
+
 
 volumes:
   app-source:

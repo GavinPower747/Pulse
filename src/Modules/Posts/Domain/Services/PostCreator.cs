@@ -13,7 +13,7 @@ internal class PostCreator(PostsContext db, IProducer messageBus, DomainDtoMappe
     private readonly IProducer _messageBus = messageBus;
     private readonly DomainDtoMapper _mapper = mapper;
 
-    public async Task<DisplayPost> Create(Guid? postId,Guid userId, string content)
+    public async Task<DisplayPost> Create(Guid? postId, Guid userId, string content)
     {
         var post = new Post(postId ?? Guid.NewGuid(), userId, content, DateTime.UtcNow, null);
 

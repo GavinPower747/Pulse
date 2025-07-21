@@ -27,7 +27,7 @@ public class PostCreatorTests : IClassFixture<DatabaseFixture>
         var content = new Bogus.DataSets.Rant().Review();
 
         // Act
-        var result = await _sut.Create(userId, content);
+        var result = await _sut.Create(null, userId, content);
 
         // Assert
         result.Should().NotBeNull();
@@ -45,7 +45,7 @@ public class PostCreatorTests : IClassFixture<DatabaseFixture>
         var content = new Bogus.DataSets.Rant().Review();
 
         // Act
-        await _sut.Create(userId, content);
+        await _sut.Create(null, userId, content);
 
         // Assert
         await _messageBus.Received(1).Publish(Arg.Any<PostCreatedEvent>());

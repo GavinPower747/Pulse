@@ -31,9 +31,9 @@
                 @CurrentPost.Content
             </div>
             
-            @if (CurrentPost.AttachmentUrls.Any())
+            @if (CurrentPost.Attachments.Any())
             {
-                <AttachmentCarousel AttachmentUrls="CurrentPost.AttachmentUrls" IsEditable="false" />
+                <AttachmentCarousel Attachments="CurrentPost.Attachments" PostId="@CurrentPost.Id" />
             }
         </div>
     </div>

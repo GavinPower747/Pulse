@@ -17,5 +17,6 @@ internal class AttachmentMetadataMap : IEntityTypeConfiguration<AttachmentMetada
         builder.Property(a => a.Type).HasColumnName("type").IsRequired();
         builder.Property(a => a.Size).HasColumnName("size").IsRequired();
         builder.Property(a => a.ContentType).HasColumnName("content_type").IsRequired();
+        builder.Property(a => a.ETag).HasColumnName("etag").IsRequired();
     }
 }
