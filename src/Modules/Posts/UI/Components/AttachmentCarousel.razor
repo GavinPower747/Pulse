@@ -3,7 +3,7 @@
 @code {
     [Parameter] public Guid PostId { get; set; } = Guid.Empty;
     [Parameter] public IEnumerable<AttachmentDownload> Attachments { get; set; } = [];
-    [Parameter] public bool ShowDeleteButton { get; set; } = true;
+    [Parameter] public bool ShowDeleteButton { get; set; } = false;
 
     private string carouselId = Guid.NewGuid().ToString();
 }

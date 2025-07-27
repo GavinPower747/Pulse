@@ -26,7 +26,7 @@ internal class GetAttachmentEndpoint(AttachmentService attachmentService)
             attachment.Metadata.ContentType,
             attachment.Metadata.GetFileName(),
             null,
-            new EntityTagHeaderValue(attachment.Metadata.ETag),
+            !string.IsNullOrWhiteSpace(attachment.Metadata.ETag) ? new EntityTagHeaderValue(attachment.Metadata.ETag) : null,
             false
         );
     }

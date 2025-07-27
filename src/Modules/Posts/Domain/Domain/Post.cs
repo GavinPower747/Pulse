@@ -8,14 +8,15 @@ internal class Post
     public DateTime CreatedAt { get; set; }
     public DateTime? PublishedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-    public IEnumerable<AttachmentMetadata> Attachments { get; set; } = [];
+    public IEnumerable<AttachmentMetadata> Attachments { get; set; } 
 
     public Post(
         Guid id,
         Guid userId,
         string content,
         DateTime createdAt,
-        DateTime? publishedAt
+        DateTime? publishedAt,
+        IEnumerable<AttachmentMetadata>? attachments = null
     )
     {
         Id = id;
@@ -23,6 +24,7 @@ internal class Post
         Content = content;
         CreatedAt = createdAt;
         PublishedAt = publishedAt;
+        Attachments = attachments ?? [];
     }
 
     // For unit tests *sigh*

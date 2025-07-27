@@ -57,6 +57,16 @@ public static class Routes
             ) => await handler.Handle(file, postId, ct)
         );
 
+        group.MapGet(
+            "{postId}/attachment/{fileName}",
+            async (
+                Guid postId,
+                string fileName,
+                [FromServices] GetAttachmentEndpoint handler,
+                CancellationToken ct
+            ) => await handler.Handle(fileName, ct)
+        );
+
         group.MapDelete(
             "{postId}/attachment/{attachmentId}",
             async (
@@ -77,6 +87,7 @@ internal static class PostApiExtensions
     {
         builder.RegisterType<CreatePostEndpoint>().AsSelf().SingleInstance();
         builder.RegisterType<GetPostEndpoint>().AsSelf().SingleInstance();
+        builder.RegisterType<GetAttachmentEndpoint>().AsSelf().SingleInstance();
         builder.RegisterType<UploadAttachmentEndpoint>().AsSelf().SingleInstance();
         builder.RegisterType<DeleteAttachmentEndpoint>().AsSelf().SingleInstance();
 
