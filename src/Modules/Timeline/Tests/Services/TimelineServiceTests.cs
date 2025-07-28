@@ -55,7 +55,7 @@ public class TimelineServiceTests
         var postIds = await _timelineService.GetTimelinePage(userId, null, count);
 
         // Assert
-        postIds.Should().BeEquivalentTo(expectedPostIds);
+        postIds.Ids.Should().BeEquivalentTo(expectedPostIds);
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class TimelineServiceTests
 
         var redisValues = expectedPostIds.Select(id => (RedisValue)$"post:{id}").ToArray();
 
-        _redis.SortedSetRank(userId.ToString(), cursor).Returns(0);
+        _redis.SortedSetRank($"timeline:{userId}", cursor).Returns(0);
         _redis
             .SortedSetRangeByRankAsync($"timeline:{userId}", 1, count + 1, Order.Descending)
             .Returns(redisValues);
@@ -79,7 +79,7 @@ public class TimelineServiceTests
         var postIds = await _timelineService.GetTimelinePage(userId, cursor, count);
 
         // Assert
-        postIds.Should().BeEquivalentTo(expectedPostIds);
+        postIds.Ids.Should().BeEquivalentTo(expectedPostIds);
     }
 
     [Fact]

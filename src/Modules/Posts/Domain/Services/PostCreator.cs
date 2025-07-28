@@ -21,7 +21,7 @@ internal class PostCreator(PostsContext db, IProducer messageBus, DomainDtoMappe
 
         _dbConnection.PostSet.Add(post);
         await _dbConnection.SaveChangesAsync();
-        await _messageBus.Publish(new PostCreatedEvent(post.Id, post.UserId, post.CreatedAt));
+        await _messageBus.Publish(new PostCreatedEvent(post.Id, post.UserId, post.CreatedAt, post.Content));
 
         await transaction.CommitAsync();
 

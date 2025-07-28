@@ -1,6 +1,4 @@
-using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Pulse.Users.Contracts;
 using Pulse.Users.External;
 using Pulse.Users.Mapping;
@@ -54,5 +52,18 @@ internal class KeycloakUserQueries(KeycloakClientFactory clientFactory, UsersCon
                 ?.FirstOrDefault() ?? throw new Exception("User not found");
 
         return KeycloakMapper.MapToUser(keycloakUser);
+    }
+
+    public async Task<bool> UserExists(string username)
+    { 
+        try
+        {
+            var user = await GetUser(username);
+            return user != null;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 }

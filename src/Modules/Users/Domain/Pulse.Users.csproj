@@ -20,6 +20,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Contracts\Pulse.Users.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Pulse.Shared\Pulse.Shared.csproj" />
+    <ProjectReference Include="..\..\Posts\Contracts\Pulse.Posts.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

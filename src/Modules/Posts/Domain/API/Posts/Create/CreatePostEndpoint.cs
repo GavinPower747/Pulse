@@ -1,3 +1,5 @@
+using System.Web;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Pulse.Posts.Contracts;
@@ -20,11 +22,27 @@ internal class CreatePostEndpoint(
     {
         if (request.Content.Length > 280)
             return BadRequest("Post content must be 280 characters or less.");
+        
+        var processedPostContent = ProcessContent(request.Content);
 
         var currentUser = _identityProvider.GetCurrentUser();
-        var post = await _postCreator.Create(request.PostId, currentUser.Id, request.Content);
+        var post = await _postCreator.Create(request.PostId, currentUser.Id, processedPostContent);
 
         return Ok(post, currentUser);
+    }
+
+    // Remove HTML to prevent XSS and CSS attacks but preserve people trying to share code snippets
+    // Also replace new lines with <br/> to maintain formatting
+    private static string ProcessContent(string content)
+    {
+        var encodedContent = HttpUtility.HtmlEncode(content);
+
+        encodedContent = encodedContent
+                            .Replace("\r\n", "<br/>")
+                            .Replace("\n", "<br/>")
+                            .Replace("\r", "<br/>");
+
+        return encodedContent;
     }
 
     private static RazorComponentResult<CreatePostResponse> BadRequest(string message)

@@ -1,4 +1,7 @@
 using Autofac;
+using Microsoft.Extensions.DependencyInjection;
+using Pulse.Posts.Contracts.Messages;
+using Pulse.Users.Consumers;
 using Pulse.Users.Contracts;
 using Pulse.Users.Services;
 
@@ -14,6 +17,8 @@ public class UsersModule : Module
         builder.RegisterType<KeycloakUserQueries>().As<IUserQueries>();
         builder.RegisterType<DumbUserRecos>().As<IUserRecos>();
         builder.RegisterType<KeycloakClientFactory>().SingleInstance();
+
+        builder.RegisterConsumer<UserMentionedEvent, UserMentionedConsumer>();
     }
 }
 

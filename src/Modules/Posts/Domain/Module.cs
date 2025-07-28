@@ -3,7 +3,9 @@ using Amazon.S3;
 using Autofac;
 using Microsoft.Extensions.DependencyInjection;
 using Pulse.Followers.Contracts.Events;
+using Pulse.Posts.Consumers;
 using Pulse.Posts.Contracts;
+using Pulse.Posts.Contracts.Messages;
 using Pulse.Posts.Data;
 using Pulse.Posts.Domain.Mapping;
 using Pulse.Posts.Services;
@@ -49,6 +51,7 @@ public class PostsModule : Module
         builder.AddPostEndpoints();
 
         builder.RegisterConsumer<UserFollowedEvent, UserFollowedConsumer>();
+        builder.RegisterConsumer<PostCreatedEvent, DetectMentions>();
     }
 }
 

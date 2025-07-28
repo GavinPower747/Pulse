@@ -38,6 +38,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Domain\Pulse.Posts.csproj" />
     <ProjectReference Include="..\Contracts\Pulse.Posts.Contracts.csproj" />
+    <ProjectReference Include="..\Pulse.Shared\Pulse.Shared.csproj" />
+    <ProjectReference Include="..\Pulse.Tests.Util\Pulse.Tests.Util.csproj" />
+    <ProjectReference Include="..\..\..\Pulse.Tests.Util\Pulse.Tests.Util.csproj" />
   </ItemGroup>
 
   <ItemGroup>

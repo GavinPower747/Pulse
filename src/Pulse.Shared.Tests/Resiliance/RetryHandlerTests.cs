@@ -1,32 +1,33 @@
 using RabbitMQ.Client;
-using Pulse.Tests.Util.Mocks.RabbitMQ;
 using Pulse.Shared.Messaging;
-using NSubstitute;
-using Microsoft.Extensions.Logging;
 using Pulse.Shared.Services;
 using CloudNative.CloudEvents;
 using CloudNative.CloudEvents.SystemTextJson;
 using System.Text;
+using Pulse.Tests.Util.Fixtures;
 using Pulse.Shared.Messaging.Resiliance;
+using NSubstitute;
+using Microsoft.Extensions.Logging;
 
 namespace Pulse.Shared.Tests.Resiliance;
 
-public class ResilianceTests
+public class ResilianceTests : IDisposable
 {
-    private readonly RabbitServer _rabbitServer;
-    private readonly FakeConnection _connection;
+    private readonly RabbitMqFixture _rabbitFixture;
     private readonly AmqpConsumerService<TestEvent> _sut;
 
     public ResilianceTests()
     {
-        _rabbitServer = new();
-        _connection = new(_rabbitServer);
-        var amqpPool = new AmqpChannelPool(_connection, Substitute.For<ILogger<AmqpChannelPool>>());
-        var immediateRetryHandler = new ImmediateRetryHandler(amqpPool);
-        var exponentialRetryHandler = new ExponentialDelayRetryHandler(amqpPool);
-        var deadLetterHandler = new DeadLetterHandler(Substitute.For<ILogger<DeadLetterHandler>>(), amqpPool);
+        _rabbitFixture = new RabbitMqFixture();
+
+        // Set up the specific services needed for this test
+        var channelPool = new AmqpChannelPool(_rabbitFixture.Connection, Substitute.For<ILogger<AmqpChannelPool>>());
+        var immediateRetryHandler = new ImmediateRetryHandler(channelPool);
+        var exponentialRetryHandler = new ExponentialDelayRetryHandler(channelPool);
+        var deadLetterHandler = new DeadLetterHandler(Substitute.For<ILogger<DeadLetterHandler>>(), channelPool);
+        
         _sut = new AmqpConsumerService<TestEvent>(
-            _connection,
+            _rabbitFixture.Connection,
             new TestConsumer(),
             Substitute.For<ILogger<AmqpConsumerService<TestEvent>>>(),
             immediateRetryHandler,
@@ -34,32 +35,24 @@ public class ResilianceTests
             deadLetterHandler
         );
 
-        using var channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
+        // Setup infrastructure for our specific test needs
+        SetupTestInfrastructureAsync().GetAwaiter().GetResult();
+        _sut.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
+    }
+    
+    public void Dispose()
+    {
+        _rabbitFixture.Dispose();
+    }
+
+    private async Task SetupTestInfrastructureAsync()
+    {
         var evtMetadata = IntegrationEvent.GetEventMetadata<TestEvent>();
 
-        channel.ExchangeDeclareAsync(Messaging.Constants.RetryQueue, ExchangeType.Fanout, true, false, null).GetAwaiter().GetResult();
-        channel.ExchangeDeclareAsync(evtMetadata.GetExchangeName(), ExchangeType.Fanout, true, false, null).GetAwaiter().GetResult();
-
-        channel.QueueDeclareAsync(
-            Messaging.Constants.RetryQueue,
-            true,
-            false,
-            false,
-            null,
-            false,
-            CancellationToken.None
-        ).GetAwaiter().GetResult();
-        
-        channel.QueueBindAsync(
-            Messaging.Constants.RetryQueue,
-            Messaging.Constants.RetryQueue,
-            "#",
-            null,
-            false,
-            CancellationToken.None
-        ).GetAwaiter().GetResult();
-
-        _sut.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
+        await _rabbitFixture.DeclareExchangeAsync(Messaging.Constants.RetryQueue);
+        await _rabbitFixture.DeclareExchangeAsync(evtMetadata.GetExchangeName());
+        await _rabbitFixture.DeclareQueueAsync(Messaging.Constants.RetryQueue);
+        await _rabbitFixture.BindQueueAsync(Messaging.Constants.RetryQueue, Messaging.Constants.RetryQueue);
     }
 
     [Fact]
@@ -68,7 +61,7 @@ public class ResilianceTests
         // Arrange
         TestEvent evt = new() { Id = 1, Name = "Test Event" };
         var evtMetadata = IntegrationEvent.GetEventMetadata<TestEvent>();
-        var channel = await _connection.CreateChannelAsync() as FakeChannel;
+        var channel = await _rabbitFixture.GetChannelAsync();
         var properties = new BasicProperties
         {
             ContentType = "application/json",
@@ -80,7 +73,7 @@ public class ResilianceTests
         };
 
         // Act
-        await channel!.BasicPublishAsync(
+        await channel.BasicPublishAsync(
             evtMetadata.GetExchangeName(),
             "#",
             true,
@@ -106,7 +99,7 @@ public class ResilianceTests
         // Arrange
         TestEvent evt = new() { Id = 1, Name = "Test Event" };
         var evtMetadata = IntegrationEvent.GetEventMetadata<TestEvent>();
-        var channel = await _connection.CreateChannelAsync() as FakeChannel;
+        var channel = await _rabbitFixture.GetChannelAsync();
         var properties = new BasicProperties
         {
             ContentType = "application/json",
@@ -118,7 +111,7 @@ public class ResilianceTests
         };
 
         // Act
-        await channel!.BasicPublishAsync(
+        await channel.BasicPublishAsync(
             evtMetadata.GetExchangeName(),
             "#",
             true,
@@ -146,7 +139,7 @@ public class ResilianceTests
         // Arrange
         TestEvent evt = new() { Id = 1, Name = "Test Event" };
         var evtMetadata = IntegrationEvent.GetEventMetadata<TestEvent>();
-        var channel = await _connection.CreateChannelAsync() as FakeChannel;
+        var channel = await _rabbitFixture.GetChannelAsync();
         var properties = new BasicProperties
         {
             ContentType = "application/json",
@@ -158,7 +151,7 @@ public class ResilianceTests
         };
 
         // Act
-        await channel!.BasicPublishAsync(
+        await channel.BasicPublishAsync(
             evtMetadata.GetExchangeName(),
             "#",
             true,
