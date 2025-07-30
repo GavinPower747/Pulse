@@ -9,6 +9,7 @@ using Pulse.Followers;
 using Pulse.Posts;
 using Pulse.Shared.Auth;
 using Pulse.Timeline;
+using Pulse.Users;
 using Pulse.WebApp.Client;
 using Pulse.WebApp.Configuration;
 
@@ -82,9 +83,11 @@ builder.Services.AddMessaging(
         typeof(PostsModule).Assembly,
         typeof(FollowersModule).Assembly,
         typeof(TimelineModule).Assembly,
+        typeof(UsersModule).Assembly,
         typeof(Pulse.Followers.Contracts.AssemblyMarker).Assembly,
         typeof(Pulse.Posts.Contracts.AssemblyMarker).Assembly,
         typeof(Pulse.Timeline.Contracts.AssemblyMarker).Assembly,
+        typeof(Pulse.Users.Contracts.AssemblyMarker).Assembly,
     ]);
 
 var app = builder.Build();
