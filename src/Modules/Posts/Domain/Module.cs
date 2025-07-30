@@ -12,6 +12,7 @@ using Pulse.Posts.Services;
 using Pulse.Posts.UI.Mapping;
 using Pulse.Shared.Data;
 using Pulse.Shared.Extensions;
+using Pulse.Users.Contracts.Messages;
 
 namespace Pulse.Posts;
 
@@ -52,6 +53,7 @@ public class PostsModule : Module
 
         builder.RegisterConsumer<UserFollowedEvent, UserFollowedConsumer>();
         builder.RegisterConsumer<PostCreatedEvent, DetectMentions>();
+        builder.RegisterConsumer<MentionValidatedEvent, MentionValidatedConsumer>();
     }
 }
 

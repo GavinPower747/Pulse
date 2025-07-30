@@ -12,8 +12,9 @@
 
 <body>
     <Routes />
-    <script src="js/htmx.min.js"></script>
-    <script src="js/alpine.min.js"></script>
+    <script src="js/lib/htmx.min.js"></script>
+    <script type="module" src="js/src/framework/index.js"></script>
+    <script type="module" src="js/src/controllers/index.js"></script>
     <script>
         document.body.addEventListener('htmx:beforeSwap', (evt) => {
             if(evt.detail.xhr.status >= 400 && evt.detail.xhr.status < 500) {

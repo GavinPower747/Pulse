@@ -28,7 +28,7 @@
                 </div>
             </SpaLink>
             <div class="text-sm mb-4">
-                @CurrentPost.Content
+                @((MarkupString)CurrentPost.Content!)
             </div>
             
             @if (CurrentPost.Attachments.Any())

@@ -25,48 +25,21 @@
 
 <Panel>
   <form class="flex flex-col flex-1 gap-y-4" hx-post="/api/post" hx-swap="outerHTML" hx-target="this"
-    hx-trigger="submit" x-data="{ 
-            text: '', 
-            postLength: 0, 
-            maxPostLength: 280, 
-            startColour: [255, 255, 255],
-            midColour: [255, 255, 0],
-            endColour: [255, 0, 0],
-            getCurrentColourValue: getCurrentColourValue
-        }">
+    hx-trigger="submit" 
+    data-controller="post-form"
+    data-js-post-length="0"
+    data-js-post-max-length="280"
+    data-js-post-start-colour="[255, 255, 255]"
+    data-js-post-mid-colour="[255, 255, 0]"
+    data-js-post-end-colour="[255, 0, 0]">
     @if (PostId.HasValue)
     {
       <input type="hidden" name="postId" value="@PostId.Value" />
     }
     <AntiforgeryToken/>
-    <script>
-      function getCurrentColourValue(startColour, midColour, endColour, progress) {
-        if (progress <= 0) return `rgb(${startColour.join(', ')})`;
-        if (progress >= 1) return `rgb(${endColour.join(', ')})`;
-
-        let adjustedProgress = progress <= 0.5 ? progress * 2 : (progress - 0.5) * 2;
-        let fromColour = progress <= 0.5 ? startColour : midColour;
-        let toColour = progress <= 0.5 ? midColour : endColour;
-
-        let interpolatedRGB = fromColour.map((channel, index) => {
-          return exponentialInterpolation(channel, toColour[index], adjustedProgress);
-        });
-
-        return `rgb(${interpolatedRGB.join(', ')})`;
-      }
-
-      function exponentialInterpolation(startValue, endValue, progress) {
-        const valueRange = endValue - startValue;
-
-        const exponentialFactor = Math.pow(2, 10 * (progress - 1));
-    
-      function clamp(value, min, max) {
-        return Math.min(Math.max(value, min), max);
-      }
-    </script>
     <div class="flex flex-1 p-4 space-x-5">
       <Avatar src="@_user?.ProfilePictureUrl" alt="@_user?.DisplayName" initials="@_user?.Initials" />
-      <textarea x-model="text" x-on:input="$el.style.height = 'auto'; $el.style.height = ($el.scrollHeight) + 'px';"
+      <textarea data-component="post-box"
         required maxlength="280" rows="2" name="content" type="text" placeholder="What's up?"
         class="block overflow-hidden mx-4 p-2.5 w-full text-sm text-gray-900 bg-white rounded-xl border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"
         hx-preserve />
@@ -213,11 +186,10 @@
             <path stroke="#080E24" stroke-width="4" fill="none" d="M18 2.0845
                                 a 15.9155 15.9155 0 0 1 0 31.831
                                 a 15.9155 15.9155 0 0 1 0 -31.831" />
-            <path x-show="text.length <= maxPostLength && text.length > 0"
-              :style="'stroke-dasharray: ' + ((text.length / maxPostLength) * 100) + ' 100; stroke: ' + getCurrentColourValue(startColour, midColour, endColour, text.length / maxPostLength)"
+            <path data-component="length-indicator"
               stroke-width="4" fill="none" stroke-dasharray="0 100" d="M18 2.0845
                                 a 15.9155 15.9155 0 0 1 0 31.831
-                                a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                a 15.9155 15.9155 0 0 1 0 -31.831" style="display: none;" />
           </svg>
         </div>
         <button type="submit"
