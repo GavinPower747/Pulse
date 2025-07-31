@@ -2,13 +2,23 @@
 
 /**
  * Base class for controllers
- * @class Controller
- * @property {HTMLElement} context - The DOM element that this controller is attached to.
  */
 export class Controller {
+    /** @type {HTMLElement} */
+    context;
+    /** @type {string} */
+    _dataPrefix = 'data-js-';
+    /** @type {Map<string, Component>} */
+    _components;
+    /** @type {MutationObserver} */
+    attributeObserver;
+
+    /**
+     * @param {HTMLElement} context 
+     * @returns {Controller}
+     */
     constructor(context) {
         this.context = context;
-        this._dataPrefix = 'data-js-';
         this._components = new Map();
 
         this._initializeComponents();
