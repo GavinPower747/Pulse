@@ -22,12 +22,17 @@ public class DetectMentionsTests : IClassFixture<RabbitMqFixture>
     public async Task Consume_Should_Publish_UserMentionedEvent_When_MentionsExist()
     {
         // Arrange
-        var postCreatedEvent = new PostCreatedEvent(Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow, "Hello @user1 and @user2!");
+        var postCreatedEvent = new PostCreatedEvent(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            DateTime.UtcNow,
+            "Hello @user1 and @user2!"
+        );
 
         // Act
         await _sut.Consume(postCreatedEvent, CancellationToken.None);
 
-        // Assert 
+        // Assert
         var messages = _rabbitFixture.GetMessagesForEvent<UserMentionedEvent>(ConsumerName);
         Assert.Equal(2, messages.Count());
     }
@@ -36,13 +41,18 @@ public class DetectMentionsTests : IClassFixture<RabbitMqFixture>
     public async Task Consume_Should_NotPublish_When_NoMentionsExist()
     {
         // Arrange
-        var postCreatedEvent = new PostCreatedEvent(Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow, "Hello, world!");
+        var postCreatedEvent = new PostCreatedEvent(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            DateTime.UtcNow,
+            "Hello, world!"
+        );
 
         // Act
         await _sut.Consume(postCreatedEvent, CancellationToken.None);
 
         // Assert
-        var messages = _rabbitFixture.GetMessagesForEvent<UserMentionedEvent>(ConsumerName); 
+        var messages = _rabbitFixture.GetMessagesForEvent<UserMentionedEvent>(ConsumerName);
         Assert.Empty(messages);
     }
 }

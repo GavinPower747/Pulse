@@ -15,8 +15,14 @@ public class ExampleJsInterop : IAsyncDisposable
 
     public ExampleJsInterop(IJSRuntime jsRuntime)
     {
-        moduleTask = new (() => jsRuntime.InvokeAsync<IJSObjectReference>(
-            "import", "./_content/Pulse.Search.UI/exampleJsInterop.js").AsTask());
+        moduleTask = new(() =>
+            jsRuntime
+                .InvokeAsync<IJSObjectReference>(
+                    "import",
+                    "./_content/Pulse.Search.UI/exampleJsInterop.js"
+                )
+                .AsTask()
+        );
     }
 
     public async ValueTask<string> Prompt(string message)

@@ -14,7 +14,7 @@ public static class ContextExtenstions
         return userId switch
         {
             null => Guid.Empty,
-            _ => Guid.Parse(userId)
+            _ => Guid.Parse(userId),
         };
     }
 }

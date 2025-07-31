@@ -49,6 +49,5 @@ internal record EventMetadata(string FullName, string EventName, string EventVer
 
     internal string GetQueueName(string consumerName) => $"{FullName}.queue.{consumerName}";
 
-    private string GetDLQName(string consumerName) =>
-        $"{GetQueueName(consumerName)}.dlq";
+    private string GetDLQName(string consumerName) => $"{GetQueueName(consumerName)}.dlq";
 }

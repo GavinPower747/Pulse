@@ -1,11 +1,12 @@
-﻿using RabbitMQ.Client;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
+using RabbitMQ.Client;
 
 namespace Pulse.Tests.Util.Mocks.RabbitMQ.Models;
 
 public class DirectExchange(string name) : Exchange(name, ExchangeType.Direct)
 {
-    public ConcurrentDictionary<string, IList<Queue>> Bindings { get; } = new ConcurrentDictionary<string, IList<Queue>>();
+    public ConcurrentDictionary<string, IList<Queue>> Bindings { get; } =
+        new ConcurrentDictionary<string, IList<Queue>>();
 
     public override void BindQueue(string bindingKey, Queue queue)
     {
@@ -17,7 +18,9 @@ public class DirectExchange(string name) : Exchange(name, ExchangeType.Direct)
         // Handle the case when the queue is being re-bound (duplicate binding).
         else if (queues.Any(q => q.Name == queue.Name))
         {
-            throw new InvalidOperationException($"Queue '{queue.Name}' was already bound with the binding key '{bindingKey}'.");
+            throw new InvalidOperationException(
+                $"Queue '{queue.Name}' was already bound with the binding key '{bindingKey}'."
+            );
         }
 
         queues.Add(queue);
@@ -41,6 +44,8 @@ public class DirectExchange(string name) : Exchange(name, ExchangeType.Direct)
         }
     }
 
-    protected override IEnumerable<Queue> GetQueues(RabbitMessage message)
-        => !Bindings.TryGetValue(message.RoutingKey, out var queues) ? Enumerable.Empty<Queue>() : queues;
+    protected override IEnumerable<Queue> GetQueues(RabbitMessage message) =>
+        !Bindings.TryGetValue(message.RoutingKey, out var queues)
+            ? Enumerable.Empty<Queue>()
+            : queues;
 }

@@ -25,11 +25,7 @@ internal class PostCreatedConsumer(FollowingContext dbContext, IProducer message
 
         foreach (var follower in followers)
         {
-            var command = new AddPostToTimelineCommand(
-                follower.UserId,
-                evt.Id,
-                evt.Created
-            );
+            var command = new AddPostToTimelineCommand(follower.UserId, evt.Id, evt.Created);
 
             await _messageBus.Publish(command, token);
         }

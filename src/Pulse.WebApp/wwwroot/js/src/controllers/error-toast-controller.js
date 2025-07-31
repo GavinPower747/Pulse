@@ -4,6 +4,7 @@ class ErrorToastController extends Controller {
     connect() {
         this.context.addEventListener('htmx:responseError', this._onError.bind(this));
         this.context.addEventListener('htmx:error', this._onError.bind(this));
+        this.context.addEventListener('htmx:sendError', this._onError.bind(this));
         this.closeButton.addEventListener('click', this._closeToast.bind(this));
     }
 

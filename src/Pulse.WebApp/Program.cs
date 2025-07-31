@@ -54,7 +54,7 @@ builder
         options.TokenValidationParameters = new TokenValidationParameters
         {
             NameClaimType = "preferred_username",
-            RoleClaimType = "roles"
+            RoleClaimType = "roles",
         };
 
         if (builder.Environment.IsDevelopment())
@@ -88,7 +88,8 @@ builder.Services.AddMessaging(
         typeof(Pulse.Posts.Contracts.AssemblyMarker).Assembly,
         typeof(Pulse.Timeline.Contracts.AssemblyMarker).Assembly,
         typeof(Pulse.Users.Contracts.AssemblyMarker).Assembly,
-    ]);
+    ]
+);
 
 var app = builder.Build();
 
@@ -113,7 +114,6 @@ app.UseAuthorization();
 
 app.UseAntiforgery();
 
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
 app.Run();

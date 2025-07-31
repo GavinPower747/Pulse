@@ -4,8 +4,7 @@ using StackExchange.Redis;
 
 namespace Pulse.Timeline.Consumers;
 
-public class AddToTimelineConsumer(IDatabase redis)
-    : IConsumer<AddPostToTimelineCommand>
+public class AddToTimelineConsumer(IDatabase redis) : IConsumer<AddPostToTimelineCommand>
 {
     private readonly IDatabase _redis = redis;
     private readonly int _timelineCapacity = 100;

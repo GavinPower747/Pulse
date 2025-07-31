@@ -9,10 +9,16 @@ internal class Attachment(AttachmentMetadata metadata, Stream content) : IDispos
     {
         Content.Dispose();
     }
-
 }
 
-internal class AttachmentMetadata(Guid id, Guid postId, AttachmentType type, long size, string contentType, string eTag)
+internal class AttachmentMetadata(
+    Guid id,
+    Guid postId,
+    AttachmentType type,
+    long size,
+    string contentType,
+    string eTag
+)
 {
     public Guid Id { get; } = id;
     public Guid PostId { get; } = postId;
@@ -28,7 +34,7 @@ internal class AttachmentMetadata(Guid id, Guid postId, AttachmentType type, lon
         {
             "image/jpeg" => ".jpg",
             "image/png" => ".png",
-            _ => ""
+            _ => "",
         };
 
         return $"{Id}{fileExtension}";
@@ -37,5 +43,5 @@ internal class AttachmentMetadata(Guid id, Guid postId, AttachmentType type, lon
 
 internal enum AttachmentType
 {
-    Image
+    Image,
 }

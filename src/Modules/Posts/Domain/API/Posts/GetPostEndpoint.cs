@@ -13,7 +13,7 @@ public class GetPostEndpoint(IPostQueryService postQueryService)
     {
         var post = await _postQueryService.Get(postId, cancellationToken);
 
-        if(post is null)
+        if (post is null)
             return TypedResults.NotFound();
 
         return new RazorComponentResult<Post>(new { CurrentPost = post });

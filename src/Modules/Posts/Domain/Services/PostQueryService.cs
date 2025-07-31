@@ -58,9 +58,7 @@ internal class PostQueryService(PostsContext connection, DomainDtoMapper mapper)
         var postsQuery = _connection.PostSet.Where(p => p.UserId == userId);
 
         if (token is not null)
-            postsQuery = postsQuery.Where(p =>
-                p.CreatedAt >= token.Value.OlderThan 
-            );
+            postsQuery = postsQuery.Where(p => p.CreatedAt >= token.Value.OlderThan);
 
         postsQuery = postsQuery
             .OrderByDescending(p => p.CreatedAt)

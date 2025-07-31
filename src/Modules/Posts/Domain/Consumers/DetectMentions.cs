@@ -11,7 +11,14 @@ internal partial class DetectMentions(IProducer producer) : IConsumer<PostCreate
 
     public async Task Consume(PostCreatedEvent evt, CancellationToken token = default)
     {
-        var post = new Post(evt.Id, Guid.Empty, evt.Content, DateTime.MinValue, DateTime.MinValue, null);
+        var post = new Post(
+            evt.Id,
+            Guid.Empty,
+            evt.Content,
+            DateTime.MinValue,
+            DateTime.MinValue,
+            null
+        );
         var mentions = post.GetMentionedUsernames();
 
         if (!mentions.Any())

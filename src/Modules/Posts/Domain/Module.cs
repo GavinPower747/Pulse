@@ -30,19 +30,26 @@ public class PostsModule : Module
         builder.RegisterDbContext<AttachmentContext>(Configuration.Database.ConnectionString);
         builder.RegisterType<PostMapper>().AsSelf();
 
-        builder.Register((cfg) =>
-        {
-            var credentials = new BasicAWSCredentials(Configuration.BlobStorage.AccessKey, Configuration.BlobStorage.SecretKey);
-            var config = new AmazonS3Config()
-            {
-                ServiceURL = Configuration.BlobStorage.Endpoint,
-                ForcePathStyle = true,
-                UseHttp = true,
-                SignatureMethod = SigningAlgorithm.HmacSHA256
-            };
+        builder
+            .Register(
+                (cfg) =>
+                {
+                    var credentials = new BasicAWSCredentials(
+                        Configuration.BlobStorage.AccessKey,
+                        Configuration.BlobStorage.SecretKey
+                    );
+                    var config = new AmazonS3Config()
+                    {
+                        ServiceURL = Configuration.BlobStorage.Endpoint,
+                        ForcePathStyle = true,
+                        UseHttp = true,
+                        SignatureMethod = SigningAlgorithm.HmacSHA256,
+                    };
 
-            return new AmazonS3Client(credentials, config);
-        }).As<IAmazonS3>();
+                    return new AmazonS3Client(credentials, config);
+                }
+            )
+            .As<IAmazonS3>();
 
         DataJobs.MigrateDatabase(
             Configuration.Database.ConnectionString,

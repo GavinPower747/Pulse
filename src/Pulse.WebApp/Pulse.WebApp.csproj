@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
   <ItemGroup>
     <ProjectReference Include="..\Modules\Posts\Contracts\Pulse.Posts.Contracts.csproj" />
     <ProjectReference Include="..\Modules\Timeline\Contracts\Pulse.Timeline.Contracts.csproj" />
@@ -12,7 +11,6 @@
     <ProjectReference Include="..\Pulse.Shared\Pulse.Shared.csproj" />
     <ProjectReference Include="..\Pulse.Shared.UI\Pulse.Shared.UI.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Autofac" Version="8.0.0" />
     <PackageReference Include="Autofac.Configuration" Version="6.0.0" />
@@ -33,13 +31,11 @@
     <PackageReference Include="Scrutor" Version="6.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
   </ItemGroup>
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
   <ItemGroup>
     <UpToDateCheckBuilt Include="wwwroot\app.css" Set="Css" />
     <UpToDateCheckBuilt Include="postcss.config.js" Set="Css" />

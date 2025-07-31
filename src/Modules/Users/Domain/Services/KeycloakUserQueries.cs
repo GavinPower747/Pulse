@@ -10,8 +10,10 @@ internal class KeycloakUserQueries(KeycloakClientFactory clientFactory, UsersCon
 {
     private readonly KeycloakClientFactory _clientFactory = clientFactory;
     private readonly UsersConfiguration _configuration = config;
-    private readonly JsonSerializerOptions _jsonOptions =
-        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    private readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
 
     public async Task<User> GetUser(Guid id)
     {
@@ -55,7 +57,7 @@ internal class KeycloakUserQueries(KeycloakClientFactory clientFactory, UsersCon
     }
 
     public async Task<bool> UserExists(string username)
-    { 
+    {
         try
         {
             var user = await GetUser(username);

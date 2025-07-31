@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
-
 using Pulse.Posts.Services;
 
 namespace Pulse.Posts.API.Attachments;
@@ -26,7 +25,9 @@ internal class GetAttachmentEndpoint(AttachmentService attachmentService)
             attachment.Metadata.ContentType,
             attachment.Metadata.GetFileName(),
             null,
-            !string.IsNullOrWhiteSpace(attachment.Metadata.ETag) ? new EntityTagHeaderValue(attachment.Metadata.ETag) : null,
+            !string.IsNullOrWhiteSpace(attachment.Metadata.ETag)
+                ? new EntityTagHeaderValue(attachment.Metadata.ETag)
+                : null,
             false
         );
     }

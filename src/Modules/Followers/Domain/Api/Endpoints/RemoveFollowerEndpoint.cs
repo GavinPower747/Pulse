@@ -23,7 +23,7 @@ internal class RemoveFollowerEndpoint(
         var parameters = new Dictionary<string, object?>()
         {
             { nameof(FollowButton.UserId), followingId },
-            { nameof(FollowButton.IsFollowing), false }
+            { nameof(FollowButton.IsFollowing), false },
         };
 
         return new RazorComponentResult<FollowButton>(parameters);

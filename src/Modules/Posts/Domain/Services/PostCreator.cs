@@ -7,7 +7,8 @@ using Pulse.Shared.Messaging;
 
 namespace Pulse.Posts.Services;
 
-internal class PostCreator(PostsContext db, IProducer messageBus, DomainDtoMapper mapper) : IPostCreator
+internal class PostCreator(PostsContext db, IProducer messageBus, DomainDtoMapper mapper)
+    : IPostCreator
 {
     private readonly PostsContext _dbConnection = db;
     private readonly IProducer _messageBus = messageBus;
@@ -21,7 +22,9 @@ internal class PostCreator(PostsContext db, IProducer messageBus, DomainDtoMappe
 
         _dbConnection.PostSet.Add(post);
         await _dbConnection.SaveChangesAsync();
-        await _messageBus.Publish(new PostCreatedEvent(post.Id, post.UserId, post.CreatedAt, post.Content));
+        await _messageBus.Publish(
+            new PostCreatedEvent(post.Id, post.UserId, post.CreatedAt, post.Content)
+        );
 
         await transaction.CommitAsync();
 

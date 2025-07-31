@@ -1,5 +1,5 @@
-﻿using Pulse.Tests.Util.Mocks.RabbitMQ.Models;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
+using Pulse.Tests.Util.Mocks.RabbitMQ.Models;
 
 namespace Pulse.Tests.Util.Mocks.RabbitMQ;
 

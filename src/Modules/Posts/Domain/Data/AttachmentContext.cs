@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-
 using Pulse.Posts.Domain;
 
 namespace Pulse.Posts.Data;

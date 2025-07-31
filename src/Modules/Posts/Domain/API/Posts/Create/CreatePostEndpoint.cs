@@ -1,5 +1,4 @@
 using System.Web;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Pulse.Posts.Contracts;
@@ -22,7 +21,7 @@ internal class CreatePostEndpoint(
     {
         if (request.Content.Length > 280)
             return BadRequest("Post content must be 280 characters or less.");
-        
+
         var processedPostContent = ProcessContent(request.Content);
 
         var currentUser = _identityProvider.GetCurrentUser();
@@ -38,9 +37,9 @@ internal class CreatePostEndpoint(
         var encodedContent = HttpUtility.HtmlEncode(content);
 
         encodedContent = encodedContent
-                            .Replace("\r\n", "<br/>")
-                            .Replace("\n", "<br/>")
-                            .Replace("\r", "<br/>");
+            .Replace("\r\n", "<br/>")
+            .Replace("\n", "<br/>")
+            .Replace("\r", "<br/>");
 
         return encodedContent;
     }
@@ -49,12 +48,12 @@ internal class CreatePostEndpoint(
     {
         var componentParams = new Dictionary<string, object?>
         {
-            { nameof(CreatePostResponse.ErrorMessage), message }
+            { nameof(CreatePostResponse.ErrorMessage), message },
         };
 
         var result = new RazorComponentResult<CreatePostResponse>(componentParams)
         {
-            StatusCode = StatusCodes.Status400BadRequest
+            StatusCode = StatusCodes.Status400BadRequest,
         };
 
         return result;
@@ -73,7 +72,7 @@ internal class CreatePostEndpoint(
 
         var componentParams = new Dictionary<string, object?>
         {
-            { nameof(CreatePostResponse.AddedPost), postVm }
+            { nameof(CreatePostResponse.AddedPost), postVm },
         };
 
         return new RazorComponentResult<CreatePostResponse>(componentParams);

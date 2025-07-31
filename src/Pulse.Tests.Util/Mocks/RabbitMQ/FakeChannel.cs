@@ -1,7 +1,7 @@
+using System.Collections.Concurrent;
+using Pulse.Tests.Util.Mocks.RabbitMQ.Models;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using Pulse.Tests.Util.Mocks.RabbitMQ.Models;
-using System.Collections.Concurrent;
 using Queue = Pulse.Tests.Util.Mocks.RabbitMQ.Models.Queue;
 
 namespace Pulse.Tests.Util.Mocks.RabbitMQ;
@@ -49,7 +49,11 @@ public class FakeChannel(RabbitServer server) : IChannel
         return AbortAsync(ushort.MaxValue, string.Empty, cancellationToken);
     }
 
-    public Task AbortAsync(ushort replyCode, string replyText, CancellationToken cancellationToken = default)
+    public Task AbortAsync(
+        ushort replyCode,
+        string replyText,
+        CancellationToken cancellationToken = default
+    )
     {
         IsClosed = true;
         IsOpen = false;
@@ -57,7 +61,11 @@ public class FakeChannel(RabbitServer server) : IChannel
         return Task.CompletedTask;
     }
 
-    public ValueTask BasicAckAsync(ulong deliveryTag, bool multiple, CancellationToken cancellationToken = default)
+    public ValueTask BasicAckAsync(
+        ulong deliveryTag,
+        bool multiple,
+        CancellationToken cancellationToken = default
+    )
     {
         if (multiple)
         {
@@ -71,7 +79,11 @@ public class FakeChannel(RabbitServer server) : IChannel
         return ValueTask.CompletedTask;
     }
 
-    public Task BasicCancelAsync(string consumerTag, bool noWait = false, CancellationToken cancellationToken = default)
+    public Task BasicCancelAsync(
+        string consumerTag,
+        bool noWait = false,
+        CancellationToken cancellationToken = default
+    )
     {
         _consumers.TryRemove(consumerTag, out var consumer);
 
@@ -84,17 +96,55 @@ public class FakeChannel(RabbitServer server) : IChannel
         return Task.CompletedTask;
     }
 
-    public Task<string> BasicConsumeAsync(string queue, bool autoAck, IAsyncBasicConsumer consumer, CancellationToken cancellationToken = default)
+    public Task<string> BasicConsumeAsync(
+        string queue,
+        bool autoAck,
+        IAsyncBasicConsumer consumer,
+        CancellationToken cancellationToken = default
+    )
     {
-        return BasicConsumeAsync(queue, autoAck, string.Empty, false, false, null, consumer, cancellationToken);
+        return BasicConsumeAsync(
+            queue,
+            autoAck,
+            string.Empty,
+            false,
+            false,
+            null,
+            consumer,
+            cancellationToken
+        );
     }
 
-    public Task<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, IAsyncBasicConsumer consumer, CancellationToken cancellationToken = default)
+    public Task<string> BasicConsumeAsync(
+        string queue,
+        bool autoAck,
+        string consumerTag,
+        IAsyncBasicConsumer consumer,
+        CancellationToken cancellationToken = default
+    )
     {
-        return BasicConsumeAsync(queue, autoAck, consumerTag, false, false, null, consumer, cancellationToken);
+        return BasicConsumeAsync(
+            queue,
+            autoAck,
+            consumerTag,
+            false,
+            false,
+            null,
+            consumer,
+            cancellationToken
+        );
     }
 
-    public Task<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object?>? arguments, IAsyncBasicConsumer consumer, CancellationToken cancellationToken = default)
+    public Task<string> BasicConsumeAsync(
+        string queue,
+        bool autoAck,
+        string consumerTag,
+        bool noLocal,
+        bool exclusive,
+        IDictionary<string, object?>? arguments,
+        IAsyncBasicConsumer consumer,
+        CancellationToken cancellationToken = default
+    )
     {
         if (string.IsNullOrWhiteSpace(consumerTag))
         {
@@ -109,7 +159,11 @@ public class FakeChannel(RabbitServer server) : IChannel
         return Task.FromResult(consumerTag);
     }
 
-    public Task<BasicGetResult?> BasicGetAsync(string queue, bool autoAck, CancellationToken cancellationToken = default)
+    public Task<BasicGetResult?> BasicGetAsync(
+        string queue,
+        bool autoAck,
+        CancellationToken cancellationToken = default
+    )
     {
         _server.Queues.TryGetValue(queue, out var queueInstance);
 
@@ -123,15 +177,31 @@ public class FakeChannel(RabbitServer server) : IChannel
                 WorkingMessages[deliveryTag] = message;
             }
 
-            return Task.FromResult<BasicGetResult?>(new BasicGetResult(deliveryTag, false, message.Exchange, message.RoutingKey, (uint)queueInstance.Messages.Count, message.BasicProperties, message.Body));
+            return Task.FromResult<BasicGetResult?>(
+                new BasicGetResult(
+                    deliveryTag,
+                    false,
+                    message.Exchange,
+                    message.RoutingKey,
+                    (uint)queueInstance.Messages.Count,
+                    message.BasicProperties,
+                    message.Body
+                )
+            );
         }
 
         return Task.FromResult<BasicGetResult?>(null);
     }
 
-    public ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue, CancellationToken cancellationToken = default)
+    public ValueTask BasicNackAsync(
+        ulong deliveryTag,
+        bool multiple,
+        bool requeue,
+        CancellationToken cancellationToken = default
+    )
     {
-        if (requeue) return ValueTask.CompletedTask;
+        if (requeue)
+            return ValueTask.CompletedTask;
 
         foreach (var queue in WorkingMessages.Select(m => m.Value.Queue))
         {
@@ -144,14 +214,20 @@ public class FakeChannel(RabbitServer server) : IChannel
         }
 
         WorkingMessages.TryRemove(deliveryTag, out var message);
-        if (message == null) return ValueTask.CompletedTask;
+        if (message == null)
+            return ValueTask.CompletedTask;
 
         _server.Queues.TryGetValue(message.Queue!, out var processingQueue);
-        if (processingQueue?.Arguments != null
+        if (
+            processingQueue?.Arguments != null
             && processingQueue.Arguments.TryGetValue("x-dead-letter-exchange", out var dlx)
-            && _server.Exchanges.TryGetValue((string)dlx, out var exchange))
+            && _server.Exchanges.TryGetValue((string)dlx, out var exchange)
+        )
         {
-            message.RoutingKey = processingQueue.Arguments.TryGetValue("x-dead-letter-routing-key", out var key)
+            message.RoutingKey = processingQueue.Arguments.TryGetValue(
+                "x-dead-letter-routing-key",
+                out var key
+            )
                 ? (string)key
                 : message.Queue!;
 
@@ -161,24 +237,65 @@ public class FakeChannel(RabbitServer server) : IChannel
         return ValueTask.CompletedTask;
     }
 
-    public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default) where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+    public ValueTask BasicPublishAsync<TProperties>(
+        string exchange,
+        string routingKey,
+        bool mandatory,
+        TProperties basicProperties,
+        ReadOnlyMemory<byte> body,
+        CancellationToken cancellationToken = default
+    )
+        where TProperties : IReadOnlyBasicProperties, IAmqpHeader
     {
-        BasicPublishInternal(exchange, routingKey, mandatory, basicProperties as IBasicProperties, body.ToArray());
+        BasicPublishInternal(
+            exchange,
+            routingKey,
+            mandatory,
+            basicProperties as IBasicProperties,
+            body.ToArray()
+        );
         return ValueTask.CompletedTask;
     }
 
-    public ValueTask BasicPublishAsync(string exchange, string routingKey, bool mandatory, IBasicProperties? basicProperties, ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
+    public ValueTask BasicPublishAsync(
+        string exchange,
+        string routingKey,
+        bool mandatory,
+        IBasicProperties? basicProperties,
+        ReadOnlyMemory<byte> body,
+        CancellationToken cancellationToken = default
+    )
     {
         BasicPublishInternal(exchange, routingKey, mandatory, basicProperties, body.ToArray());
         return ValueTask.CompletedTask;
     }
 
-    public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default) where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+    public ValueTask BasicPublishAsync<TProperties>(
+        CachedString exchange,
+        CachedString routingKey,
+        bool mandatory,
+        TProperties basicProperties,
+        ReadOnlyMemory<byte> body,
+        CancellationToken cancellationToken = default
+    )
+        where TProperties : IReadOnlyBasicProperties, IAmqpHeader
     {
-        return BasicPublishAsync(exchange.Value, routingKey.Value, mandatory, basicProperties, body, cancellationToken);
+        return BasicPublishAsync(
+            exchange.Value,
+            routingKey.Value,
+            mandatory,
+            basicProperties,
+            body,
+            cancellationToken
+        );
     }
 
-    public Task BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global, CancellationToken cancellationToken = default)
+    public Task BasicQosAsync(
+        uint prefetchSize,
+        ushort prefetchCount,
+        bool global,
+        CancellationToken cancellationToken = default
+    )
     {
         return Task.CompletedTask;
     }
@@ -188,7 +305,11 @@ public class FakeChannel(RabbitServer server) : IChannel
         throw new NotImplementedException();
     }
 
-    public ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue, CancellationToken cancellationToken = default)
+    public ValueTask BasicRejectAsync(
+        ulong deliveryTag,
+        bool requeue,
+        CancellationToken cancellationToken = default
+    )
     {
         return BasicNackAsync(deliveryTag, false, requeue, cancellationToken);
     }
@@ -198,12 +319,25 @@ public class FakeChannel(RabbitServer server) : IChannel
         return CloseAsync(ushort.MaxValue, string.Empty, false, cancellationToken);
     }
 
-    public Task CloseAsync(ushort replyCode, string replyText, bool abort, CancellationToken cancellationToken = default)
+    public Task CloseAsync(
+        ushort replyCode,
+        string replyText,
+        bool abort,
+        CancellationToken cancellationToken = default
+    )
     {
-        return CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Library, replyCode, replyText), abort, cancellationToken);
+        return CloseAsync(
+            new ShutdownEventArgs(ShutdownInitiator.Library, replyCode, replyText),
+            abort,
+            cancellationToken
+        );
     }
 
-    public Task CloseAsync(ShutdownEventArgs reason, bool abort, CancellationToken cancellationToken = default)
+    public Task CloseAsync(
+        ShutdownEventArgs reason,
+        bool abort,
+        CancellationToken cancellationToken = default
+    )
     {
         IsClosed = true;
         IsOpen = false;
@@ -217,7 +351,10 @@ public class FakeChannel(RabbitServer server) : IChannel
         return Task.CompletedTask;
     }
 
-    public Task<uint> ConsumerCountAsync(string queue, CancellationToken cancellationToken = default)
+    public Task<uint> ConsumerCountAsync(
+        string queue,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
@@ -227,12 +364,28 @@ public class FakeChannel(RabbitServer server) : IChannel
         return new FakeBasicProperties();
     }
 
-    public Task ExchangeBindAsync(string destination, string source, string routingKey, IDictionary<string, object?>? arguments = null, bool noWait = false, CancellationToken cancellationToken = default)
+    public Task ExchangeBindAsync(
+        string destination,
+        string source,
+        string routingKey,
+        IDictionary<string, object?>? arguments = null,
+        bool noWait = false,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
 
-    public Task ExchangeDeclareAsync(string exchange, string type, bool durable = false, bool autoDelete = false, IDictionary<string, object?>? arguments = null, bool noWait = false, bool passive = false, CancellationToken cancellationToken = default)
+    public Task ExchangeDeclareAsync(
+        string exchange,
+        string type,
+        bool durable = false,
+        bool autoDelete = false,
+        IDictionary<string, object?>? arguments = null,
+        bool noWait = false,
+        bool passive = false,
+        CancellationToken cancellationToken = default
+    )
     {
         if (passive)
         {
@@ -254,38 +407,82 @@ public class FakeChannel(RabbitServer server) : IChannel
         return Task.CompletedTask;
     }
 
-    public Task ExchangeDeclarePassiveAsync(string exchange, CancellationToken cancellationToken = default)
+    public Task ExchangeDeclarePassiveAsync(
+        string exchange,
+        CancellationToken cancellationToken = default
+    )
     {
-        return ExchangeDeclareAsync(exchange, string.Empty, false, false, null, false, true, cancellationToken);
+        return ExchangeDeclareAsync(
+            exchange,
+            string.Empty,
+            false,
+            false,
+            null,
+            false,
+            true,
+            cancellationToken
+        );
     }
 
-    public Task ExchangeDeleteAsync(string exchange, bool ifUnused = false, bool noWait = false, CancellationToken cancellationToken = default)
+    public Task ExchangeDeleteAsync(
+        string exchange,
+        bool ifUnused = false,
+        bool noWait = false,
+        CancellationToken cancellationToken = default
+    )
     {
         _server.Exchanges.TryRemove(exchange, out var _);
         return Task.CompletedTask;
     }
 
-    public Task ExchangeUnbindAsync(string destination, string source, string routingKey, IDictionary<string, object?>? arguments = null, bool noWait = false, CancellationToken cancellationToken = default)
+    public Task ExchangeUnbindAsync(
+        string destination,
+        string source,
+        string routingKey,
+        IDictionary<string, object?>? arguments = null,
+        bool noWait = false,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
 
-    public Task QueueBindAsync(string queue, string exchange, string routingKey, IDictionary<string, object?>? arguments = null, bool noWait = false, CancellationToken cancellationToken = default)
+    public Task QueueBindAsync(
+        string queue,
+        string exchange,
+        string routingKey,
+        IDictionary<string, object?>? arguments = null,
+        bool noWait = false,
+        CancellationToken cancellationToken = default
+    )
     {
         if (!_server.Queues.TryGetValue(queue, out var queueInstance))
         {
-            throw new InvalidOperationException($"Cannot bind queue '{queue}' to exchange '{exchange}' because the specified queue does not exist.");
+            throw new InvalidOperationException(
+                $"Cannot bind queue '{queue}' to exchange '{exchange}' because the specified queue does not exist."
+            );
         }
         if (!_server.Exchanges.TryGetValue(exchange, out var exchangeInstance))
         {
-            throw new InvalidOperationException($"Cannot bind queue '{queue}' to exchange '{exchange}' because the specified exchange does not exist.");
+            throw new InvalidOperationException(
+                $"Cannot bind queue '{queue}' to exchange '{exchange}' because the specified exchange does not exist."
+            );
         }
 
         exchangeInstance.BindQueue(routingKey, queueInstance);
         return Task.CompletedTask;
     }
 
-    public Task<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable = false, bool exclusive = false, bool autoDelete = false, IDictionary<string, object?>? arguments = null, bool noWait = false, bool passive = false, CancellationToken cancellationToken = default)
+    public Task<QueueDeclareOk> QueueDeclareAsync(
+        string queue,
+        bool durable = false,
+        bool exclusive = false,
+        bool autoDelete = false,
+        IDictionary<string, object?>? arguments = null,
+        bool noWait = false,
+        bool passive = false,
+        CancellationToken cancellationToken = default
+    )
     {
         var queueInstance = new Queue
         {
@@ -293,7 +490,9 @@ public class FakeChannel(RabbitServer server) : IChannel
             IsDurable = durable,
             IsExclusive = exclusive,
             IsAutoDelete = autoDelete,
-            Arguments = (arguments ?? new Dictionary<string, object?>()) as IDictionary<string, object> ?? new Dictionary<string, object>()
+            Arguments =
+                (arguments ?? new Dictionary<string, object?>()) as IDictionary<string, object>
+                ?? new Dictionary<string, object>(),
         };
 
         Func<string, Queue, Queue> updateFunction = (name, existing) => existing;
@@ -307,15 +506,33 @@ public class FakeChannel(RabbitServer server) : IChannel
     public Task<QueueDeclareOk> QueueDeclareAsync(CancellationToken cancellationToken = default)
     {
         var queueName = Guid.NewGuid().ToString();
-        return QueueDeclareAsync(queueName, false, false, false, null, false, false, cancellationToken);
+        return QueueDeclareAsync(
+            queueName,
+            false,
+            false,
+            false,
+            null,
+            false,
+            false,
+            cancellationToken
+        );
     }
 
-    public Task<QueueDeclareOk> QueueDeclarePassiveAsync(string queue, CancellationToken cancellationToken = default)
+    public Task<QueueDeclareOk> QueueDeclarePassiveAsync(
+        string queue,
+        CancellationToken cancellationToken = default
+    )
     {
         return QueueDeclareAsync(queue, false, false, false, null, false, true, cancellationToken);
     }
 
-    public Task<uint> QueueDeleteAsync(string queue, bool ifUnused = false, bool ifEmpty = false, bool noWait = false, CancellationToken cancellationToken = default)
+    public Task<uint> QueueDeleteAsync(
+        string queue,
+        bool ifUnused = false,
+        bool ifEmpty = false,
+        bool noWait = false,
+        CancellationToken cancellationToken = default
+    )
     {
         _server.Queues.TryRemove(queue, out var instance);
         return Task.FromResult(instance != null ? 1u : 0u);
@@ -336,15 +553,25 @@ public class FakeChannel(RabbitServer server) : IChannel
         return Task.FromResult(1u);
     }
 
-    public Task QueueUnbindAsync(string queue, string exchange, string routingKey, IDictionary<string, object?>? arguments = null, CancellationToken cancellationToken = default)
+    public Task QueueUnbindAsync(
+        string queue,
+        string exchange,
+        string routingKey,
+        IDictionary<string, object?>? arguments = null,
+        CancellationToken cancellationToken = default
+    )
     {
         if (!_server.Queues.TryGetValue(queue, out var queueInstance))
         {
-            throw new InvalidOperationException($"Cannot unbind queue '{queue}' from exchange '{exchange}' because the specified queue does not exist.");
+            throw new InvalidOperationException(
+                $"Cannot unbind queue '{queue}' from exchange '{exchange}' because the specified queue does not exist."
+            );
         }
         if (!_server.Exchanges.TryGetValue(exchange, out var exchangeInstance))
         {
-            throw new InvalidOperationException($"Cannot unbind queue '{queue}' from exchange '{exchange}' because the specified exchange does not exist.");
+            throw new InvalidOperationException(
+                $"Cannot unbind queue '{queue}' from exchange '{exchange}' because the specified exchange does not exist."
+            );
         }
 
         exchangeInstance.UnbindQueue(routingKey, queueInstance);
@@ -377,7 +604,9 @@ public class FakeChannel(RabbitServer server) : IChannel
         return Task.FromResult(queueInstance != null ? (uint)queueInstance.Messages.Count : 0u);
     }
 
-    public ValueTask<ulong> GetNextPublishSequenceNumberAsync(CancellationToken cancellationToken = default)
+    public ValueTask<ulong> GetNextPublishSequenceNumberAsync(
+        CancellationToken cancellationToken = default
+    )
     {
         return ValueTask.FromResult((ulong)_nextPublishSequenceNumber);
     }
@@ -402,7 +631,13 @@ public class FakeChannel(RabbitServer server) : IChannel
 
     #region Private Methods
 
-    private void BasicPublishInternal(string exchange, string routingKey, bool mandatory, IBasicProperties? basicProperties, byte[] body)
+    private void BasicPublishInternal(
+        string exchange,
+        string routingKey,
+        bool mandatory,
+        IBasicProperties? basicProperties,
+        byte[] body
+    )
     {
         var deliveryTag = (ulong)Interlocked.Increment(ref _lastDeliveryTag);
         var message = new RabbitMessage
@@ -413,15 +648,18 @@ public class FakeChannel(RabbitServer server) : IChannel
             Immediate = false,
             BasicProperties = basicProperties!,
             Body = body,
-            DeliveryTag = deliveryTag
+            DeliveryTag = deliveryTag,
         };
-        
-        static RabbitMessage UpdateFunction(ulong key, RabbitMessage existingMessage) => existingMessage;
+
+        static RabbitMessage UpdateFunction(ulong key, RabbitMessage existingMessage) =>
+            existingMessage;
         WorkingMessages.AddOrUpdate(deliveryTag, message, UpdateFunction);
 
         if (!_server.Exchanges.TryGetValue(exchange, out var exchangeInstance))
         {
-            throw new InvalidOperationException($"Cannot publish to exchange '{exchange}' as it does not exist.");
+            throw new InvalidOperationException(
+                $"Cannot publish to exchange '{exchange}' as it does not exist."
+            );
         }
 
         var canRoute = exchangeInstance.PublishMessage(message);
@@ -442,7 +680,8 @@ public class FakeChannel(RabbitServer server) : IChannel
     private bool BasicAckSingle(ulong deliveryTag)
     {
         WorkingMessages.TryRemove(deliveryTag, out var message);
-        if (message == null) return false;
+        if (message == null)
+            return false;
 
         _ = OnMessageAcknowledgedAsync(message);
         return true;
@@ -457,11 +696,22 @@ public class FakeChannel(RabbitServer server) : IChannel
         }
     }
 
-    private async Task OnMessageReturnedAsync(RabbitMessage message, string exchange, string routingKey)
+    private async Task OnMessageReturnedAsync(
+        RabbitMessage message,
+        string exchange,
+        string routingKey
+    )
     {
         if (BasicReturnAsync != null)
         {
-            var args = new BasicReturnEventArgs(404, "NO_ROUTE", exchange, routingKey, message.BasicProperties, message.Body);
+            var args = new BasicReturnEventArgs(
+                404,
+                "NO_ROUTE",
+                exchange,
+                routingKey,
+                message.BasicProperties,
+                message.Body
+            );
             await BasicReturnAsync.Invoke(this, args);
         }
     }

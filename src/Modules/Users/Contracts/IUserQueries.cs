@@ -6,4 +6,3 @@ public interface IUserQueries
     Task<User> GetUser(string username);
     Task<bool> UserExists(string username);
 }
-

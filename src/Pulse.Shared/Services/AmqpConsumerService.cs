@@ -28,17 +28,11 @@ internal class AmqpConsumerService<T>(
     private readonly ExponentialDelayRetryHandler _exponentialRetry = exponentialRetry;
     private readonly DeadLetterHandler _deadLetterHandler = deadLetterHandler;
 
-    private readonly JsonSerializerOptions _jsonOptions =
-        new()
-        {
-            PropertyNameCaseInsensitive = true,
-            DefaultIgnoreCondition = System
-                .Text
-                .Json
-                .Serialization
-                .JsonIgnoreCondition
-                .WhenWritingNull
-        };
+    private readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+    };
 
     public async Task StartAsync(CancellationToken ct)
     {
@@ -147,13 +141,14 @@ internal class AmqpConsumerService<T>(
 
             // If for whatever reason the failure handler can't handle then just nack and requeue the message
             await _channel!.BasicNackAsync(args.DeliveryTag, false, true, ct);
-        } 
+        }
     }
 
     private IFailureHandler GetFailureHandler(BasicDeliverEventArgs args, IntegrationEvent evt)
     {
         var retryCount =
-            args?.BasicProperties.Headers?.ContainsKey(Messaging.Constants.Headers.RetryCount) == true
+            args?.BasicProperties.Headers?.ContainsKey(Messaging.Constants.Headers.RetryCount)
+            == true
                 ? args.BasicProperties.Headers[Messaging.Constants.Headers.RetryCount] as int? ?? 0
                 : 0;
 
@@ -162,30 +157,43 @@ internal class AmqpConsumerService<T>(
         {
             < 3 => _immediateRetry,
             < 5 => _exponentialRetry,
-            _ => _deadLetterHandler
+            _ => _deadLetterHandler,
         };
     }
 
-    private static void SetFailureHeaders(BasicDeliverEventArgs args, string reason, Exception? exception = null)
+    private static void SetFailureHeaders(
+        BasicDeliverEventArgs args,
+        string reason,
+        Exception? exception = null
+    )
     {
         var retryCount = 1;
 
-        if (args.BasicProperties.Headers!.TryGetValue(Messaging.Constants.Headers.RetryCount, out object? value) && value is int v)
+        if (
+            args.BasicProperties.Headers!.TryGetValue(
+                Messaging.Constants.Headers.RetryCount,
+                out object? value
+            ) && value is int v
+        )
         {
             retryCount = v + 1;
         }
 
         args.BasicProperties.Headers![Messaging.Constants.Headers.RetryCount] = retryCount;
-        
+
         if (retryCount == 1)
         {
-            args.BasicProperties.Headers[Messaging.Constants.Headers.FirstFailedAt] = DateTime.UtcNow.ToString("O");
+            args.BasicProperties.Headers[Messaging.Constants.Headers.FirstFailedAt] =
+                DateTime.UtcNow.ToString("O");
             args.BasicProperties.Headers[Messaging.Constants.Headers.FirstFailureReason] = reason;
-            args.BasicProperties.Headers[Messaging.Constants.Headers.FirstFailureException] = exception?.ToString() ?? string.Empty;
+            args.BasicProperties.Headers[Messaging.Constants.Headers.FirstFailureException] =
+                exception?.ToString() ?? string.Empty;
         }
-        
-        args.BasicProperties.Headers[Messaging.Constants.Headers.LastFailedAt] = DateTime.UtcNow.ToString("O");
+
+        args.BasicProperties.Headers[Messaging.Constants.Headers.LastFailedAt] =
+            DateTime.UtcNow.ToString("O");
         args.BasicProperties.Headers[Messaging.Constants.Headers.LastFailureReason] = reason;
-        args.BasicProperties.Headers[Messaging.Constants.Headers.LastFailureException] = exception?.ToString() ?? string.Empty;
+        args.BasicProperties.Headers[Messaging.Constants.Headers.LastFailureException] =
+            exception?.ToString() ?? string.Empty;
     }
 }

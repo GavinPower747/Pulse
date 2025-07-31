@@ -3,9 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-
 using Pulse.Posts.API.Attachments;
-
 using Pulse.Posts.API.Posts;
 using Pulse.Posts.API.Posts.Create;
 
@@ -13,7 +11,8 @@ namespace Pulse.Posts;
 
 public static class Routes
 {
-    internal static string GetAttachment(Guid postId, string fileName) => $"/api/post/{postId}/attachment/{fileName}";
+    internal static string GetAttachment(Guid postId, string fileName) =>
+        $"/api/post/{postId}/attachment/{fileName}";
 
     public static RouteGroupBuilder MapPostRoutes(this IEndpointRouteBuilder endpoints)
     {
@@ -31,11 +30,8 @@ public static class Routes
 
         group.MapGet(
             "/{postId}",
-            async (
-                Guid postId,
-                [FromServices] GetPostEndpoint handler,
-                CancellationToken ct
-            ) => await handler.Handle(postId, ct)
+            async (Guid postId, [FromServices] GetPostEndpoint handler, CancellationToken ct) =>
+                await handler.Handle(postId, ct)
         );
 
         group.MapPost(

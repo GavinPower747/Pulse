@@ -40,10 +40,7 @@ internal partial class Post
 
     public IEnumerable<string> GetMentionedUsernames()
     {
-        return [.. UserMentionRegex()
-            .Matches(Content)
-            .Select(m => m.Groups[1].Value)
-            .Distinct()];
+        return [.. UserMentionRegex().Matches(Content).Select(m => m.Groups[1].Value).Distinct()];
     }
 
     /// <summary>

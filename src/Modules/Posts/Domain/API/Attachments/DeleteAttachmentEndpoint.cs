@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
-
 using Pulse.Posts.Contracts;
-
 using Pulse.Posts.Services;
 using Pulse.Posts.UI.Components;
 
@@ -16,22 +14,29 @@ internal class DeleteAttachmentEndpoint(AttachmentService attachmentService)
     {
         await _attachmentService.DeleteAttachment(attachmentId, ct);
         var attachments = await _attachmentService.GetPostAttachmentMetadata(postId, ct);
-        var downloadDetails = attachments.Select(a => new AttachmentDownload(a.Id, Routes.GetAttachment(a.PostId, a.GetFileName()), a.ETag));
+        var downloadDetails = attachments.Select(a => new AttachmentDownload(
+            a.Id,
+            Routes.GetAttachment(a.PostId, a.GetFileName()),
+            a.ETag
+        ));
 
         return Ok(postId, downloadDetails);
     }
 
-    private static RazorComponentResult<PostForm> Ok(Guid postId, IEnumerable<AttachmentDownload> attachments)
+    private static RazorComponentResult<PostForm> Ok(
+        Guid postId,
+        IEnumerable<AttachmentDownload> attachments
+    )
     {
         var componentParams = new Dictionary<string, object?>
         {
             { nameof(PostForm.PostId), postId },
-            { nameof(PostForm.Attachments), attachments }
+            { nameof(PostForm.Attachments), attachments },
         };
 
         var result = new RazorComponentResult<PostForm>(componentParams)
         {
-            StatusCode = StatusCodes.Status200OK
+            StatusCode = StatusCodes.Status200OK,
         };
 
         return result;

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
-
 using Pulse.Posts.Contracts;
 using Pulse.Posts.Domain;
 using Pulse.Posts.Domain.Mapping;
@@ -25,10 +24,23 @@ internal class UploadAttachmentEndpoint(AttachmentService attachmentService)
             return BadRequest("File must be a JPEG or PNG image");
 
         var fileStream = file.OpenReadStream();
-        using var attachment = new Attachment(new AttachmentMetadata(Guid.NewGuid(), postId ?? Guid.NewGuid(), AttachmentType.Image, file.Length, file.ContentType, string.Empty), fileStream);
+        using var attachment = new Attachment(
+            new AttachmentMetadata(
+                Guid.NewGuid(),
+                postId ?? Guid.NewGuid(),
+                AttachmentType.Image,
+                file.Length,
+                file.ContentType,
+                string.Empty
+            ),
+            fileStream
+        );
 
         await _attachmentService.Upload(attachment, ct);
-        var attachments = await _attachmentService.GetPostAttachmentMetadata(attachment.Metadata.PostId, ct);
+        var attachments = await _attachmentService.GetPostAttachmentMetadata(
+            attachment.Metadata.PostId,
+            ct
+        );
         var downloadDetails = attachments.Select(DomainDtoMapper.MapToAttachmentDownload);
 
         return Ok(attachment.Metadata.PostId, downloadDetails);
@@ -38,28 +50,31 @@ internal class UploadAttachmentEndpoint(AttachmentService attachmentService)
     {
         var componentParams = new Dictionary<string, object?>
         {
-            { nameof(PostForm.ErrorMessage), message }
+            { nameof(PostForm.ErrorMessage), message },
         };
 
         var result = new RazorComponentResult<PostForm>(componentParams)
         {
-            StatusCode = StatusCodes.Status400BadRequest
+            StatusCode = StatusCodes.Status400BadRequest,
         };
 
         return result;
     }
 
-    private static RazorComponentResult<PostForm> Ok(Guid postId, IEnumerable<AttachmentDownload> attachments)
+    private static RazorComponentResult<PostForm> Ok(
+        Guid postId,
+        IEnumerable<AttachmentDownload> attachments
+    )
     {
         var componentParams = new Dictionary<string, object?>
         {
             { nameof(PostForm.PostId), postId },
-            { nameof(PostForm.Attachments), attachments }
+            { nameof(PostForm.Attachments), attachments },
         };
 
         var result = new RazorComponentResult<PostForm>(componentParams)
         {
-            StatusCode = StatusCodes.Status200OK
+            StatusCode = StatusCodes.Status200OK,
         };
 
         return result;

@@ -7,7 +7,12 @@ using RabbitMQ.Client;
 
 namespace Pulse.WebApp.Services;
 
-public class AmqpService(IConnection connection, AmqpChannelPool channelPool, ILogger<AmqpService> logger, Assembly[] searchAssemblies) : IHostedService
+public class AmqpService(
+    IConnection connection,
+    AmqpChannelPool channelPool,
+    ILogger<AmqpService> logger,
+    Assembly[] searchAssemblies
+) : IHostedService
 {
     private readonly IConnection _connection = connection;
     private readonly AmqpChannelPool _channelPool = channelPool;
@@ -31,11 +36,7 @@ public class AmqpService(IConnection connection, AmqpChannelPool channelPool, IL
     {
         var integrationEvents = _searchAssemblies
             .SelectMany(x => x!.GetTypes())
-            .Where(x =>
-                x.IsClass
-                && !x.IsAbstract
-                && x.IsAssignableTo<IntegrationEvent>()
-            );
+            .Where(x => x.IsClass && !x.IsAbstract && x.IsAssignableTo<IntegrationEvent>());
 
         IChannel? channel = null;
         try
@@ -51,7 +52,6 @@ public class AmqpService(IConnection connection, AmqpChannelPool channelPool, IL
                     cancellationToken: ct
                 );
             }
-
         }
         catch (Exception ex)
         {
@@ -70,7 +70,7 @@ public class AmqpService(IConnection connection, AmqpChannelPool channelPool, IL
     private async Task SetupRetryQueue(CancellationToken ct)
     {
         await _channelPool.UseChannel(async channel =>
-        { 
+        {
             await channel.ExchangeDeclareAsync(
                 Shared.Messaging.Constants.RetryQueue,
                 ExchangeType.Fanout,
@@ -96,7 +96,6 @@ public class AmqpService(IConnection connection, AmqpChannelPool channelPool, IL
                 null,
                 cancellationToken: ct
             );
- 
         });
     }
 }

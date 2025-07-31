@@ -5,7 +5,8 @@ using Pulse.Users.Contracts.Messages;
 
 namespace Pulse.Users.Consumers;
 
-internal class UserMentionedConsumer(IProducer producer, IUserQueries userQueries) : IConsumer<UserMentionedEvent>
+internal class UserMentionedConsumer(IProducer producer, IUserQueries userQueries)
+    : IConsumer<UserMentionedEvent>
 {
     private readonly IProducer _producer = producer;
     private readonly IUserQueries _userQueries = userQueries;

@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 using Pulse.Posts.Domain;
 
 namespace Pulse.Posts.Data;

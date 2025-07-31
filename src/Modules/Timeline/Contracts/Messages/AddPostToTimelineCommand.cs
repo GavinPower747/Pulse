@@ -2,7 +2,8 @@ using Pulse.Shared.Messaging;
 
 namespace Pulse.Timeline.Contracts.Commands;
 
-public class AddPostToTimelineCommand(Guid userId, Guid postId, DateTimeOffset created) : IntegrationEvent
+public class AddPostToTimelineCommand(Guid userId, Guid postId, DateTimeOffset created)
+    : IntegrationEvent
 {
     public override string EventName => "timeline.addPostToTimeline";
     public override string EventVersion => "v1";

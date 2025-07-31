@@ -1,10 +1,10 @@
-using RabbitMQ.Client;
-using Pulse.Tests.Util.Mocks.RabbitMQ;
-using Xunit;
-using Pulse.Shared.Messaging;
-using NSubstitute;
 using Microsoft.Extensions.Logging;
+using NSubstitute;
+using Pulse.Shared.Messaging;
+using Pulse.Tests.Util.Mocks.RabbitMQ;
 using Pulse.Tests.Util.Mocks.RabbitMQ.Models;
+using RabbitMQ.Client;
+using Xunit;
 
 namespace Pulse.Tests.Util.Fixtures;
 
@@ -31,17 +31,14 @@ public class RabbitMqFixture : IDisposable
     /// <returns>FakeChannel instance</returns>
     public async Task<FakeChannel> GetChannelAsync()
     {
-        return await Connection.CreateChannelAsync() as FakeChannel 
+        return await Connection.CreateChannelAsync() as FakeChannel
             ?? throw new InvalidOperationException("Expected FakeChannel but got different type");
     }
 
     public IProducer GetProducer()
     {
         return new AmqpPublisher(
-            new AmqpChannelPool(
-                Connection,
-                Substitute.For<ILogger<AmqpChannelPool>>()
-            )
+            new AmqpChannelPool(Connection, Substitute.For<ILogger<AmqpChannelPool>>())
         );
     }
 
@@ -51,13 +48,15 @@ public class RabbitMqFixture : IDisposable
         return channel.GetMessagesOnQueue(queueName);
     }
 
-    public IEnumerable<RabbitMessage> GetMessagesForEvent<T>(string consumerName) where T : IntegrationEvent
+    public IEnumerable<RabbitMessage> GetMessagesForEvent<T>(string consumerName)
+        where T : IntegrationEvent
     {
         var metadata = IntegrationEvent.GetEventMetadata<T>();
         return GetMessagesOnQueue(metadata.GetQueueName(consumerName));
     }
 
-    public async Task DeclareForEvent<T>(string consumerName) where T : IntegrationEvent
+    public async Task DeclareForEvent<T>(string consumerName)
+        where T : IntegrationEvent
     {
         var metadata = IntegrationEvent.GetEventMetadata<T>();
         var channel = await Connection.CreateChannelAsync();
@@ -90,7 +89,8 @@ public class RabbitMqFixture : IDisposable
         }
     }
 
-    public static string GetQueueNameForEvent<T>(string consumerName) where T : IntegrationEvent
+    public static string GetQueueNameForEvent<T>(string consumerName)
+        where T : IntegrationEvent
     {
         var metadata = IntegrationEvent.GetEventMetadata<T>();
         return metadata.GetQueueName(consumerName);
@@ -109,12 +109,20 @@ public class RabbitMqFixture : IDisposable
         string exchangeType = ExchangeType.Fanout,
         bool durable = true,
         bool autoDelete = false,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         try
         {
             using var channel = await Connection.CreateChannelAsync();
-            await channel.ExchangeDeclareAsync(exchangeName, exchangeType, durable, autoDelete, null, cancellationToken: cancellationToken);
+            await channel.ExchangeDeclareAsync(
+                exchangeName,
+                exchangeType,
+                durable,
+                autoDelete,
+                null,
+                cancellationToken: cancellationToken
+            );
         }
         catch
         {
@@ -131,16 +139,25 @@ public class RabbitMqFixture : IDisposable
     /// <param name="autoDelete">Whether the queue should be auto-deleted when no longer used</param>
     /// <param name="cancellationToken">Cancellation token</param>
     public async Task DeclareQueueAsync(
-        string queueName, 
-        bool durable = true, 
-        bool exclusive = false, 
+        string queueName,
+        bool durable = true,
+        bool exclusive = false,
         bool autoDelete = false,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         try
         {
             using var channel = await Connection.CreateChannelAsync();
-            await channel.QueueDeclareAsync(queueName, durable, exclusive, autoDelete, null, false, cancellationToken);
+            await channel.QueueDeclareAsync(
+                queueName,
+                durable,
+                exclusive,
+                autoDelete,
+                null,
+                false,
+                cancellationToken
+            );
         }
         catch
         {
@@ -156,15 +173,23 @@ public class RabbitMqFixture : IDisposable
     /// <param name="routingKey">Routing key for the binding</param>
     /// <param name="cancellationToken">Cancellation token</param>
     public async Task BindQueueAsync(
-        string queueName, 
-        string exchangeName, 
+        string queueName,
+        string exchangeName,
         string routingKey = "#",
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         try
         {
             using var channel = await Connection.CreateChannelAsync();
-            await channel.QueueBindAsync(queueName, exchangeName, routingKey, null, false, cancellationToken);
+            await channel.QueueBindAsync(
+                queueName,
+                exchangeName,
+                routingKey,
+                null,
+                false,
+                cancellationToken
+            );
         }
         catch
         {

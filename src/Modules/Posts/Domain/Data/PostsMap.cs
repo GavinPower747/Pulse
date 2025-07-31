@@ -18,7 +18,8 @@ internal class PostsMap : IEntityTypeConfiguration<Post>
         builder.Property(p => p.UpdatedAt).HasColumnName("updated_at").IsRequired(false);
         builder.Property(p => p.PublishedAt).HasColumnName("published_at").IsRequired(false);
 
-        builder.HasMany(p => p.Attachments)
+        builder
+            .HasMany(p => p.Attachments)
             .WithOne()
             .HasForeignKey(a => a.PostId)
             .OnDelete(DeleteBehavior.Cascade);

@@ -28,7 +28,8 @@ public class FakeConnectionFactory(RabbitServer server) : IConnectionFactory
 
     public TimeSpan ContinuationTimeout { get; set; }
 
-    public IDictionary<string, object?> ClientProperties { get; set; } = new Dictionary<string, object?>();
+    public IDictionary<string, object?> ClientProperties { get; set; } =
+        new Dictionary<string, object?>();
 
     public string Password { get; set; } = "guest";
 
@@ -45,22 +46,27 @@ public class FakeConnectionFactory(RabbitServer server) : IConnectionFactory
 
     public List<IChannel> UnderlyingModel
     {
-        get => UnderlyingConnection is not null
-            ? UnderlyingConnection.Channels 
-            : [];
+        get => UnderlyingConnection is not null ? UnderlyingConnection.Channels : [];
     }
 
-    public ICredentialsProvider? CredentialsProvider { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public ushort ConsumerDispatchConcurrency { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public ICredentialsProvider? CredentialsProvider
+    {
+        get => throw new NotImplementedException();
+        set => throw new NotImplementedException();
+    }
+    public ushort ConsumerDispatchConcurrency
+    {
+        get => throw new NotImplementedException();
+        set => throw new NotImplementedException();
+    }
 
     #endregion Properties
 
     #region Constructors
 
 
-    public FakeConnectionFactory() : this(new RabbitServer())
-    {
-    }
+    public FakeConnectionFactory()
+        : this(new RabbitServer()) { }
 
     #endregion Constructors
 
@@ -133,31 +139,47 @@ public class FakeConnectionFactory(RabbitServer server) : IConnectionFactory
         throw new NotImplementedException();
     }
 
-    public Task<IConnection> CreateConnectionAsync(string clientProvidedName, CancellationToken cancellationToken = default)
+    public Task<IConnection> CreateConnectionAsync(
+        string clientProvidedName,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
 
-    public Task<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, CancellationToken cancellationToken = default)
+    public Task<IConnection> CreateConnectionAsync(
+        IEnumerable<string> hostnames,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
 
-    public Task<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, string clientProvidedName, CancellationToken cancellationToken = default)
+    public Task<IConnection> CreateConnectionAsync(
+        IEnumerable<string> hostnames,
+        string clientProvidedName,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
 
-    public Task<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints, CancellationToken cancellationToken = default)
+    public Task<IConnection> CreateConnectionAsync(
+        IEnumerable<AmqpTcpEndpoint> endpoints,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
 
-    public Task<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints, string clientProvidedName, CancellationToken cancellationToken = default)
+    public Task<IConnection> CreateConnectionAsync(
+        IEnumerable<AmqpTcpEndpoint> endpoints,
+        string clientProvidedName,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
-
 
     #endregion Public Methods
 }

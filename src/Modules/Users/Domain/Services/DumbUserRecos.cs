@@ -13,8 +13,10 @@ public class DumbUserRecos(KeycloakClientFactory clientFactory, UsersConfigurati
 {
     private readonly KeycloakClientFactory _clientFactory = clientFactory;
     private readonly UsersConfiguration _configuration = config;
-    private readonly JsonSerializerOptions _jsonOptions =
-        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    private readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
 
     public async Task<IEnumerable<User>> GetRecommendedFollows(
         Guid userId,

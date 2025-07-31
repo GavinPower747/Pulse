@@ -2,7 +2,8 @@ using Pulse.Shared.Messaging;
 
 namespace Pulse.Posts.Contracts.Messages;
 
-public class PostCreatedEvent(Guid id, Guid userId, DateTimeOffset created, string content) : IntegrationEvent
+public class PostCreatedEvent(Guid id, Guid userId, DateTimeOffset created, string content)
+    : IntegrationEvent
 {
     public override string EventName => "posts.postCreated";
     public override string EventVersion => "v1";

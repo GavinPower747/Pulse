@@ -11,7 +11,7 @@ public class DatabaseFixture : IDisposable
 {
     public readonly string DatabaseId = Guid.NewGuid().ToString();
     internal PostsContext Posts { get; init; }
-    
+
     // Store a reference to the connection that we use for migrations and DbContext
     private readonly SqliteConnection _connection;
 
@@ -28,9 +28,7 @@ public class DatabaseFixture : IDisposable
             runner.MigrateUp();
         }
 
-        var options = new DbContextOptionsBuilder<PostsContext>()
-            .UseSqlite(_connection)
-            .Options;
+        var options = new DbContextOptionsBuilder<PostsContext>().UseSqlite(_connection).Options;
 
         Posts = new PostsContext(options);
     }
@@ -38,7 +36,7 @@ public class DatabaseFixture : IDisposable
     public void Dispose()
     {
         Posts?.Dispose();
-        
+
         _connection?.Close();
         _connection?.Dispose();
     }

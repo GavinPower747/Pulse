@@ -26,7 +26,7 @@ public class GetTimelineUpdatesEndpoint(
         var viewProperties = new Dictionary<string, object?>
         {
             { nameof(LoadMoreButton.Etag), newEtag },
-            { nameof(LoadMoreButton.HasChanges), hasChanges }
+            { nameof(LoadMoreButton.HasChanges), hasChanges },
         };
 
         return new RazorComponentResult<LoadMoreButton>(viewProperties);

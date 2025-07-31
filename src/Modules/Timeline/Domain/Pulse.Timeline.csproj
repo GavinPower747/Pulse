@@ -1,20 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Autofac" Version="8.0.0" />
     <PackageReference Include="StackExchange.Redis" Version="2.7.17" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\Posts\Contracts\Pulse.Posts.Contracts.csproj" />
     <ProjectReference Include="..\Contracts\Pulse.Timeline.Contracts.csproj" />
@@ -23,9 +19,7 @@
     <ProjectReference Include="..\..\Posts\UI\Pulse.Posts.UI.csproj" />
     <ProjectReference Include="..\UI\Pulse.Timeline.UI.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="Api\GetPage\" />
   </ItemGroup>
-
 </Project>
