@@ -1,3 +1,5 @@
+import { capitalize, camelCaseToKebabCase, kebabToCamelCase } from "utils/strings.js";
+
 /**@typedef {import(../types/framework)} */
 
 /**
@@ -34,8 +36,8 @@ export class Controller {
             get: (target, prop) => {
                 if (prop in target) {
                     return target[prop];
-                } else if (typeof prop === 'string' && this._isDataProperty(prop)) {
-                    const attributeName = this._propertyToAttribute(prop);
+                } else if (typeof prop === 'string' && isDataProperty(prop, this.context, this._dataPrefix)) {
+                    const attributeName = propertyToAttribute(prop, this._dataPrefix);
                     return this.context.getAttribute(attributeName);
                 }
                 return undefined;
@@ -43,8 +45,8 @@ export class Controller {
             set: (target, prop, value) => {
                 if (prop in target) {
                     target[prop] = value;
-                } else if (typeof prop === 'string' && this._isDataProperty(prop)) {
-                    const attributeName = this._propertyToAttribute(prop);
+                } else if (typeof prop === 'string' && isDataProperty(prop, this.context, this._dataPrefix)) {
+                    const attributeName = propertyToAttribute(prop, this._dataPrefix);
                     this.context.setAttribute(attributeName, value);
                 }
                 return true;
@@ -94,7 +96,7 @@ export class Controller {
         for (const element of componentElements) {
             const componentName = element.getAttribute('data-component');
             if (componentName) {
-                const camelCaseName = this._kebabToCamelCase(componentName);
+                const camelCaseName = kebabToCamelCase(componentName);
                 const component = new Component(element, this._dataPrefix);
                 this._components.set(camelCaseName, component);
                 
@@ -157,7 +159,7 @@ export class Controller {
      * @param {MutationRecord} mutation - The mutation record.
      */
     _handleControllerAttributeChange(mutation) {
-        const prop = this._attributeToProperty(mutation.attributeName);
+        const prop = attributeToProperty(mutation.attributeName, this._dataPrefix);
         const newValue = this.context.getAttribute(mutation.attributeName);
         
         if (typeof this[`${prop}Changed`] === 'function') {
@@ -174,71 +176,17 @@ export class Controller {
     _handleComponentAttributeChange(mutation, target) {
         for (const [componentName, component] of this._components.entries()) {
             if (component.context === target) {
-                const prop = this._attributeToProperty(mutation.attributeName);
+                const prop = attributeToProperty(mutation.attributeName, this._dataPrefix);
                 const newValue = target.getAttribute(mutation.attributeName);
                 
-                if (typeof this[`${componentName}${this._capitalize(prop)}Changed`] === 'function') {
-                    this[`${componentName}${this._capitalize(prop)}Changed`](newValue, mutation.oldValue);
+                if (typeof this[`${componentName}${capitalize(prop)}Changed`] === 'function') {
+                    this[`${componentName}${capitalize(prop)}Changed`](newValue, mutation.oldValue);
                 }
 
                 break;
             }
         }
-    }
-
-    /**
-     * Checks if a property name should be treated as a data property.
-     * @private
-     * @param {string} prop - The property name.
-     * @returns {boolean} True if it's a data property.
-     */
-    _isDataProperty(prop) {
-        const attributeName = this._propertyToAttribute(prop);
-        return this.context.hasAttribute(attributeName);
-    }
-
-    /**
-     * Converts a property name to its corresponding attribute name.
-     * @private
-     * @param {string} prop - The property name.
-     * @returns {string} The attribute name.
-     */
-    _propertyToAttribute(prop) {
-        const kebabCase = prop.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
-        return `${this._dataPrefix}${kebabCase}`;
-    }
-
-    /**
-     * Converts an attribute name to its corresponding property name.
-     * @private
-     * @param {string} attributeName - The attribute name.
-     * @returns {string} The property name.
-     */
-    _attributeToProperty(attributeName) {
-        return attributeName
-            .replace(new RegExp(`^${this._dataPrefix}`), '')
-            .replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-    }
-
-    /**
-     * Converts kebab-case to camelCase.
-     * @private
-     * @param {string} str - The kebab-case string.
-     * @returns {string} The camelCase string.
-     */
-    _kebabToCamelCase(str) {
-        return str.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-    }
-
-    /**
-     * Capitalizes the first letter of a string.
-     * @private
-     * @param {string} str - The string to capitalize.
-     * @returns {string} The capitalized string.
-     */
-    _capitalize(str) {
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
+    } 
 }
 
 /**
@@ -256,8 +204,8 @@ class Component {
             get: (target, prop) => {
                 if (prop in target) {
                     return target[prop];
-                } else if (typeof prop === 'string' && this._isDataProperty(prop)) {
-                    const attributeName = this._propertyToAttribute(prop);
+                } else if (typeof prop === 'string' && isDataProperty(prop, this.context, this._dataPrefix)) {
+                    const attributeName = propertyToAttribute(prop, this._dataPrefix);
                     return this.context.getAttribute(attributeName);
                 }
                 return undefined;
@@ -265,8 +213,8 @@ class Component {
             set: (target, prop, value) => {
                 if (prop in target) {
                     target[prop] = value;
-                } else if (typeof prop === 'string' && this._isDataProperty(prop)) {
-                    const attributeName = this._propertyToAttribute(prop);
+                } else if (typeof prop === 'string' && isDataProperty(prop, this.context, this._dataPrefix)) {
+                    const attributeName = propertyToAttribute(prop, this._dataPrefix);
                     this.context.setAttribute(attributeName, value);
                 }
                 return true;
@@ -293,27 +241,34 @@ class Component {
     removeEventListener(eventName, callback, options) {
         this.context.removeEventListener(eventName, callback, options);
     }
+}
 
-    /**
-     * Checks if a property name should be treated as a data property.
-     * @private
-     * @param {string} prop - The property name.
-     * @returns {boolean} True if it's a data property.
-     */
-    _isDataProperty(prop) {
-        // Check if property would map to a data-js- attribute
-        const attributeName = this._propertyToAttribute(prop);
-        return this.context.hasAttribute(attributeName);
-    }
+/**
+ * Checks if a property name should be treated as a data property.
+ * @param {string} prop - The property name.
+ * @returns {boolean} True if it's a data property.
+ */
+function isDataProperty(prop, node, prefix) {
+    const attributeName = propertyToAttribute(prop, prefix);
+    return node.hasAttribute(attributeName);
+}
 
-    /**
-     * Converts a property name to its corresponding attribute name.
-     * @private
-     * @param {string} prop - The property name.
-     * @returns {string} The attribute name.
-     */
-    _propertyToAttribute(prop) {
-        const kebabCase = prop.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
-        return `${this._dataPrefix}${kebabCase}`;
-    }
+/**
+ * Converts a property name to its corresponding attribute name.
+ * @param {string} prop - The property name.
+ * @returns {string} The attribute name.
+ */
+function propertyToAttribute(prop, prefix) {
+    return `${prefix}${camelCaseToKebabCase(prop)}`;
+}
+
+/**
+ * Converts an attribute name to its corresponding property name.
+ * @param {string} attributeName - The attribute name.
+ * @returns {string} The property name.
+ */
+function attributeToProperty(attributeName, prefix) {
+    return attributeName
+        .replace(new RegExp(`^${prefix}`), '')
+        .replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 }

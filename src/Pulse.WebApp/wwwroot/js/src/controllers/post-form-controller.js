@@ -1,4 +1,4 @@
-import { Controller, register } from "../framework/index.js";
+import { Controller } from "framework";
 
 export default class PostFormController extends Controller {
     constructor(context) {
@@ -65,5 +65,3 @@ export default class PostFormController extends Controller {
         return Math.min(Math.max(value, min), max);
     }
 }
-
-register("post-form", PostFormController);

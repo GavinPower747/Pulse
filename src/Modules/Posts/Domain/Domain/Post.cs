@@ -10,7 +10,7 @@ internal partial class Post
     public DateTime CreatedAt { get; }
     public DateTime? PublishedAt { get; }
     public DateTime? UpdatedAt { get; private set; }
-    public IReadOnlyList<AttachmentMetadata> Attachments { get; }
+    public IReadOnlyList<AttachmentMetadata> Attachments { get; } = [];
 
     [GeneratedRegex(@"(?<=^|\s)@(\w+)", RegexOptions.Compiled)]
     private static partial Regex UserMentionRegex();

@@ -1,5 +1,6 @@
-import { domReady } from "../dom/events.js";
-import { Controller } from "./controller.js";
+import { domReady } from "utils/dom.js";
+import { kebabToPascalCase } from "utils/strings.js";
+import { Controller } from "framework";
 
 /**@type {Map<string, Controller>} */
 let controllers = new Map();
@@ -9,6 +10,10 @@ let registrations = new Map();
 let attribute = "data-controller";
 /**@type {string} */
 let selector = `[${attribute}]`;
+
+(async () => {
+    await attachExistingControllers(selector);
+})();
 
 const observer = new MutationObserver(handleMutations);
 observer.observe(document.body, {
@@ -25,7 +30,7 @@ async function attachExistingControllers(selector) {
 
     const nodes = document.querySelectorAll(selector);
     for (const node of nodes) {
-        connectController(node);
+        await connectController(node);
     }
 }
 
@@ -34,36 +39,68 @@ async function attachExistingControllers(selector) {
  * @param {MutationRecord[]} mutations - The list of mutations observed.
  * @returns {void}
  */
-function handleMutations(mutations) {
+async function handleMutations(mutations) {
     for (const mutation of mutations) {
         for (const node of mutation.addedNodes) {
-            if (node.nodeType === Node.ELEMENT_NODE && node.matches && node.matches(selector)) {
-                connectController(node);
+            if(!(node instanceof Element)) continue;
+
+            if (node.matches && node.matches(selector)) {
+                await connectController(node);
             }
+
+            node.querySelectorAll(selector).forEach(async element => {
+                await connectController(element);
+            });
         }
 
         for (const node of mutation.removedNodes) {
-            if (node.nodeType === Node.ELEMENT_NODE && node.matches && node.matches(selector)) {
+            if(!(node instanceof Element)) continue;
+
+            if (node.matches && node.matches(selector)) {
                 disconnectController(node);
             }
+
+            node.querySelectorAll(selector).forEach(element => {
+                disconnectController(element);
+            });
         }
     }
 }
 
 /**
  * Registers a controller for the given DOM node.
+ * @private
  * @param {HTMLElement} node - The DOM node to register the controller for.
- * @returns {void}
+ * @returns {Promise<void>}
  */
-function connectController(node) {
+async function connectController(node) {
     const controllerName = node.getAttribute(attribute);
     if (!controllerName) return;
 
     if (!controllers.has(controllerName)) {
-        const ControllerClass = registrations.get(controllerName);
+        let ControllerClass = registrations.get(controllerName);
 
         if (!ControllerClass) {
-            console.warn(`Controller class "${controllerName}" not found. Make sure it's registered before use.`);
+            try {
+                const expectedClassName = `${kebabToPascalCase(controllerName)}Controller`;
+                const path = `controllers/${controllerName}-controller.js`;
+
+                const module = await import(path);
+                ControllerClass = module[expectedClassName] || module.default;
+
+                if (ControllerClass && typeof ControllerClass === 'function' && ControllerClass.prototype instanceof Controller) {
+                    registrations.set(controllerName, ControllerClass);
+                } else {
+                    ControllerClass = null;
+                }
+            } catch (error) {
+                console.error(`Error loading controller "${controllerName}":`, error);
+                return;
+            }
+        }
+
+        if (!ControllerClass) {
+            console.warn(`Controller "${controllerName}" not found or does not extend Controller base class.`);
             return;
         }
 

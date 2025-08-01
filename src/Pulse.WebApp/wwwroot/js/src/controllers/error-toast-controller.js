@@ -1,10 +1,10 @@
-import {Controller, register} from '../framework/index.js'
+import {Controller} from 'framework'
 
-class ErrorToastController extends Controller {
+export default class ErrorToastController extends Controller {
     connect() {
-        this.context.addEventListener('htmx:responseError', this._onError.bind(this));
-        this.context.addEventListener('htmx:error', this._onError.bind(this));
-        this.context.addEventListener('htmx:sendError', this._onError.bind(this));
+        document.body.addEventListener('htmx:responseError', this._onError.bind(this));
+        document.body.addEventListener('htmx:error', this._onError.bind(this));
+        document.body.addEventListener('htmx:sendError', this._onError.bind(this));
         this.closeButton.addEventListener('click', this._closeToast.bind(this));
     }
 
@@ -24,5 +24,3 @@ class ErrorToastController extends Controller {
         this.context.setAttribute('hidden', '');
     }
 }
-
-register('error-toast', ErrorToastController);
