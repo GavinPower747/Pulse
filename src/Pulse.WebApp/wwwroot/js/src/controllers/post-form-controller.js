@@ -1,4 +1,5 @@
 import { Controller } from "framework";
+import { exponentialInterpolation } from "../utils/maths.js";
 
 export default class PostFormController extends Controller {
     constructor(context) {
@@ -49,19 +50,9 @@ export default class PostFormController extends Controller {
         let toColour = progress <= 0.5 ? midColour : endColour;
 
         let interpolatedRGB = fromColour.map((channel, index) => {
-            return this._exponentialInterpolation(channel, toColour[index], adjustedProgress);
+            return exponentialInterpolation(channel, toColour[index], adjustedProgress);
         });
 
         return `rgb(${interpolatedRGB.join(', ')})`;
-    }
-
-    _exponentialInterpolation(startValue, endValue, progress) {
-        const valueRange = endValue - startValue;
-        const exponentialFactor = Math.pow(2, 10 * (progress - 1));
-        return Math.round(startValue + valueRange * exponentialFactor);
-    }
-
-    _clamp(value, min, max) {
-        return Math.min(Math.max(value, min), max);
     }
 }
