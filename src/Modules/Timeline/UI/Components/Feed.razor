@@ -35,16 +35,21 @@
         ContinuationToken = timeline.ContinuationToken;
         Etag = timeline.Etag;
     }
+
+    private string GetHiddenAttribute()
+    {
+        return IsEmpty ? "hidden" : string.Empty;
+    }
 }
 
 <LoadMoreButton Etag="@Etag" HasChanges="false"/>
-<div x-data="{ isEmpty: @IsEmpty.ToString().ToLower() }" x-on:pulse:post-created="isEmpty = false" id="user-feed" class="show-new-post">
+<div data-controller="post-feed" data-js-is-empty="@IsEmpty.ToString().ToLower()" id="user-feed" class="show-new-post">
     @if (FirstPage.Any())
     {
         <FeedPage EagerPosts="@FirstPage" ContinuationToken="@ContinuationToken"/>
     }
     
-    <div x-show="isEmpty" class="text-center text-slate-500 text-lg p-8">
+    <div data-component="empty-message" @GetHiddenAttribute() class="text-center text-slate-500 text-lg p-8">
         <p>Nothing to see here.</p>
     </div>
 </div>
