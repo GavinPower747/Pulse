@@ -29,6 +29,7 @@ public class PostsModule : Module
         builder.RegisterDbContext<PostsContext>(Configuration.Database.ConnectionString);
         builder.RegisterDbContext<AttachmentContext>(Configuration.Database.ConnectionString);
         builder.RegisterType<PostMapper>().AsSelf();
+        builder.RegisterInstance(Configuration.BlobStorage);
 
         builder
             .Register(
@@ -80,4 +81,5 @@ public class BlobStorageConfig
     public string Endpoint { get; set; } = default!;
     public string AccessKey { get; set; } = default!;
     public string SecretKey { get; set; } = default!;
+    public string AttachmentsBucket { get; set; } = default!;
 }

@@ -6,11 +6,15 @@ using Pulse.Posts.Domain;
 
 namespace Pulse.Posts.Services;
 
-internal class AttachmentService(IAmazonS3 s3Client, AttachmentContext attachmentContext)
+internal class AttachmentService(
+    IAmazonS3 s3Client,
+    AttachmentContext attachmentContext,
+    BlobStorageConfig blobStorageConfig
+)
 {
     private readonly IAmazonS3 _s3Client = s3Client;
     private readonly AttachmentContext _attachmentContext = attachmentContext;
-    private const string BucketName = "pulse-attachments";
+    private readonly BlobStorageConfig _blobStorageConfig = blobStorageConfig;
 
     public async Task Upload(Attachment attachment, CancellationToken ct)
     {
@@ -22,7 +26,7 @@ internal class AttachmentService(IAmazonS3 s3Client, AttachmentContext attachmen
         await _s3Client.PutObjectAsync(
             new PutObjectRequest
             {
-                BucketName = BucketName,
+                BucketName = _blobStorageConfig.AttachmentsBucket,
                 Key = attachment.Metadata.FileKey,
                 InputStream = attachment.Content,
                 ContentType = attachment.Metadata.ContentType,
@@ -45,7 +49,11 @@ internal class AttachmentService(IAmazonS3 s3Client, AttachmentContext attachmen
         await _attachmentContext.SaveChangesAsync(ct);
 
         await _s3Client.DeleteObjectAsync(
-            new DeleteObjectRequest { BucketName = BucketName, Key = attachment.FileKey },
+            new DeleteObjectRequest
+            {
+                BucketName = _blobStorageConfig.AttachmentsBucket,
+                Key = attachment.FileKey,
+            },
             ct
         );
 
@@ -63,7 +71,11 @@ internal class AttachmentService(IAmazonS3 s3Client, AttachmentContext attachmen
             return null;
 
         var response = await _s3Client.GetObjectAsync(
-            new GetObjectRequest { BucketName = BucketName, Key = metadata.FileKey },
+            new GetObjectRequest
+            {
+                BucketName = _blobStorageConfig.AttachmentsBucket,
+                Key = metadata.FileKey,
+            },
             ct
         );
 
