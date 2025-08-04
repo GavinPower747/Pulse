@@ -1,0 +1,56 @@
+services:
+  webapp:
+    build:
+      context: .
+      dockerfile: ./src/Pulse.WebApp/Dockerfile.Development
+    ports:
+      - "5000:8080"
+      - "5001:8081"
+      - "34995:34995"
+    environment:
+      DOTNET_ENVIRONMENT: Development
+      DOTNET_URLS: http://*:8080
+      DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER: true
+      DOTNET_WATCH_RESTART_ON_RUDE_EDIT: true
+      ASPNETCORE_AUTO_RELOAD_WS_ENDPOINT: ws://localhost:34995
+      RabbitMQ__Host: rabbitmq
+      Authentication__Authority: http://auth.pulse.local:8080/realms/Pulse
+      modules__0__properties__Configuration__Database__ConnectionString: Server=db;Port=5432;Database=pulseposts;User Id=postgres;Password=postgres;
+      modules__0__properties__Configuration__BlobStorage__Endpoint: http://storage.pulse.local:9000
+      modules__1__properties__Configuration__Redis__ConnectionString: redis:6379
+      modules__2__properties__Configuration__Keycloak__ApiBase: http://auth.pulse.local:8080
+      modules__3__properties__Configuration__Database__ConnectionString: Server=db;Port=5432;Database=pulsefollowers;User Id=postgres;Password=postgres;
+    volumes:
+      - app-source:/app
+      - ~/.aspnet/https:/https:ro
+    depends_on:
+      file-sync:
+        condition: service_started
+      keycloak:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
+
+  # Sync source files from host to container without taking the /bin and /obj folders which would break the language server if your container and host are different operating systems
+  # Essentially just sets up two folders, one synced from the host containing the source, when this changes we copy to another synced with a volume mount that is mounted to our dotnet watch container
+  file-sync:
+    image: alpine:latest
+    volumes:
+      - .:/source:ro
+      - app-source:/app
+    command: |
+      sh -c "
+        apk add --no-cache rsync inotify-tools
+        echo 'Initial sync...'
+        rsync -av --delete --exclude='**/.git/' --exclude='**/bin/' --exclude='**/obj/' --exclude='**/.vs/' --exclude='**/.vscode/' --exclude='**/node_modules/' --exclude='**/data/' /source/ /app/
+        echo 'Watching for changes...'
+        while inotifywait -r -e modify,create,delete,move --exclude '(.*/data/.*|.*/\.git/.*|.*/bin/.*|.*/obj/.*|.*/node_modules/.*)' /source/; do
+          echo 'Files changed, syncing...'
+          rsync -av --delete --exclude='**/.git/' --exclude='**/data/' --exclude='**/bin/' --exclude='**/obj/' --exclude='**/.vs/' --exclude='**/.vscode/' --exclude='**/node_modules/' /source/ /app/
+        done
+      "
+    restart: unless-stopped

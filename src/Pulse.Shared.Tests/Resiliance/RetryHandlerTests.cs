@@ -1,32 +1,39 @@
-using RabbitMQ.Client;
-using Pulse.Tests.Util.Mocks.RabbitMQ;
-using Pulse.Shared.Messaging;
-using NSubstitute;
-using Microsoft.Extensions.Logging;
-using Pulse.Shared.Services;
+using System.Text;
 using CloudNative.CloudEvents;
 using CloudNative.CloudEvents.SystemTextJson;
-using System.Text;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
+using Pulse.Shared.Messaging;
 using Pulse.Shared.Messaging.Resiliance;
+using Pulse.Shared.Services;
+using Pulse.Tests.Util.Fixtures;
+using RabbitMQ.Client;
 
 namespace Pulse.Shared.Tests.Resiliance;
 
-public class ResilianceTests
+public class ResilianceTests : IDisposable
 {
-    private readonly RabbitServer _rabbitServer;
-    private readonly FakeConnection _connection;
+    private readonly RabbitMqFixture _rabbitFixture;
     private readonly AmqpConsumerService<TestEvent> _sut;
 
     public ResilianceTests()
     {
-        _rabbitServer = new();
-        _connection = new(_rabbitServer);
-        var amqpPool = new AmqpChannelPool(_connection, Substitute.For<ILogger<AmqpChannelPool>>());
-        var immediateRetryHandler = new ImmediateRetryHandler(amqpPool);
-        var exponentialRetryHandler = new ExponentialDelayRetryHandler(amqpPool);
-        var deadLetterHandler = new DeadLetterHandler(Substitute.For<ILogger<DeadLetterHandler>>(), amqpPool);
+        _rabbitFixture = new RabbitMqFixture();
+
+        // Set up the specific services needed for this test
+        var channelPool = new AmqpChannelPool(
+            _rabbitFixture.Connection,
+            Substitute.For<ILogger<AmqpChannelPool>>()
+        );
+        var immediateRetryHandler = new ImmediateRetryHandler(channelPool);
+        var exponentialRetryHandler = new ExponentialDelayRetryHandler(channelPool);
+        var deadLetterHandler = new DeadLetterHandler(
+            Substitute.For<ILogger<DeadLetterHandler>>(),
+            channelPool
+        );
+
         _sut = new AmqpConsumerService<TestEvent>(
-            _connection,
+            _rabbitFixture.Connection,
             new TestConsumer(),
             Substitute.For<ILogger<AmqpConsumerService<TestEvent>>>(),
             immediateRetryHandler,
@@ -34,32 +41,27 @@ public class ResilianceTests
             deadLetterHandler
         );
 
-        using var channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
+        // Setup infrastructure for our specific test needs
+        SetupTestInfrastructureAsync().GetAwaiter().GetResult();
+        _sut.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    public void Dispose()
+    {
+        _rabbitFixture.Dispose();
+    }
+
+    private async Task SetupTestInfrastructureAsync()
+    {
         var evtMetadata = IntegrationEvent.GetEventMetadata<TestEvent>();
 
-        channel.ExchangeDeclareAsync(Messaging.Constants.RetryQueue, ExchangeType.Fanout, true, false, null).GetAwaiter().GetResult();
-        channel.ExchangeDeclareAsync(evtMetadata.GetExchangeName(), ExchangeType.Fanout, true, false, null).GetAwaiter().GetResult();
-
-        channel.QueueDeclareAsync(
+        await _rabbitFixture.DeclareExchangeAsync(Messaging.Constants.RetryQueue);
+        await _rabbitFixture.DeclareExchangeAsync(evtMetadata.GetExchangeName());
+        await _rabbitFixture.DeclareQueueAsync(Messaging.Constants.RetryQueue);
+        await _rabbitFixture.BindQueueAsync(
             Messaging.Constants.RetryQueue,
-            true,
-            false,
-            false,
-            null,
-            false,
-            CancellationToken.None
-        ).GetAwaiter().GetResult();
-        
-        channel.QueueBindAsync(
-            Messaging.Constants.RetryQueue,
-            Messaging.Constants.RetryQueue,
-            "#",
-            null,
-            false,
-            CancellationToken.None
-        ).GetAwaiter().GetResult();
-
-        _sut.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
+            Messaging.Constants.RetryQueue
+        );
     }
 
     [Fact]
@@ -68,19 +70,19 @@ public class ResilianceTests
         // Arrange
         TestEvent evt = new() { Id = 1, Name = "Test Event" };
         var evtMetadata = IntegrationEvent.GetEventMetadata<TestEvent>();
-        var channel = await _connection.CreateChannelAsync() as FakeChannel;
+        var channel = await _rabbitFixture.GetChannelAsync();
         var properties = new BasicProperties
         {
             ContentType = "application/json",
             DeliveryMode = DeliveryModes.Persistent,
             Headers = new Dictionary<string, object?>
             {
-                { Messaging.Constants.Headers.RetryCount, 0 }
-            }
+                { Messaging.Constants.Headers.RetryCount, 0 },
+            },
         };
 
         // Act
-        await channel!.BasicPublishAsync(
+        await channel.BasicPublishAsync(
             evtMetadata.GetExchangeName(),
             "#",
             true,
@@ -89,13 +91,18 @@ public class ResilianceTests
             CancellationToken.None
         );
 
-        var messages = channel.GetMessagesOnQueue($"{evtMetadata.GetQueueName(new TestConsumer())}");
+        var messages = channel.GetMessagesOnQueue(
+            $"{evtMetadata.GetQueueName(new TestConsumer())}"
+        );
 
         // Assert
         Assert.Equal(2, messages.Count());
 
         var message = messages.First();
-        message.BasicProperties.Headers!.TryGetValue(Messaging.Constants.Headers.RetryCount, out var retryCount);
+        message.BasicProperties.Headers!.TryGetValue(
+            Messaging.Constants.Headers.RetryCount,
+            out var retryCount
+        );
         Assert.NotNull(retryCount);
         Assert.Equal(1, retryCount);
     }
@@ -106,19 +113,19 @@ public class ResilianceTests
         // Arrange
         TestEvent evt = new() { Id = 1, Name = "Test Event" };
         var evtMetadata = IntegrationEvent.GetEventMetadata<TestEvent>();
-        var channel = await _connection.CreateChannelAsync() as FakeChannel;
+        var channel = await _rabbitFixture.GetChannelAsync();
         var properties = new BasicProperties
         {
             ContentType = "application/json",
             DeliveryMode = DeliveryModes.Persistent,
             Headers = new Dictionary<string, object?>
             {
-                { Messaging.Constants.Headers.RetryCount, 3 }
-            }
+                { Messaging.Constants.Headers.RetryCount, 3 },
+            },
         };
 
         // Act
-        await channel!.BasicPublishAsync(
+        await channel.BasicPublishAsync(
             evtMetadata.GetExchangeName(),
             "#",
             true,
@@ -133,32 +140,41 @@ public class ResilianceTests
         Assert.Single(delayMessages);
 
         var message = delayMessages.First();
-        message.BasicProperties.Headers!.TryGetValue(Messaging.Constants.Headers.RetryCount, out var retryCount);
+        message.BasicProperties.Headers!.TryGetValue(
+            Messaging.Constants.Headers.RetryCount,
+            out var retryCount
+        );
         Assert.NotNull(retryCount);
         Assert.Equal(4, retryCount);
-        Assert.Equal(evtMetadata.GetExchangeName(), message.BasicProperties.Headers![Messaging.Constants.Headers.RetryRepublishExchange]);
-        Assert.Equal("#", message.BasicProperties.Headers![Messaging.Constants.Headers.RetryRepublishRoutingKey]);
+        Assert.Equal(
+            evtMetadata.GetExchangeName(),
+            message.BasicProperties.Headers![Messaging.Constants.Headers.RetryRepublishExchange]
+        );
+        Assert.Equal(
+            "#",
+            message.BasicProperties.Headers![Messaging.Constants.Headers.RetryRepublishRoutingKey]
+        );
     }
 
     [Fact]
     public async Task RetryHandler_Should_SendToDeadLetterQueue_When_UsingExponentialRetriesAndMaxRetriesReached()
-    { 
+    {
         // Arrange
         TestEvent evt = new() { Id = 1, Name = "Test Event" };
         var evtMetadata = IntegrationEvent.GetEventMetadata<TestEvent>();
-        var channel = await _connection.CreateChannelAsync() as FakeChannel;
+        var channel = await _rabbitFixture.GetChannelAsync();
         var properties = new BasicProperties
         {
             ContentType = "application/json",
             DeliveryMode = DeliveryModes.Persistent,
             Headers = new Dictionary<string, object?>
             {
-                { Messaging.Constants.Headers.RetryCount, 6 }
-            }
+                { Messaging.Constants.Headers.RetryCount, 6 },
+            },
         };
 
         // Act
-        await channel!.BasicPublishAsync(
+        await channel.BasicPublishAsync(
             evtMetadata.GetExchangeName(),
             "#",
             true,
@@ -173,7 +189,10 @@ public class ResilianceTests
         Assert.Single(deadLetterMessages);
     }
 
-    private static ReadOnlyMemory<byte> WrapMessageAndSerialize(object? message, EventMetadata metadata)
+    private static ReadOnlyMemory<byte> WrapMessageAndSerialize(
+        object? message,
+        EventMetadata metadata
+    )
     {
         if (message is null)
             return ReadOnlyMemory<byte>.Empty;
@@ -185,7 +204,7 @@ public class ResilianceTests
             Source = metadata.Source,
             DataContentType = "application/json",
             Id = Guid.NewGuid().ToString(),
-            Data = message
+            Data = message,
         };
 
         return Encoding.UTF8.GetBytes(jsonFormatter.ConvertToJsonElement(cloudEvent).ToString());
@@ -210,5 +229,4 @@ public class TestEvent : IntegrationEvent
     public override string EventVersion => "v1";
 
     public override Uri Source => new("pulse://test.event");
-
 }

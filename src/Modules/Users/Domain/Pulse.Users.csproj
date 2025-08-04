@@ -1,25 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Autofac" Version="8.0.0" />
     <PackageReference Include="mapster" Version="7.4.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
     <PackageReference Include="polly" Version="8.3.0" />
   </ItemGroup>
-
   <ItemGroup>
     <InternalsVisibleTo Include="Pulse.Users.Contracts" />
     <InternalsVisibleTo Include="Pulse.Users.Tests" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Contracts\Pulse.Users.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Pulse.Shared\Pulse.Shared.csproj" />
+    <ProjectReference Include="..\..\Posts\Contracts\Pulse.Posts.Contracts.csproj" />
   </ItemGroup>
-
 </Project>

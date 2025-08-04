@@ -23,7 +23,7 @@ internal class AddFollowerEndpoint(
         var parameters = new Dictionary<string, object?>()
         {
             { nameof(FollowButton.UserId), followingId },
-            { nameof(FollowButton.IsFollowing), true }
+            { nameof(FollowButton.IsFollowing), true },
         };
 
         return new RazorComponentResult<FollowButton>(parameters);

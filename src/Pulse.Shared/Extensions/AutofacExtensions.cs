@@ -37,7 +37,7 @@ public static class AutofacExtensions
     )
         where TContext : DbContext
     {
-        builder.RegisterType<TContext>().InstancePerDependency();
+        builder.RegisterType<TContext>().InstancePerLifetimeScope();
         builder
             .Register(c =>
             {

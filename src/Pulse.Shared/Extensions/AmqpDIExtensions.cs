@@ -14,11 +14,16 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class AmqpDIExtensions
 {
-    public static IServiceCollection AddMessaging(this IServiceCollection services, Assembly[] searchAssemblies)
+    public static IServiceCollection AddMessaging(
+        this IServiceCollection services,
+        Assembly[] searchAssemblies
+    )
     {
         services.AddSingleton(sp =>
         {
-            var config = sp.GetRequiredService<IConfiguration>().GetSection("RabbitMQ").Get<MessagingConfig>();
+            var config = sp.GetRequiredService<IConfiguration>()
+                .GetSection("RabbitMQ")
+                .Get<MessagingConfig>();
 
             ArgumentException.ThrowIfNullOrEmpty(config?.Host, nameof(config.Host));
             ArgumentException.ThrowIfNullOrEmpty(config?.UserName, nameof(config.UserName));
@@ -64,17 +69,27 @@ public static class AmqpDIExtensions
         services.RegisterType<THandler>().As<IConsumer>().SingleInstance();
         services.RegisterType<THandler>().As<IConsumer<TMsg>>().SingleInstance();
         services.RegisterType<THandler>().AsSelf().SingleInstance();
-        services.Register(sp =>
-        {
-            var connection = sp.Resolve<IConnection>();
-            var consumer = sp.Resolve(typeof(THandler)) as IConsumer<TMsg>;
-            var logger = sp.Resolve<ILogger<AmqpConsumerService<TMsg>>>();
-            var immediateRetry = sp.Resolve<ImmediateRetryHandler>();
-            var exponentialRetry = sp.Resolve<ExponentialDelayRetryHandler>();
-            var deadLetterHandler = sp.Resolve<DeadLetterHandler>();
+        services
+            .Register(sp =>
+            {
+                var connection = sp.Resolve<IConnection>();
+                var consumer = sp.Resolve(typeof(THandler)) as IConsumer<TMsg>;
+                var logger = sp.Resolve<ILogger<AmqpConsumerService<TMsg>>>();
+                var immediateRetry = sp.Resolve<ImmediateRetryHandler>();
+                var exponentialRetry = sp.Resolve<ExponentialDelayRetryHandler>();
+                var deadLetterHandler = sp.Resolve<DeadLetterHandler>();
 
-            return new AmqpConsumerService<TMsg>(connection, consumer!, logger, immediateRetry, exponentialRetry, deadLetterHandler);
-        }).As<IHostedService>().SingleInstance();
+                return new AmqpConsumerService<TMsg>(
+                    connection,
+                    consumer!,
+                    logger,
+                    immediateRetry,
+                    exponentialRetry,
+                    deadLetterHandler
+                );
+            })
+            .As<IHostedService>()
+            .SingleInstance();
 
         return services;
     }

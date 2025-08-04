@@ -45,7 +45,7 @@ public class KeycloakClientFactory(
                     ["password"] = _configuration.Keycloak.AuthPassword,
                     ["grant_type"] = "password",
                 }
-            )
+            ),
         };
 
         var response = await client.SendAsync(request);

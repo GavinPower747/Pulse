@@ -7,9 +7,14 @@ public class AddExtraTimingColumns : Migration
 {
     public override void Up()
     {
-        Alter.Table("posts")
-            .AddColumn("published_at").AsDateTime().Nullable()
-            .AddColumn("updated_at").AsDateTime().Nullable();
+        Alter
+            .Table("posts")
+            .AddColumn("published_at")
+            .AsDateTime()
+            .Nullable()
+            .AddColumn("updated_at")
+            .AsDateTime()
+            .Nullable();
     }
 
     public override void Down()

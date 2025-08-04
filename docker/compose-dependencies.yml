@@ -1,0 +1,74 @@
+name: pulse-dependencies
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak
+    hostname: auth.pulse.local
+    container_name: keycloak
+    restart: unless-stopped
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HTTP_ENABLED: true
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/pulseauth
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../build/keycloak/realms:/opt/keycloak/data/import
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres
+    container_name: db
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_MULTIPLE_DATABASES: PulsePosts,postgres:PulseFollowers,postgres:PulseAuth,postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ../build/postgres/scripts:/docker-entrypoint-initdb.d
+      - ../data/postgres/data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - ../data/rabbitmq/data:/var/lib/rabbitmq
+  redis:
+    image: redis
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - ../data/redis/data:/data
+  minio:
+    image: 'minio/minio:latest'
+    hostname: storage.pulse.local
+    ports: 
+      - 9000:9000
+      - 9090:9090
+    environment:
+      MINIO_ROOT_USER: 'root'
+      MINIO_ROOT_PASSWORD: 'password'
+    volumes:
+      - ../data/minio:/data/minio
+    command: minio server /data/minio --console-address ":9090"
+

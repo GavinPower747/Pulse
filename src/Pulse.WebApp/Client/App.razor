@@ -6,14 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />    
     <link rel="stylesheet" href="css/output.css" />
+    <link rel="stylesheet" href="css/main.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
+    <script type="importmap">
+    {
+       "imports": {
+           "framework": "/js/src/framework/index.js",
+           "controllers/": "/js/src/controllers/",
+           "utils/": "/js/src/utils/"
+       }
+    }
+    </script>
     <HeadOutlet />
 </head>
 
 <body>
     <Routes />
-    <script src="js/htmx.min.js"></script>
-    <script src="js/alpine.min.js"></script>
+    <script src="js/lib/htmx.min.js"></script>
+    <script type="module" src="js/src/framework/index.js"></script>
     <script>
         document.body.addEventListener('htmx:beforeSwap', (evt) => {
             if(evt.detail.xhr.status >= 400 && evt.detail.xhr.status < 500) {

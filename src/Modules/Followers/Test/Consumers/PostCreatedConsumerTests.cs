@@ -39,7 +39,10 @@ public class PostCreatedConsumerTests
         _dbContext.Followings.Add(new Following(followerId, userId));
         await _dbContext.SaveChangesAsync();
 
-        await _consumer.Consume(new PostCreatedEvent(postId, userId, created), CancellationToken.None);
+        await _consumer.Consume(
+            new PostCreatedEvent(postId, userId, created, string.Empty),
+            CancellationToken.None
+        );
 
         await _messageBus
             .Received()
@@ -58,7 +61,10 @@ public class PostCreatedConsumerTests
         var postId = Guid.NewGuid();
         var created = DateTime.UtcNow;
 
-        await _consumer.Consume(new PostCreatedEvent(postId, userId, created), CancellationToken.None);
+        await _consumer.Consume(
+            new PostCreatedEvent(postId, userId, created, string.Empty),
+            CancellationToken.None
+        );
 
         await _messageBus
             .Received()

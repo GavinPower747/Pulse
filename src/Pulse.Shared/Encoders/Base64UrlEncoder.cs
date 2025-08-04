@@ -82,7 +82,7 @@ public class Base64UrlEncoder
             {
                 '-' => '+',
                 '_' => '/',
-                _ => input[i]
+                _ => input[i],
             };
         }
 

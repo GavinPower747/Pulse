@@ -37,7 +37,8 @@ internal class PostQueryService(PostsContext connection, DomainDtoMapper mapper)
             return [];
 
         var posts = await _connection
-            .PostSet.Where(p => ids.Contains(p.Id))
+            .PostSet.Include(p => p.Attachments)
+            .Where(p => ids.Contains(p.Id))
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync(cancellationToken);
 
@@ -57,9 +58,7 @@ internal class PostQueryService(PostsContext connection, DomainDtoMapper mapper)
         var postsQuery = _connection.PostSet.Where(p => p.UserId == userId);
 
         if (token is not null)
-            postsQuery = postsQuery.Where(p =>
-                p.CreatedAt >= token.Value.OlderThan 
-            );
+            postsQuery = postsQuery.Where(p => p.CreatedAt >= token.Value.OlderThan);
 
         postsQuery = postsQuery
             .OrderByDescending(p => p.CreatedAt)

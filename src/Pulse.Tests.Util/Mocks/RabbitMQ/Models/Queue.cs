@@ -1,6 +1,5 @@
-﻿using RabbitMQ.Client;
-
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
+using RabbitMQ.Client;
 
 namespace Pulse.Tests.Util.Mocks.RabbitMQ.Models;
 
@@ -73,7 +72,17 @@ public class Queue
         {
             if (_consumers.TryGetValue(consumerName, out var consumer))
             {
-                consumer.HandleBasicDeliverAsync(consumerName, message.DeliveryTag, false, message.Exchange, message.RoutingKey, message.BasicProperties, message.Body).Wait();
+                consumer
+                    .HandleBasicDeliverAsync(
+                        consumerName,
+                        message.DeliveryTag,
+                        false,
+                        message.Exchange,
+                        message.RoutingKey,
+                        message.BasicProperties,
+                        message.Body
+                    )
+                    .Wait();
             }
 
             _consumersQueue.Enqueue(consumerName);

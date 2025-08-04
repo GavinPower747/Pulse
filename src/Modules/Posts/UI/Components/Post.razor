@@ -28,8 +28,13 @@
                 </div>
             </SpaLink>
             <div class="text-sm mb-4">
-                @CurrentPost.Content
+                @((MarkupString)CurrentPost.Content!)
             </div>
+            
+            @if (CurrentPost.Attachments.Any())
+            {
+                <AttachmentCarousel Attachments="CurrentPost.Attachments" PostId="@CurrentPost.Id" />
+            }
         </div>
     </div>
 </Panel>

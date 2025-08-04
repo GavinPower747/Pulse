@@ -53,7 +53,11 @@ public class PostQueryServiceTests : IClassFixture<DatabaseFixture>
         {
             var post = await Sut.Get(_existingPost.Id, CancellationToken.None);
 
-            post.Should().BeEquivalentTo(_existingPost, opt => opt.Excluding(p => p.UpdatedAt).Excluding(p => p.PublishedAt));
+            post.Should()
+                .BeEquivalentTo(
+                    _existingPost,
+                    opt => opt.Excluding(p => p.UpdatedAt).Excluding(p => p.PublishedAt)
+                );
         }
 
         [Fact]
@@ -62,7 +66,12 @@ public class PostQueryServiceTests : IClassFixture<DatabaseFixture>
             var posts = await Sut.Get(_existingPosts.Select(p => p.Id), CancellationToken.None);
 
             posts.Should().HaveCount(_existingPosts.Count);
-            posts.Should().BeEquivalentTo(_existingPosts, opt => opt.Excluding(p => p.UpdatedAt).Excluding(p => p.PublishedAt));
+            posts
+                .Should()
+                .BeEquivalentTo(
+                    _existingPosts,
+                    opt => opt.Excluding(p => p.UpdatedAt).Excluding(p => p.PublishedAt)
+                );
         }
 
         [Fact]
@@ -76,9 +85,11 @@ public class PostQueryServiceTests : IClassFixture<DatabaseFixture>
             );
 
             page.Posts.Should().HaveCount(_existingPosts.Count);
-            page
-                .Posts.Should()
-                .BeEquivalentTo(_existingPosts, opt => opt.Excluding(p => p.UpdatedAt).Excluding(p => p.PublishedAt));
+            page.Posts.Should()
+                .BeEquivalentTo(
+                    _existingPosts,
+                    opt => opt.Excluding(p => p.UpdatedAt).Excluding(p => p.PublishedAt)
+                );
         }
 
         [Fact]

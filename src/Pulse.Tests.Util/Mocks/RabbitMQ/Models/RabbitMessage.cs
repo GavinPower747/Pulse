@@ -24,7 +24,7 @@ public class RabbitMessage
             Immediate = Immediate,
             BasicProperties = BasicProperties,
             Body = Body,
-            DeliveryTag = DeliveryTag
+            DeliveryTag = DeliveryTag,
         };
     }
 }

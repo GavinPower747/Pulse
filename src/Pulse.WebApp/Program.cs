@@ -1,3 +1,4 @@
+using Amazon.S3;
 using Autofac;
 using Autofac.Configuration;
 using Autofac.Extensions.DependencyInjection;
@@ -8,6 +9,7 @@ using Pulse.Followers;
 using Pulse.Posts;
 using Pulse.Shared.Auth;
 using Pulse.Timeline;
+using Pulse.Users;
 using Pulse.WebApp.Client;
 using Pulse.WebApp.Configuration;
 
@@ -38,6 +40,7 @@ builder
     .AddCookie(opt =>
     {
         opt.LoginPath = "/Account/Login";
+        opt.Cookie.Name = "PulseWebSession";
     })
     .AddOpenIdConnect(options =>
     {
@@ -51,7 +54,7 @@ builder
         options.TokenValidationParameters = new TokenValidationParameters
         {
             NameClaimType = "preferred_username",
-            RoleClaimType = "roles"
+            RoleClaimType = "roles",
         };
 
         if (builder.Environment.IsDevelopment())
@@ -80,10 +83,13 @@ builder.Services.AddMessaging(
         typeof(PostsModule).Assembly,
         typeof(FollowersModule).Assembly,
         typeof(TimelineModule).Assembly,
+        typeof(UsersModule).Assembly,
         typeof(Pulse.Followers.Contracts.AssemblyMarker).Assembly,
         typeof(Pulse.Posts.Contracts.AssemblyMarker).Assembly,
         typeof(Pulse.Timeline.Contracts.AssemblyMarker).Assembly,
-    ]);
+        typeof(Pulse.Users.Contracts.AssemblyMarker).Assembly,
+    ]
+);
 
 var app = builder.Build();
 

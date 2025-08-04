@@ -47,8 +47,7 @@ internal record EventMetadata(string FullName, string EventName, string EventVer
     internal string GetQueueName<T>(IConsumer<T> consumer)
         where T : IntegrationEvent => GetQueueName(consumer.GetType().Name);
 
-    private string GetQueueName(string consumerName) => $"{FullName}.queue.{consumerName}";
+    internal string GetQueueName(string consumerName) => $"{FullName}.queue.{consumerName}";
 
-    private string GetDLQName(string consumerName) =>
-        $"{GetQueueName(consumerName)}.dlq";
+    private string GetDLQName(string consumerName) => $"{GetQueueName(consumerName)}.dlq";
 }

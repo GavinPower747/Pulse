@@ -1,5 +1,6 @@
 using Mapster;
 using Pulse.Posts.Contracts;
+using Pulse.Posts.UI.Model;
 using Pulse.Posts.UI.Models;
 using Pulse.Users.Contracts;
 

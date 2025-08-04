@@ -1,1 +1,17 @@
+# Application data already within docker volumes
 /data/*
+
+# dotnet build files, to prevent language server issues
+**/bin/
+**/obj/
+**/out/
+
+# Dockerfiles
+Dockerfile*
+
+# Markdown files
+**/*.md
+
+# Git files
+.git/
+.gitignore

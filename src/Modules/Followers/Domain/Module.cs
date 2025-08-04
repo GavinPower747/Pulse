@@ -1,7 +1,5 @@
 ﻿using Autofac;
-
 using Microsoft.Extensions.DependencyInjection;
-
 using Pulse.Followers.Api.Endpoints;
 using Pulse.Followers.Consumer;
 using Pulse.Followers.Contracts.Events;

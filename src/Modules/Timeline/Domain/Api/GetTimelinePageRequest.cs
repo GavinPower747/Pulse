@@ -31,7 +31,7 @@ public class GetTimelinePageRequest
             PageSize = int.TryParse(context.Request.Query[pageSizeKey], out var pageSize)
                 ? pageSize
                 : 10,
-            Etag = etag
+            Etag = etag,
         };
 
         return new ValueTask<GetTimelinePageRequest>(request);

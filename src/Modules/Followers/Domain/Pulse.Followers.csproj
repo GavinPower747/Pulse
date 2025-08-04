@@ -1,13 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-
   <ItemGroup>
     <InternalsVisibleTo Include="Pulse.Followers.Test" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Contracts\Pulse.Followers.Contracts.csproj" />
     <ProjectReference Include="..\..\..\Pulse.Shared\Pulse.Shared.csproj" />
@@ -15,7 +12,6 @@
     <ProjectReference Include="..\..\Timeline\Contracts\Pulse.Timeline.Contracts.csproj" />
     <ProjectReference Include="..\UI\Pulse.Followers.UI.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Autofac" Version="8.0.0" />
     <PackageReference Include="FluentMigrator" Version="5.1.0" />
@@ -25,11 +21,9 @@
     <PackageReference Include="Npgsql" Version="9.0.3" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
   </ItemGroup>
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
 </Project>

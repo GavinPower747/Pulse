@@ -1,14 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Bogus" Version="35.4.0" />
     <PackageReference Include="Dapper" Version="2.1.28" />
@@ -34,14 +31,14 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Domain\Pulse.Posts.csproj" />
     <ProjectReference Include="..\Contracts\Pulse.Posts.Contracts.csproj" />
+    <ProjectReference Include="..\Pulse.Shared\Pulse.Shared.csproj" />
+    <ProjectReference Include="..\Pulse.Tests.Util\Pulse.Tests.Util.csproj" />
+    <ProjectReference Include="..\..\..\Pulse.Tests.Util\Pulse.Tests.Util.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="Data\" />
   </ItemGroup>
-
 </Project>

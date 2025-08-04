@@ -1,5 +1,4 @@
 using Pulse.Posts.Contracts;
-
 using Riok.Mapperly.Abstractions;
 
 namespace Pulse.Posts.Domain.Mapping;
@@ -9,5 +8,12 @@ internal partial class DomainDtoMapper
 {
     public partial DisplayPost MapToDisplayPost(Post post);
 
-    public partial Post? MapToPost(DisplayPost? displayPost);
+    public static AttachmentDownload MapToAttachmentDownload(AttachmentMetadata attachment)
+    {
+        return new AttachmentDownload(
+            attachment.Id,
+            Routes.GetAttachment(attachment.PostId, attachment.GetFileName()),
+            attachment.ETag
+        );
+    }
 }

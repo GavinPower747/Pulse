@@ -19,7 +19,8 @@ public class FakeConnection(RabbitServer server) : IConnection
 
     #region IConnection Implementation
 
-    public IDictionary<string, object?> ClientProperties { get; set; } = new Dictionary<string, object?>();
+    public IDictionary<string, object?> ClientProperties { get; set; } =
+        new Dictionary<string, object?>();
 
     public string? ClientProvidedName { get; } = null;
 
@@ -130,13 +131,9 @@ public class FakeConnection(RabbitServer server) : IConnection
         return channel;
     }
 
-    public void HandleConnectionBlocked(string reason)
-    {
-    }
+    public void HandleConnectionBlocked(string reason) { }
 
-    public void HandleConnectionUnblocked()
-    {
-    }
+    public void HandleConnectionUnblocked() { }
 
     public void UpdateSecret(string newSecret, string reason)
     {
@@ -147,17 +144,26 @@ public class FakeConnection(RabbitServer server) : IConnection
 
     #region IDisposable Implementation
 
-    public void Dispose()
-    {
-    }
+    public void Dispose() { }
 
-    public Task UpdateSecretAsync(string newSecret, string reason, CancellationToken cancellationToken = default)
-        => Task.Run(() => UpdateSecret(newSecret, reason), cancellationToken);
+    public Task UpdateSecretAsync(
+        string newSecret,
+        string reason,
+        CancellationToken cancellationToken = default
+    ) => Task.Run(() => UpdateSecret(newSecret, reason), cancellationToken);
 
-    public Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort, CancellationToken cancellationToken = default)
-        => Task.Run(() => Close(reasonCode, reasonText, timeout), cancellationToken);
+    public Task CloseAsync(
+        ushort reasonCode,
+        string reasonText,
+        TimeSpan timeout,
+        bool abort,
+        CancellationToken cancellationToken = default
+    ) => Task.Run(() => Close(reasonCode, reasonText, timeout), cancellationToken);
 
-    public Task<IChannel> CreateChannelAsync(CreateChannelOptions? options = null, CancellationToken cancellationToken = default)
+    public Task<IChannel> CreateChannelAsync(
+        CreateChannelOptions? options = null,
+        CancellationToken cancellationToken = default
+    )
     {
         return Task.FromResult(CreateChannel());
     }

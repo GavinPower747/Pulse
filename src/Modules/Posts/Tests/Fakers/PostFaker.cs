@@ -13,12 +13,11 @@ internal class PostFaker : Faker<Post>
     public Faker<Post> ForUser(Guid userId) => ReplaceConstructor(userId);
 
     public Faker<Post> ReplaceConstructor(Guid userId) =>
-        CustomInstantiator(f => new Post
-        {
-            Id = f.Random.Guid(),
-            UserId = userId,
-            Content = f.Rant.Review(),
-            CreatedAt = f.Date.Past(),
-            PublishedAt = f.Date.Future()
-        });
+        CustomInstantiator(f => new Post(
+            f.Random.Guid(),
+            userId,
+            f.Rant.Review(),
+            f.Date.Past(),
+            f.Date.Future()
+        ));
 }

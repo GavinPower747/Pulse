@@ -10,5 +10,6 @@ internal class PostsContext(DbContextOptions<PostsContext> options) : DbContext(
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfiguration(new PostsMap());
+        modelBuilder.ApplyConfiguration(new AttachmentMetadataMap());
     }
 }

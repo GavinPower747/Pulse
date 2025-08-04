@@ -44,7 +44,7 @@ public class GetTimelinePageEndpoint(
         var viewArgs = new Dictionary<string, object?>
         {
             [nameof(FeedPage.EagerPosts)] = viewModels.ToList(),
-            [nameof(FeedPage.ContinuationToken)] = timelinePage.ContinuationToken
+            [nameof(FeedPage.ContinuationToken)] = timelinePage.ContinuationToken,
         };
 
         return new RazorComponentResult<FeedPage>(viewArgs);
