@@ -339,11 +339,9 @@ function parseDataAttributeValue(value) {
         }
     }
 
-    if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
-        const num = Number(trimmed);
-        if (!isNaN(num)) {
-            return num;
-        }
+    const num = Number.parseFloat(trimmed);
+    if (Number.isFinite(num)) {
+        return num;
     }
 
     return trimmed;
