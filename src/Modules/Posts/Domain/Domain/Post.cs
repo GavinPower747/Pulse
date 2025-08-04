@@ -52,6 +52,14 @@ internal partial class Post
         if (string.IsNullOrWhiteSpace(username))
             return;
 
-        Content = UserMentionRegex().Replace(Content, $"<a href=\"/u/{username}\">@{username}</a>");
+        Content = UserMentionRegex().Replace(Content, match =>
+        {
+            var mentioned = match.Groups[1].Value;
+            if (string.Equals(mentioned, username, StringComparison.OrdinalIgnoreCase))
+            {
+                return $"<a href=\"/u/{username}\">@{username}</a>";
+            }
+            return match.Value;
+        });
     }
 }
