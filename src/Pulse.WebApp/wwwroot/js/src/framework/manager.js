@@ -48,9 +48,9 @@ async function handleMutations(mutations) {
                 await connectController(node);
             }
 
-            node.querySelectorAll(selector).forEach(async element => {
-                await connectController(element);
-            });
+            await Promise.all(
+                Array.from(node.querySelectorAll(selector)).map(element => connectController(element))
+            );
         }
 
         for (const node of mutation.removedNodes) {
