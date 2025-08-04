@@ -38,7 +38,8 @@ export class Controller {
                     return target[prop];
                 } else if (typeof prop === 'string' && isDataProperty(prop, this.context, this._dataPrefix)) {
                     const attributeName = propertyToAttribute(prop, this._dataPrefix);
-                    return this.context.getAttribute(attributeName);
+                    const rawValue = this.context.getAttribute(attributeName);
+                    return parseDataAttributeValue(rawValue);
                 }
                 return undefined;
             },
@@ -94,6 +95,11 @@ export class Controller {
         const componentElements = this.context.querySelectorAll('[data-component]');
         
         for (const element of componentElements) {
+            const parentController = element.closest('[data-controller]');
+            if (parentController && parentController !== this.context) {
+                continue; // Skip components that are not direct children of this controller
+            }
+
             const componentName = element.getAttribute('data-component');
             if (componentName) {
                 const camelCaseName = kebabToCamelCase(componentName);
@@ -160,10 +166,12 @@ export class Controller {
      */
     _handleControllerAttributeChange(mutation) {
         const prop = attributeToProperty(mutation.attributeName, this._dataPrefix);
-        const newValue = this.context.getAttribute(mutation.attributeName);
+        const rawValue = this.context.getAttribute(mutation.attributeName);
+        const newValue = parseDataAttributeValue(rawValue);
+        const oldValue = parseDataAttributeValue(mutation.oldValue);
         
         if (typeof this[`${prop}Changed`] === 'function') {
-            this[`${prop}Changed`](newValue, mutation.oldValue);
+            this[`${prop}Changed`](newValue, oldValue);
         }
     }
 
@@ -177,10 +185,12 @@ export class Controller {
         for (const [componentName, component] of this._components.entries()) {
             if (component.context === target) {
                 const prop = attributeToProperty(mutation.attributeName, this._dataPrefix);
-                const newValue = target.getAttribute(mutation.attributeName);
+                const rawValue = target.getAttribute(mutation.attributeName);
+                const newValue = parseDataAttributeValue(rawValue);
+                const oldValue = parseDataAttributeValue(mutation.oldValue);
                 
                 if (typeof this[`${componentName}${capitalize(prop)}Changed`] === 'function') {
-                    this[`${componentName}${capitalize(prop)}Changed`](newValue, mutation.oldValue);
+                    this[`${componentName}${capitalize(prop)}Changed`](newValue, oldValue);
                 }
 
                 break;
@@ -206,8 +216,15 @@ class Component {
                     return target[prop];
                 } else if (typeof prop === 'string' && isDataProperty(prop, this.context, this._dataPrefix)) {
                     const attributeName = propertyToAttribute(prop, this._dataPrefix);
-                    return this.context.getAttribute(attributeName);
+                    const rawValue = this.context.getAttribute(attributeName);
+                    return parseDataAttributeValue(rawValue);
+                } else if (prop in this.context) {
+                    let value = this.context[prop];
+                    return (typeof value === 'function') 
+                        ? value.bind(this.context) 
+                        : value;
                 }
+
                 return undefined;
             },
             set: (target, prop, value) => {
@@ -216,7 +233,10 @@ class Component {
                 } else if (typeof prop === 'string' && isDataProperty(prop, this.context, this._dataPrefix)) {
                     const attributeName = propertyToAttribute(prop, this._dataPrefix);
                     this.context.setAttribute(attributeName, value);
+                } else if (prop in this.context) {
+                    this.context[prop] = value;
                 }
+
                 return true;
             }
         });
@@ -271,4 +291,58 @@ function attributeToProperty(attributeName, prefix) {
     return attributeName
         .replace(new RegExp(`^${prefix}`), '')
         .replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+}
+
+/**
+ * Parses a data attribute value based on its content.
+ * Supports: numbers, booleans, arrays of numbers, arrays of strings.
+ * Everything else remains as strings.
+ * @param {string} value - The raw attribute value.
+ * @returns {*} The parsed value.
+ */
+function parseDataAttributeValue(value) {
+    if (value === null || value === undefined) {
+        return value;
+    }
+
+    const trimmed = value.trim();
+    
+    if (trimmed === '') {
+        return '';
+    }
+
+    if (trimmed === 'true') {
+        return true;
+    }
+
+    if (trimmed === 'false') {
+        return false;
+    }
+
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+            const parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) {
+                if (parsed.every(item => typeof item === 'number' && !isNaN(item))) {
+                    return parsed;
+                }
+
+                if (parsed.every(item => typeof item === 'string')) {
+                    return parsed;
+                }
+
+                return trimmed;
+            }
+        } catch (e) {
+            // If JSON parsing fails, return as string
+            return trimmed;
+        }
+    }
+
+    const num = Number.parseFloat(trimmed);
+    if (Number.isFinite(num)) {
+        return num;
+    }
+
+    return trimmed;
 }

@@ -20,19 +20,25 @@
         Medium,
         Large
     }
+
+    private string GetImageHiddenAttribute()
+    {
+        return validImage ? "" : "hidden";
+    }
 }
 
 <div 
     class="flex justify-center items-center"
-    x-data="{ imageFailed: @imageFailedInitial }">
+    data-controller="avatar"
+    data-js-image-failed="@imageFailedInitial">
     @if(validImage)
     {
-        <img class="rounded-full border-solid border-white border-2 @sizeClass" src="@Src" alt="@Alt" 
-            x-on:error="imageFailed = true"
-            x-show="!imageFailed" />
+        <img data-component="avatar-image" 
+             class="rounded-full border-solid border-white border-2 @sizeClass" src="@Src" alt="@Alt"/>
     }
-    <div class="rounded-full border-solid border-white border-2 @sizeClass text-center text-black flex justify-center items-center bg-gray-300"
-         x-show="imageFailed">
+    <div data-component="avatar-initials" 
+         class="rounded-full border-solid border-white border-2 @sizeClass text-center text-black flex justify-center items-center bg-gray-300"
+         @GetImageHiddenAttribute()>
         @Initials
     </div>
 </div>

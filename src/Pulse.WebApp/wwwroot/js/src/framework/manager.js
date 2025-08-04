@@ -2,8 +2,8 @@ import { domReady } from "utils/dom.js";
 import { kebabToPascalCase } from "utils/strings.js";
 import { Controller } from "framework";
 
-/**@type {Map<string, Controller>} */
-let controllers = new Map();
+/**@type {WeakMap<HTMLElement, Controller>} */
+let controllers = new WeakMap();
 /**@type {Map<string, new (...args: any[]) => Controller>} */
 let registrations = new Map();
 /**@type {string} */
@@ -77,37 +77,38 @@ async function connectController(node) {
     const controllerName = node.getAttribute(attribute);
     if (!controllerName) return;
 
-    if (!controllers.has(controllerName)) {
-        let ControllerClass = registrations.get(controllerName);
+    // Check if this specific node already has a controller
+    if (controllers.has(node)) return;
 
-        if (!ControllerClass) {
-            try {
-                const expectedClassName = `${kebabToPascalCase(controllerName)}Controller`;
-                const path = `controllers/${controllerName}-controller.js`;
+    let ControllerClass = registrations.get(controllerName);
 
-                const module = await import(path);
-                ControllerClass = module[expectedClassName] || module.default;
+    if (!ControllerClass) {
+        try {
+            const expectedClassName = `${kebabToPascalCase(controllerName)}Controller`;
+            const path = `controllers/${controllerName}-controller.js`;
 
-                if (ControllerClass && typeof ControllerClass === 'function' && ControllerClass.prototype instanceof Controller) {
-                    registrations.set(controllerName, ControllerClass);
-                } else {
-                    ControllerClass = null;
-                }
-            } catch (error) {
-                console.error(`Error loading controller "${controllerName}":`, error);
-                return;
+            const module = await import(path);
+            ControllerClass = module[expectedClassName] || module.default;
+
+            if (ControllerClass && typeof ControllerClass === 'function' && ControllerClass.prototype instanceof Controller) {
+                registrations.set(controllerName, ControllerClass);
+            } else {
+                ControllerClass = null;
             }
-        }
-
-        if (!ControllerClass) {
-            console.warn(`Controller "${controllerName}" not found or does not extend Controller base class.`);
+        } catch (error) {
+            console.error(`Error loading controller "${controllerName}":`, error);
             return;
         }
-
-        const controllerInstance = new ControllerClass(node);
-        controllers.set(controllerName, controllerInstance);
-        controllerInstance.connect();
     }
+
+    if (!ControllerClass) {
+        console.warn(`Controller "${controllerName}" not found or does not extend Controller base class.`);
+        return;
+    }
+
+    const controllerInstance = new ControllerClass(node);
+    controllers.set(node, controllerInstance);
+    controllerInstance.connect();
 }
 
 /**
@@ -116,13 +117,10 @@ async function connectController(node) {
  * @return {void}
  */
 function disconnectController(node) {
-    const controllerName = node.getAttribute(attribute);
-    if (!controllerName) return;
-
-    const controllerInstance = controllers.get(controllerName);
+    const controllerInstance = controllers.get(node);
     if (controllerInstance) {
         controllerInstance.disconnect();
-        controllers.delete(controllerName);
+        controllers.delete(node);
     }
 }
 
