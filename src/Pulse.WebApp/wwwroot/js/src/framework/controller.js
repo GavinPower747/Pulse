@@ -1,7 +1,5 @@
 import { capitalize, camelCaseToKebabCase, kebabToCamelCase } from "utils/strings.js";
 
-/**@typedef {import(../types/framework)} */
-
 /**
  * Base class for controllers
  */
@@ -79,11 +77,17 @@ export class Controller {
      * @returns {CustomEvent} The dispatched event.
      */
     dispatch(eventName, options = {}) {
-        const { prefix, detail, bubbles = true, cancelable = true, target = this.context } = options;
+        const { prefix, detail, bubbles = true, cancelable = true, target = document.body } = options;
         const type = prefix ? `${prefix}-${eventName}` : eventName;
         const event = new CustomEvent(type, { detail, bubbles, cancelable });
         target.dispatchEvent(event);
         return event;
+    }
+
+    subscribe(eventName, callback, options = {}) {
+        const { prefix, target = document.body } = options;
+        const type = prefix ? `${prefix}-${eventName}` : eventName;
+        target.addEventListener(type, callback);
     }
 
     /**
@@ -200,10 +204,15 @@ class Component {
         this.context = context;
         this._dataPrefix = dataPrefix;
 
+        // Essentially we proxy to allow the client to treat this as 
+        // the html element, a data container and the component object itself
+        // all transparently.
         return new Proxy(this, {
             get: (target, prop) => {
                 if (prop in target) {
                     return target[prop];
+                } else if(prop in target.context) {
+                    return target.context[prop].bind(target.context);
                 } else if (typeof prop === 'string' && isDataProperty(prop, this.context, this._dataPrefix)) {
                     const attributeName = propertyToAttribute(prop, this._dataPrefix);
                     return this.context.getAttribute(attributeName);

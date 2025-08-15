@@ -2,9 +2,11 @@ import { domReady } from "utils/dom.js";
 import { kebabToPascalCase } from "utils/strings.js";
 import { Controller } from "framework";
 
+/** @typedef {import("../types/framework").ControllerInitializer} ControllerInitializer */
+
 /**@type {Map<string, Controller>} */
 let controllers = new Map();
-/**@type {Map<string, new (...args: any[]) => Controller>} */
+/**@type {Map<string, ControllerInitializer>} */
 let registrations = new Map();
 /**@type {string} */
 let attribute = "data-controller";
