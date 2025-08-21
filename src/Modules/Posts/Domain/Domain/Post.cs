@@ -10,7 +10,8 @@ internal partial class Post
     public DateTime CreatedAt { get; }
     public DateTime? PublishedAt { get; }
     public DateTime? UpdatedAt { get; private set; }
-    public IReadOnlyList<AttachmentMetadata> Attachments { get; } = [];
+    public IReadOnlyList<AttachmentMetadata> Attachments => _attachments.AsReadOnly();
+    private readonly List<AttachmentMetadata> _attachments = [];
 
     [GeneratedRegex(@"(?<=^|\s)@(\w+)", RegexOptions.Compiled)]
     private static partial Regex UserMentionRegex();
@@ -29,7 +30,7 @@ internal partial class Post
         Content = content;
         CreatedAt = createdAt;
         PublishedAt = publishedAt;
-        Attachments = attachments?.ToList() ?? [];
+        _attachments = attachments?.ToList() ?? [];
     }
 
     // For unit tests *sigh*
@@ -52,14 +53,16 @@ internal partial class Post
         if (string.IsNullOrWhiteSpace(username))
             return;
 
-        Content = UserMentionRegex().Replace(Content, match =>
-        {
-            var mentioned = match.Groups[1].Value;
-            if (string.Equals(mentioned, username, StringComparison.OrdinalIgnoreCase))
-            {
-                return $"<a href=\"/u/{username}\">@{username}</a>";
-            }
-            return match.Value;
-        });
+        Content = UserMentionRegex()
+            .Replace(
+                Content,
+                match =>
+                {
+                    var mentioned = match.Groups[1].Value;
+                    return string.Equals(mentioned, username, StringComparison.OrdinalIgnoreCase)
+                        ? $"<a href=\"/u/{username}\">@{username}</a>"
+                        : match.Value;
+                }
+            );
     }
 }

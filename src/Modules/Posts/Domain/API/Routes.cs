@@ -81,11 +81,11 @@ internal static class PostApiExtensions
 {
     public static ContainerBuilder AddPostEndpoints(this ContainerBuilder builder)
     {
-        builder.RegisterType<CreatePostEndpoint>().AsSelf().SingleInstance();
-        builder.RegisterType<GetPostEndpoint>().AsSelf().SingleInstance();
-        builder.RegisterType<GetAttachmentEndpoint>().AsSelf().SingleInstance();
-        builder.RegisterType<UploadAttachmentEndpoint>().AsSelf().SingleInstance();
-        builder.RegisterType<DeleteAttachmentEndpoint>().AsSelf().SingleInstance();
+        builder.RegisterType<CreatePostEndpoint>().AsSelf().InstancePerLifetimeScope();
+        builder.RegisterType<GetPostEndpoint>().AsSelf().InstancePerLifetimeScope();
+        builder.RegisterType<GetAttachmentEndpoint>().AsSelf().InstancePerLifetimeScope();
+        builder.RegisterType<UploadAttachmentEndpoint>().AsSelf().InstancePerLifetimeScope();
+        builder.RegisterType<DeleteAttachmentEndpoint>().AsSelf().InstancePerLifetimeScope();
 
         return builder;
     }

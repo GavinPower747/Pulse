@@ -8,20 +8,22 @@ namespace Pulse.Posts.Services;
 
 internal class AttachmentService(
     IAmazonS3 s3Client,
-    AttachmentContext attachmentContext,
+    IDbContextFactory<AttachmentContext> attachmentContext,
     BlobStorageConfig blobStorageConfig
 )
 {
     private readonly IAmazonS3 _s3Client = s3Client;
-    private readonly AttachmentContext _attachmentContext = attachmentContext;
+    private readonly IDbContextFactory<AttachmentContext> _attachmentContextFactory =
+        attachmentContext;
     private readonly BlobStorageConfig _blobStorageConfig = blobStorageConfig;
 
     public async Task Upload(Attachment attachment, CancellationToken ct)
     {
-        using var tx = await _attachmentContext.Database.BeginTransactionAsync(ct);
+        using var dbContext = await _attachmentContextFactory.CreateDbContextAsync(ct);
+        await using var tx = await dbContext.Database.BeginTransactionAsync(ct);
 
-        _attachmentContext.AttachmentMetadata.Add(attachment.Metadata);
-        await _attachmentContext.SaveChangesAsync(ct);
+        dbContext.AttachmentMetadata.Add(attachment.Metadata);
+        await dbContext.SaveChangesAsync(ct);
 
         await _s3Client.PutObjectAsync(
             new PutObjectRequest
@@ -39,14 +41,19 @@ internal class AttachmentService(
 
     public async Task DeleteAttachment(Guid attachmentId, CancellationToken ct)
     {
-        var attachment = await _attachmentContext.AttachmentMetadata.FindAsync([attachmentId], ct);
+        using var attachmentContext = await _attachmentContextFactory.CreateDbContextAsync(ct);
+        var attachment = await attachmentContext.AttachmentMetadata.FindAsync(
+            [attachmentId],
+            cancellationToken: ct
+        );
+
         if (attachment == null)
             return;
 
-        using var tx = await _attachmentContext.Database.BeginTransactionAsync(ct);
+        using var tx = await attachmentContext.Database.BeginTransactionAsync(ct);
 
-        _attachmentContext.AttachmentMetadata.Remove(attachment);
-        await _attachmentContext.SaveChangesAsync(ct);
+        attachmentContext.AttachmentMetadata.Remove(attachment);
+        await attachmentContext.SaveChangesAsync(ct);
 
         await _s3Client.DeleteObjectAsync(
             new DeleteObjectRequest
@@ -62,7 +69,8 @@ internal class AttachmentService(
 
     public async Task<Attachment?> GetAttachment(Guid attachmentId, CancellationToken ct)
     {
-        var metadata = await _attachmentContext.AttachmentMetadata.FirstOrDefaultAsync(
+        using var attachmentContext = await _attachmentContextFactory.CreateDbContextAsync(ct);
+        var metadata = await attachmentContext.AttachmentMetadata.FirstOrDefaultAsync(
             a => a.Id == attachmentId,
             ct
         );
@@ -87,5 +95,9 @@ internal class AttachmentService(
     public async Task<IEnumerable<AttachmentMetadata>> GetPostAttachmentMetadata(
         Guid postId,
         CancellationToken ct
-    ) => await _attachmentContext.AttachmentMetadata.Where(a => a.PostId == postId).ToListAsync(ct);
+    ) =>
+        await _attachmentContextFactory
+            .CreateDbContext()
+            .AttachmentMetadata.Where(a => a.PostId == postId)
+            .ToListAsync(ct);
 }
