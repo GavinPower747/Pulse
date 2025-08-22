@@ -42,6 +42,59 @@ group.MapPost("/", async ([FromForm] CreatePostRequest request, [FromServices] C
 - Client state via custom framework controllers in `wwwroot/js/src/controllers/`
 - Form preservation: use `hx-preserve` on form inputs
 
+### Custom Frontend Framework
+Pulse uses a custom JavaScript framework for client-side interactivity built around the Controller pattern:
+
+#### Controller System
+- **Base Controller Class**: All controllers extend `Controller` from `framework/controller.js`
+- **Auto-registration**: Controllers auto-load via `data-controller="controller-name"` attributes
+- **Naming Convention**: `data-controller="post-form"` → `PostFormController` in `controllers/post-form-controller.js`
+- **Lifecycle Methods**: Override `connect()` for initialization, `disconnect()` for cleanup
+
+#### Component System
+- **Components**: Child elements marked with `data-component="component-name"` become properties
+- **Auto-mapping**: `data-component="post-box"` becomes `this.postBox` in controller
+- **Proxy Access**: Components proxy to underlying DOM elements for direct manipulation
+
+#### Data Attributes
+- **Controller Data**: Use `data-js-property-name` for controller-specific data
+- **Auto-conversion**: `data-js-post-length` becomes `this.postLength` property
+- **Reactive**: Changes to data attributes trigger `propertyNameChanged(newValue, oldValue)` methods
+
+#### Event System
+- **Custom Events**: Use `this.dispatch(eventName, { detail, bubbles, target })` for custom events
+- **Event Subscription**: Use `this.subscribe(eventName, callback, { target })` for listening
+- **Event Constants**: Define events in `consts/events.js` (e.g., `PostCreatedEvent`)
+
+#### Framework Usage Examples:
+```javascript
+// Controller example
+export default class PostFormController extends Controller {
+    connect() {
+        // Access components as properties
+        this.postBox.addEventListener("input", this._handleInput.bind(this));
+        
+        // Access data attributes as properties
+        const maxLength = parseInt(this.postMaxLength);
+    }
+    
+    // Reactive data attribute changes
+    postLengthChanged(newValue, oldValue) {
+        this.updateLengthIndicator(newValue);
+    }
+}
+```
+
+```html
+<!-- Blazor component usage -->
+<form data-controller="post-form" 
+      data-js-post-max-length="280"
+      data-js-post-length="0">
+    <textarea data-component="post-box" name="content"></textarea>
+    <svg data-component="length-indicator"></svg>
+</form>
+```
+
 ### Styling & Assets
 - TailwindCSS with custom Pulse color palette
 - Module-specific assets in `UI/wwwroot/`
