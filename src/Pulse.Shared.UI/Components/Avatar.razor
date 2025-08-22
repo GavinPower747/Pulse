@@ -22,17 +22,14 @@
     }
 }
 
-<div 
-    class="flex justify-center items-center"
-    x-data="{ imageFailed: @imageFailedInitial }">
-    @if(validImage)
+<div class="flex justify-center items-center" data-controller="avatar">
+    @if (validImage)
     {
-        <img class="rounded-full border-solid border-white border-2 @sizeClass" src="@Src" alt="@Alt" 
-            x-on:error="imageFailed = true"
-            x-show="!imageFailed" />
+        <img class="rounded-full border-solid border-white border-2 @sizeClass" src="@Src" alt="@Alt"
+            data-component="avatar-image" />
     }
     <div class="rounded-full border-solid border-white border-2 @sizeClass text-center text-black flex justify-center items-center bg-gray-300"
-         x-show="imageFailed">
+        data-component="avatar-initials">
         @Initials
     </div>
 </div>

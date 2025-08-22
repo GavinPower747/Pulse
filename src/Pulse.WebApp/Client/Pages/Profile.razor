@@ -28,14 +28,14 @@
     private int followerCount;
     private int followingCount;
     private string continuationToken = string.Empty;
-    private string continuationUrl => !string.IsNullOrWhiteSpace(continuationToken) 
-        ? $"/api/user/{user?.Id}/posts?continuationToken={continuationToken}"
-        : string.Empty;
+    private string continuationUrl => !string.IsNullOrWhiteSpace(continuationToken)
+    ? $"/api/user/{user?.Id}/posts?continuationToken={continuationToken}"
+    : string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         // If we're viewing our own profile, save on the remote call and use the token.
-        if(!isViewingOwnProfile)
+        if (!isViewingOwnProfile)
         {
             user = await UserQueries.GetUser(Username);
         }
@@ -46,7 +46,7 @@
 
         var (posts, continuationToken) = await PostQueries.GetForUser(user.Id, 50, null, CancellationToken.None);
 
-        if(!isViewingOwnProfile)       
+        if (!isViewingOwnProfile)
             isFollowing = await FollowerProvider.IsFollowing(currentUser.Id, user.Id, CancellationToken.None);
 
         firstPage = posts.Select(x => PostMapper.MapToViewModel(x, user)).ToList();
@@ -56,45 +56,28 @@
     }
 }
 
-<div
-    id="user-profile"
-    x-data="{ userCardInView: true }"
-    x-init="() => {
-          const observer = new IntersectionObserver(
-              ([entry]) => { userCardInView = entry.isIntersecting; },
-              { threshold: 0.1 }
-          );
-          observer.observe($refs.userCard);
-      }">
+<div id="user-profile" data-controller="profile">
     <Header Title="@user?.DisplayName" ShowBackButton="true">
-        @if(showCTA)
+        @if (showCTA)
         {
-        <div class="w-full">
-            <div class="float-end"
-                x-show="!userCardInView" 
-                x-transition:enter="transition ease-out duration-300" 
-                x-transition:enter-start="opacity-0" 
-                x-transition:enter-end="opacity-100" 
-                x-transition:leave="transition ease-in duration-300" 
-                x-transition:leave-start="opacity-100" 
-                x-transition:leave-end="opacity-0">
-                    <FollowButton UserId="@user?.Id" IsFollowing="@isFollowing"/>
+            <div class="w-full">
+                <div class="float-end" data-component="header-follow-button">
+                    <FollowButton UserId="@user?.Id" IsFollowing="@isFollowing" />
+                </div>
             </div>
-        </div>
         }
     </Header>
     <Panel>
-        <UserCard x-ref="userCard" UserId="@user?.Id" Name="@user?.DisplayName" Username="@Username" IsFollowing="@isFollowing" ShowCTA="@showCTA" Description="This is a sub heading" Followers="@followerCount" Following="@followingCount" ProfilePictureUrl="@string.Empty"/>
+        <UserCard x-ref="userCard" UserId="@user?.Id" Name="@user?.DisplayName" Username="@Username"
+            IsFollowing="@isFollowing" ShowCTA="@showCTA" Description="This is a sub heading" Followers="@followerCount"
+            Following="@followingCount" ProfilePictureUrl="@string.Empty" />
     </Panel>
     <div id="user-feed" class="[&_p:last-child]:text-slate-500 [&_p:first-child]:text-lg">
-        <InfinitelyScrollingFeedPage 
-            EagerItems="@firstPage" 
-            ContinuationUrl="@continuationUrl" 
-            FeedElementSelector="#user-feed"
-            Context="post">
+        <InfinitelyScrollingFeedPage EagerItems="@firstPage" ContinuationUrl="@continuationUrl"
+            FeedElementSelector="#user-feed" Context="post">
 
             <ItemTemplate>
-                <Post CurrentPost="@post"/>
+                <Post CurrentPost="@post" />
             </ItemTemplate>
         </InfinitelyScrollingFeedPage>
     </div>
