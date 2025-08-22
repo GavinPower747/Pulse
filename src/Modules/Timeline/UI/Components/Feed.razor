@@ -37,14 +37,14 @@
     }
 }
 
-<LoadMoreButton Etag="@Etag" HasChanges="false"/>
-<div x-data="{ isEmpty: @IsEmpty.ToString().ToLower() }" x-on:pulse:post-created="isEmpty = false" id="user-feed" class="show-new-post">
+<LoadMoreButton Etag="@Etag" HasChanges="false" />
+<div data-controller="user-feed" data-js-is-empty="@IsEmpty.ToString().ToLower()" id="user-feed" class="show-new-post">
     @if (FirstPage.Any())
     {
-        <FeedPage EagerPosts="@FirstPage" ContinuationToken="@ContinuationToken"/>
+        <FeedPage EagerPosts="@FirstPage" ContinuationToken="@ContinuationToken" />
     }
-    
-    <div x-show="isEmpty" class="text-center text-slate-500 text-lg p-8">
+
+    <div data-component="empty-message" class="text-center text-slate-500 text-lg p-8">
         <p>Nothing to see here.</p>
     </div>
 </div>
