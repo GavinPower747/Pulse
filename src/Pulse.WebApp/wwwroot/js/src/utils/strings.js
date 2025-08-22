@@ -4,7 +4,7 @@
  * @returns {string} The camelCase string.
  */
 export function kebabToCamelCase(str) {
-    return str.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+  return str.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 }
 
 /**
@@ -13,7 +13,10 @@ export function kebabToCamelCase(str) {
  * @returns {string} The PascalCase string.
  */
 export function kebabToPascalCase(str) {
-    return str.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
+  return str
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join("");
 }
 
 /**
@@ -22,7 +25,7 @@ export function kebabToPascalCase(str) {
  * @returns {string} The kebab-case string.
  */
 export function camelCaseToKebabCase(str) {
-    return str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
+  return str.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
 }
 
 /**
@@ -31,5 +34,5 @@ export function camelCaseToKebabCase(str) {
  * @returns {string} The capitalized string.
  */
 export function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }

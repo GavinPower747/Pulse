@@ -14,13 +14,13 @@ let attribute = "data-controller";
 let selector = `[${attribute}]`;
 
 (async () => {
-    await attachExistingControllers(selector);
+  await attachExistingControllers(selector);
 })();
 
 const observer = new MutationObserver(handleMutations);
 observer.observe(document.body, {
-    childList: true,
-    subtree: true,
+  childList: true,
+  subtree: true,
 });
 
 /**
@@ -28,12 +28,12 @@ observer.observe(document.body, {
  * @returns {Promise<void>}
  */
 async function attachExistingControllers(selector) {
-    await domReady();
+  await domReady();
 
-    const nodes = document.querySelectorAll(selector);
-    for (const node of nodes) {
-        await connectController(node);
-    }
+  const nodes = document.querySelectorAll(selector);
+  for (const node of nodes) {
+    await connectController(node);
+  }
 }
 
 /**
@@ -42,31 +42,33 @@ async function attachExistingControllers(selector) {
  * @returns {void}
  */
 async function handleMutations(mutations) {
-    for (const mutation of mutations) {
-        for (const node of mutation.addedNodes) {
-            if (!(node instanceof Element)) continue;
+  for (const mutation of mutations) {
+    for (const node of mutation.addedNodes) {
+      if (!(node instanceof Element)) continue;
 
-            if (node.matches && node.matches(selector)) {
-                await connectController(node);
-            }
+      if (node.matches && node.matches(selector)) {
+        await connectController(node);
+      }
 
-            await Promise.all(
-                Array.from(node.querySelectorAll(selector)).map(element => connectController(element))
-            );
-        }
-
-        for (const node of mutation.removedNodes) {
-            if (!(node instanceof Element)) continue;
-
-            if (node.matches && node.matches(selector)) {
-                disconnectController(node);
-            }
-
-            node.querySelectorAll(selector).forEach(element => {
-                disconnectController(element);
-            });
-        }
+      await Promise.all(
+        Array.from(node.querySelectorAll(selector)).map((element) =>
+          connectController(element)
+        )
+      );
     }
+
+    for (const node of mutation.removedNodes) {
+      if (!(node instanceof Element)) continue;
+
+      if (node.matches && node.matches(selector)) {
+        disconnectController(node);
+      }
+
+      node.querySelectorAll(selector).forEach((element) => {
+        disconnectController(element);
+      });
+    }
+  }
 }
 
 /**
@@ -76,40 +78,48 @@ async function handleMutations(mutations) {
  * @returns {Promise<void>}
  */
 async function connectController(node) {
-    const controllerName = node.getAttribute(attribute);
-    if (!controllerName) return;
+  const controllerName = node.getAttribute(attribute);
+  if (!controllerName) return;
 
-    if (controllers.has(node)) return;
+  if (controllers.has(node)) return;
 
-    let ControllerClass = registrations.get(controllerName);
+  let ControllerClass = registrations.get(controllerName);
 
-    if (!ControllerClass) {
-        try {
-            const expectedClassName = `${kebabToPascalCase(controllerName)}Controller`;
-            const path = `controllers/${controllerName}-controller.js`;
+  if (!ControllerClass) {
+    try {
+      const expectedClassName = `${kebabToPascalCase(
+        controllerName
+      )}Controller`;
+      const path = `controllers/${controllerName}-controller.js`;
 
-            const module = await import(path);
-            ControllerClass = module[expectedClassName] || module.default;
+      const module = await import(path);
+      ControllerClass = module[expectedClassName] || module.default;
 
-            if (ControllerClass && typeof ControllerClass === 'function' && ControllerClass.prototype instanceof Controller) {
-                registrations.set(controllerName, ControllerClass);
-            } else {
-                ControllerClass = null;
-            }
-        } catch (error) {
-            console.error(`Error loading controller "${controllerName}":`, error);
-            return;
-        }
+      if (
+        ControllerClass &&
+        typeof ControllerClass === "function" &&
+        ControllerClass.prototype instanceof Controller
+      ) {
+        registrations.set(controllerName, ControllerClass);
+      } else {
+        ControllerClass = null;
+      }
+    } catch (error) {
+      console.error(`Error loading controller "${controllerName}":`, error);
+      return;
     }
+  }
 
-    if (!ControllerClass) {
-        console.warn(`Controller "${controllerName}" not found or does not extend Controller base class.`);
-        return;
-    }
+  if (!ControllerClass) {
+    console.warn(
+      `Controller "${controllerName}" not found or does not extend Controller base class.`
+    );
+    return;
+  }
 
-    const controllerInstance = new ControllerClass(node);
-    controllers.set(node, controllerInstance);
-    controllerInstance.connect();
+  const controllerInstance = new ControllerClass(node);
+  controllers.set(node, controllerInstance);
+  controllerInstance.connect();
 }
 
 /**
@@ -118,30 +128,30 @@ async function connectController(node) {
  * @return {void}
  */
 function disconnectController(node) {
-    const controllerInstance = controllers.get(node);
-    if (controllerInstance) {
-        controllerInstance.disconnect();
-        controllers.delete(node);
-    }
+  const controllerInstance = controllers.get(node);
+  if (controllerInstance) {
+    controllerInstance.disconnect();
+    controllers.delete(node);
+  }
 }
 
 /**
  * Registers a controller with a name, allowing it to be attached to DOM elements.
- * 
- * @param {string} name 
- * @param {class} controllerClass 
+ *
+ * @param {string} name
+ * @param {class} controllerClass
  * @throws {Error} If the controller class does not extend the Controller base class.
  * @returns {void}
  */
 function register(name, controllerClass) {
-    if (!(controllerClass.prototype instanceof Controller)) {
-        throw new Error("Controller class must extend the Controller base class.");
-    }
+  if (!(controllerClass.prototype instanceof Controller)) {
+    throw new Error("Controller class must extend the Controller base class.");
+  }
 
-    registrations.set(name, controllerClass);
+  registrations.set(name, controllerClass);
 
-    let selector = `[${attribute}="${name}"]`;
-    attachExistingControllers(selector);
+  let selector = `[${attribute}="${name}"]`;
+  attachExistingControllers(selector);
 }
 
 export { register };
