@@ -8,7 +8,7 @@ export default class UserFeedController extends Controller {
     }
 
     this.subscribe(PostCreatedEvent.type, () =>
-      this.emptyMessage.removeAttribute("hidden")
+      this.emptyMessage.setAttribute("hidden", true)
     );
   }
 }
