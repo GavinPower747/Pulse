@@ -2,6 +2,7 @@ import { domReady } from "utils/dom.js";
 import { kebabToPascalCase } from "utils/strings.js";
 import { Controller } from "framework";
 
+/** @typedef {import("../types/framework").ControllerInitializer} ControllerInitializer */
 /**@type {WeakMap<HTMLElement, Controller>} */
 let controllers = new WeakMap();
 /**@type {Map<string, new (...args: any[]) => Controller>} */

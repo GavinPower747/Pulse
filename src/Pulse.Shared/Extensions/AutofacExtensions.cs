@@ -3,7 +3,7 @@ using Autofac;
 using MediatR;
 using MediatR.Pipeline;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.EntityFrameworkCore.Infrastructure;
 namespace Pulse.Shared.Extensions;
 
 public static class AutofacExtensions
@@ -37,7 +37,6 @@ public static class AutofacExtensions
     )
         where TContext : DbContext
     {
-        builder.RegisterType<TContext>().InstancePerLifetimeScope();
         builder
             .Register(c =>
             {
@@ -45,6 +44,14 @@ public static class AutofacExtensions
                 optionsBuilder.UseNpgsql(connectionString);
                 return optionsBuilder.Options;
             })
-            .InstancePerDependency();
+            .As<DbContextOptions<TContext>>()
+            .SingleInstance();
+
+        builder
+            .RegisterType<PooledDbContextFactory<TContext>>()
+            .As<IDbContextFactory<TContext>>()
+            .SingleInstance();
+
+        builder.RegisterType<TContext>().AsSelf().InstancePerLifetimeScope();
     }
 }

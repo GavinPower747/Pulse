@@ -9,12 +9,17 @@ public interface IPostCreator
     /// <param name="userId">The ID of the poster</param>
     /// <param name="content">The content of the post</param>
     /// <returns>The created post</returns>
-    Task<DisplayPost> Create(Guid? postId, Guid userId, string content);
+    Task<DisplayPost> Create(
+        Guid? postId,
+        Guid userId,
+        string content,
+        CancellationToken ct = default
+    );
 
     /// <summary>
     /// Schedule a post to be created at a later date.
     /// </summary>
     /// <param name="scheduleFor">The date and time to schedule the post for</param>
     /// <returns>The scheduled post</returns>
-    Task<DisplayPost> Schedule(DateTime scheduleFor);
+    Task<DisplayPost> Schedule(DateTime scheduleFor, CancellationToken ct = default);
 }

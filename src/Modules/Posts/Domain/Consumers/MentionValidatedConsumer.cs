@@ -5,20 +5,22 @@ using Pulse.Users.Contracts.Messages;
 
 namespace Pulse.Posts.Consumers;
 
-internal class MentionValidatedConsumer(PostsContext dbContext) : IConsumer<MentionValidatedEvent>
+internal class MentionValidatedConsumer(IDbContextFactory<PostsContext> dbContextFactory)
+    : IConsumer<MentionValidatedEvent>
 {
-    private readonly PostsContext _dbContext = dbContext;
+    private readonly IDbContextFactory<PostsContext> _dbContextFactory = dbContextFactory;
 
     public async Task Consume(MentionValidatedEvent evt, CancellationToken token = default)
     {
-        var post = await _dbContext.PostSet.FirstOrDefaultAsync(p => p.Id == evt.PostId, token);
+        using var context = await _dbContextFactory.CreateDbContextAsync(token);
+        var post = await context.PostSet.FirstOrDefaultAsync(p => p.Id == evt.PostId, token);
 
         if (post is null)
             return;
 
         post.AddMention(evt.Username);
 
-        _dbContext.PostSet.Update(post);
-        await _dbContext.SaveChangesAsync(token);
+        context.PostSet.Update(post);
+        await context.SaveChangesAsync(token);
     }
 }

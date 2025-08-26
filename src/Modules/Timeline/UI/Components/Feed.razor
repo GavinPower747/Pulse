@@ -46,7 +46,7 @@
 <div data-controller="post-feed" data-js-is-empty="@IsEmpty.ToString().ToLower()" id="user-feed" class="show-new-post">
     @if (FirstPage.Any())
     {
-        <FeedPage EagerPosts="@FirstPage" ContinuationToken="@ContinuationToken"/>
+        <FeedPage EagerPosts="@FirstPage" ContinuationToken="@ContinuationToken" />
     }
     
     <div data-component="empty-message" @GetHiddenAttribute() class="text-center text-slate-500 text-lg p-8">

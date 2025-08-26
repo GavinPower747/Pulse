@@ -1,5 +1,7 @@
 using System.Data;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using NSubstitute;
 using Pulse.Posts.Data;
 using Pulse.Posts.Domain;
 using Pulse.Posts.Domain.Mapping;
@@ -19,7 +21,14 @@ public class PostQueryServiceTests : IClassFixture<DatabaseFixture>
     public PostQueryServiceTests(DatabaseFixture fixture)
     {
         _fixture = fixture;
-        Sut = new PostQueryService(Connection, new DomainDtoMapper());
+        var contextFactory = Substitute.For<IDbContextFactory<PostsContext>>();
+
+        contextFactory.CreateDbContext().Returns(x => Connection);
+        contextFactory
+            .CreateDbContextAsync(Arg.Any<CancellationToken>())
+            .Returns(x => Task.FromResult(Connection));
+
+        Sut = new PostQueryService(contextFactory, new DomainDtoMapper());
     }
 
     public class Given_Existing : PostQueryServiceTests

@@ -8,17 +8,16 @@ using Pulse.Shared.Encoders;
 
 namespace Pulse.Posts.Services;
 
-internal class PostQueryService(PostsContext connection, DomainDtoMapper mapper) : IPostQueryService
+internal class PostQueryService(IDbContextFactory<PostsContext> connection, DomainDtoMapper mapper)
+    : IPostQueryService
 {
-    private readonly PostsContext _connection = connection;
+    private readonly IDbContextFactory<PostsContext> _contextFactory = connection;
     private readonly DomainDtoMapper _mapper = mapper;
 
-    public async Task<DisplayPost?> Get(Guid id, CancellationToken cancellationToken)
+    public async Task<DisplayPost?> Get(Guid id, CancellationToken ct)
     {
-        var post = await _connection.PostSet.FirstOrDefaultAsync(
-            p => p.Id == id,
-            cancellationToken
-        );
+        using var dbContext = await _contextFactory.CreateDbContextAsync(ct);
+        var post = await dbContext.PostSet.FirstOrDefaultAsync(p => p.Id == id, ct);
 
         if (post is null)
             return null;
@@ -28,19 +27,17 @@ internal class PostQueryService(PostsContext connection, DomainDtoMapper mapper)
         return postDto;
     }
 
-    public async Task<IEnumerable<DisplayPost>> Get(
-        IEnumerable<Guid> ids,
-        CancellationToken cancellationToken
-    )
+    public async Task<IEnumerable<DisplayPost>> Get(IEnumerable<Guid> ids, CancellationToken ct)
     {
         if (!ids.Any())
             return [];
 
-        var posts = await _connection
+        using var dbContext = await _contextFactory.CreateDbContextAsync(ct);
+        var posts = await dbContext
             .PostSet.Include(p => p.Attachments)
             .Where(p => ids.Contains(p.Id))
             .OrderByDescending(p => p.CreatedAt)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
 
         var postDtos = posts.Select(_mapper.MapToDisplayPost);
 
@@ -51,11 +48,12 @@ internal class PostQueryService(PostsContext connection, DomainDtoMapper mapper)
         Guid userId,
         int pageSize,
         string? continuationToken,
-        CancellationToken cancellationToken
+        CancellationToken ct
     )
     {
         var token = ContinuationToken.Parse(continuationToken);
-        var postsQuery = _connection.PostSet.Where(p => p.UserId == userId);
+        using var dbContext = await _contextFactory.CreateDbContextAsync(ct);
+        var postsQuery = dbContext.PostSet.Where(p => p.UserId == userId);
 
         if (token is not null)
             postsQuery = postsQuery.Where(p => p.CreatedAt >= token.Value.OlderThan);
@@ -65,7 +63,7 @@ internal class PostQueryService(PostsContext connection, DomainDtoMapper mapper)
             .ThenBy(x => x.Id)
             .Take(pageSize + 1); // Take one extra to check if there are more pages
 
-        var posts = await postsQuery.ToListAsync(cancellationToken);
+        var posts = await postsQuery.ToListAsync(ct);
 
         var postDtos = posts.Take(pageSize).Select(_mapper.MapToDisplayPost);
 

@@ -19,6 +19,11 @@ internal class PostsMap : IEntityTypeConfiguration<Post>
         builder.Property(p => p.PublishedAt).HasColumnName("published_at").IsRequired(false);
 
         builder
+            .Navigation(p => p.Attachments)
+            .HasField("_attachments")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder
             .HasMany(p => p.Attachments)
             .WithOne()
             .HasForeignKey(a => a.PostId)

@@ -1,4 +1,4 @@
-interface DispatchOptions {
+export interface DispatchOptions {
     target: HTMLElement | Document | Window;
     detail: any;
     prefix?: string;
@@ -6,7 +6,4 @@ interface DispatchOptions {
     cancelable?: boolean;
 }
 
-type ControllerAttachment = {
-    instance: Controller;
-    node: HTMLElement;
-}
+export type ControllerInitializer = new (...args: any[]) => Controller;

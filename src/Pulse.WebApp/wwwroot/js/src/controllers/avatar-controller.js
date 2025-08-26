@@ -1,4 +1,4 @@
-import { Controller } from "framework"
+import { Controller } from "framework";
 
 /**
  * AvatarController handles the avatar image loading and fallback to initials.
@@ -11,17 +11,17 @@ import { Controller } from "framework"
  * @property {boolean} imageFailed - Flag indicating if the image failed to load.
  */
 export default class AvatarController extends Controller {
-    connect() {
-        if (this.imageFailed) {
-            this.avatarInitials.removeAttribute("hidden");
-            this.avatarImage?.setAttribute("hidden", "");
-        } else {
-            this.avatarImage?.addEventListener("error", () => {
-                this.imageFailed = true;
+  connect() {
+    if (this.imageFailed) {
+      this.avatarInitials.removeAttribute("hidden");
+      this.avatarImage?.setAttribute("hidden", "");
+    } else {
+      this.avatarImage?.addEventListener("error", () => {
+        this.imageFailed = true;
 
-                this.avatarInitials.removeAttribute("hidden");
-                this.avatarImage?.setAttribute("hidden", "");
-            });
-        }
+        this.avatarInitials.removeAttribute("hidden");
+        this.avatarImage?.setAttribute("hidden", "");
+      });
     }
+  }
 }

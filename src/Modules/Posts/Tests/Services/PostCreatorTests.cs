@@ -1,6 +1,8 @@
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using Pulse.Posts.Contracts.Messages;
+using Pulse.Posts.Data;
 using Pulse.Posts.Domain.Mapping;
 using Pulse.Posts.Services;
 using Pulse.Posts.Tests.Fixtures;
@@ -16,7 +18,12 @@ public class PostCreatorTests : IClassFixture<DatabaseFixture>
 
     public PostCreatorTests(DatabaseFixture databaseFixture)
     {
-        _sut = new PostCreator(databaseFixture.Posts, _messageBus, new DomainDtoMapper());
+        var contextFactory = Substitute.For<IDbContextFactory<PostsContext>>();
+        contextFactory.CreateDbContext().Returns(databaseFixture.Posts);
+        contextFactory
+            .CreateDbContextAsync(Arg.Any<CancellationToken>())
+            .Returns(x => Task.FromResult(databaseFixture.Posts));
+        _sut = new PostCreator(contextFactory, _messageBus, new DomainDtoMapper());
     }
 
     [Fact]
