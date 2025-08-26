@@ -95,9 +95,10 @@ internal class AttachmentService(
     public async Task<IEnumerable<AttachmentMetadata>> GetPostAttachmentMetadata(
         Guid postId,
         CancellationToken ct
-    ) =>
-        await _attachmentContextFactory
-            .CreateDbContext()
-            .AttachmentMetadata.Where(a => a.PostId == postId)
-            .ToListAsync(ct);
+    )
+    {
+        using var dbContext = await _attachmentContextFactory.CreateDbContextAsync(ct);
+
+        return await dbContext.AttachmentMetadata.Where(a => a.PostId == postId).ToListAsync(ct);
+    }
 }
