@@ -68,7 +68,7 @@
         }
     </Header>
     <Panel>
-        <UserCard x-ref="userCard" UserId="@user?.Id" Name="@user?.DisplayName" Username="@Username"
+        <UserCard data-component="user-card" UserId="@user?.Id" Name="@user?.DisplayName" Username="@Username"
             IsFollowing="@isFollowing" ShowCTA="@showCTA" Description="This is a sub heading" Followers="@followerCount"
             Following="@followingCount" ProfilePictureUrl="@string.Empty" />
     </Panel>
