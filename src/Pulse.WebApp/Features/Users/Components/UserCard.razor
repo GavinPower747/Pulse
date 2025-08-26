@@ -18,7 +18,7 @@
     private string initials => Name?.Split(' ').Select(x => x[0]).Aggregate(string.Empty, (x, y) => x + y) ?? string.Empty;
 }
 
-<div>
+<div @attributes="AdditionalAttributes">
   	<img src="https://i.imgur.com/dYcYQ7E.png" class="w-full rounded-t-xl" />
     <div class="-mt-6">
         <Avatar Initials="@initials" Src="@ProfilePictureUrl" ImageSize="@Avatar.Size.Large" />

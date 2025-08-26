@@ -56,13 +56,16 @@
     }
 }
 
-<div id="user-profile" data-controller="profile">
+<div
+    id="user-profile"
+    data-controller="profile"
+    data-js-user-card-in-view="true">
     <Header Title="@user?.DisplayName" ShowBackButton="true">
         @if (showCTA)
         {
             <div class="w-full">
-                <div class="float-end" data-component="header-follow-button">
-                    <FollowButton UserId="@user?.Id" IsFollowing="@isFollowing" />
+                <div class="float-end" data-component="header-follow-button" hidden>
+                    <FollowButton UserId="@user?.Id" IsFollowing="@isFollowing"/>
                 </div>
             </div>
         }

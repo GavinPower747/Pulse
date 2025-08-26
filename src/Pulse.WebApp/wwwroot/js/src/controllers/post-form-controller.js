@@ -14,24 +14,16 @@ export default class PostFormController extends Controller {
   _handleInput() {
     const text = this.postBox.context.value;
     const textLength = text.length;
-    const maxLength = parseInt(this.postMaxLength);
-
-    this.postBox.context.style.height = "auto";
-    this.postBox.context.style.height = `${this.postBox.context.scrollHeight}px`;
-
-    this.postLength = textLength;
+    const maxLength = this.postMaxLength;
 
     if (textLength <= maxLength && textLength > 0) {
       this.lengthIndicator.context.style.display = "block";
-      const startColour = this._parseColorArray(this.postStartColour);
-      const midColour = this._parseColorArray(this.postMidColour);
-      const endColour = this._parseColorArray(this.postEndColour);
       const progress = textLength / maxLength;
       const progressPercentage = progress * 100;
       const strokeColor = this._getCurrentColourValue(
-        startColour,
-        midColour,
-        endColour,
+        this.postStartColour,
+        this.postMidColour,
+        this.postEndColour,
         progress
       );
 
@@ -40,10 +32,6 @@ export default class PostFormController extends Controller {
     } else {
       this.lengthIndicator.context.style.display = "none";
     }
-  }
-
-  _parseColorArray(colorString) {
-    return JSON.parse(colorString);
   }
 
   _getCurrentColourValue(startColour, midColour, endColour, progress) {

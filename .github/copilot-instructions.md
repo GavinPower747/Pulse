@@ -75,7 +75,7 @@ export default class PostFormController extends Controller {
         this.postBox.addEventListener("input", this._handleInput.bind(this));
         
         // Access data attributes as properties
-        const maxLength = parseInt(this.postMaxLength);
+        console.log(this.postMaxLength);
     }
     
     // Reactive data attribute changes
