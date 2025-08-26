@@ -42,24 +42,14 @@
     }
 }
 
-<<<<<<< HEAD
-<LoadMoreButton Etag="@Etag" HasChanges="false" />
-<div data-controller="user-feed" data-js-is-empty="@IsEmpty.ToString().ToLower()" id="user-feed" class="show-new-post">
-=======
 <LoadMoreButton Etag="@Etag" HasChanges="false"/>
 <div data-controller="post-feed" data-js-is-empty="@IsEmpty.ToString().ToLower()" id="user-feed" class="show-new-post">
->>>>>>> origin/master
     @if (FirstPage.Any())
     {
         <FeedPage EagerPosts="@FirstPage" ContinuationToken="@ContinuationToken" />
     }
-<<<<<<< HEAD
-
-    <div data-component="empty-message" class="text-center text-slate-500 text-lg p-8">
-=======
     
     <div data-component="empty-message" @GetHiddenAttribute() class="text-center text-slate-500 text-lg p-8">
->>>>>>> origin/master
         <p>Nothing to see here.</p>
     </div>
 </div>
