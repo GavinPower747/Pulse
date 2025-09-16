@@ -4,9 +4,11 @@ using Autofac.Configuration;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using Pulse.Followers;
 using Pulse.Posts;
+using Pulse.Shared.Aggregate;
 using Pulse.Shared.Auth;
 using Pulse.Timeline;
 using Pulse.Users;
@@ -90,6 +92,27 @@ builder.Services.AddMessaging(
         typeof(Pulse.Users.Contracts.AssemblyMarker).Assembly,
     ]
 );
+
+builder.Services.AddScoped(services =>
+{
+    var cache = new MemoryCache(new MemoryCacheOptions());
+    var providers = services
+        .GetServices<AggregateDataProvider>()
+        .ToDictionary(p =>
+        {
+            var baseType = p.GetType().BaseType;
+            if (baseType is null || !baseType.IsGenericType)
+            {
+                throw new InvalidOperationException(
+                    $"AggregateDataProvider {p.GetType().FullName} has no generic base type"
+                );
+            }
+
+            return baseType.GetGenericArguments()[0];
+        });
+
+    return new AggregateDataService(cache, providers);
+});
 
 var app = builder.Build();
 

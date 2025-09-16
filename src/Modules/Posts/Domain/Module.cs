@@ -7,9 +7,11 @@ using Pulse.Posts.Consumers;
 using Pulse.Posts.Contracts;
 using Pulse.Posts.Contracts.Messages;
 using Pulse.Posts.Data;
+using Pulse.Posts.Domain.DataRequests;
 using Pulse.Posts.Domain.Mapping;
 using Pulse.Posts.Services;
 using Pulse.Posts.UI.Mapping;
+using Pulse.Shared.Aggregate;
 using Pulse.Shared.Data;
 using Pulse.Shared.Extensions;
 using Pulse.Users.Contracts.Messages;
@@ -29,6 +31,8 @@ public class PostsModule : Module
         builder.RegisterDbContext<PostsContext>(Configuration.Database.ConnectionString);
         builder.RegisterDbContext<AttachmentContext>(Configuration.Database.ConnectionString);
         builder.RegisterType<PostMapper>().AsSelf();
+        builder.RegisterType<GetPostDataRequestHandler>().AsSelf().As<AggregateDataProvider>();
+        builder.RegisterType<GetPostsDataRequestHandler>().AsSelf().As<AggregateDataProvider>();
         builder.RegisterInstance(Configuration.BlobStorage);
 
         builder

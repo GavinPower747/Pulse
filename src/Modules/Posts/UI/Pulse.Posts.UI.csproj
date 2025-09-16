@@ -19,6 +19,7 @@
     <Folder Include="Model\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Domain\Pulse.Posts.Domain.csproj" />
     <ProjectReference Include="..\Contracts\Pulse.Posts.Contracts.csproj" />
     <ProjectReference Include="..\..\..\Pulse.Shared\Pulse.Shared.csproj" />
     <ProjectReference Include="..\..\..\Pulse.Shared.UI\Pulse.Shared.UI.csproj" />

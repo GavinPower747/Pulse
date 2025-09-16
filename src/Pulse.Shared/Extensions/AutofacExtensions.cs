@@ -4,6 +4,7 @@ using MediatR;
 using MediatR.Pipeline;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+
 namespace Pulse.Shared.Extensions;
 
 public static class AutofacExtensions

@@ -1,27 +1,43 @@
+@using Microsoft.EntityFrameworkCore.Metadata.Conventions
 @using Pulse.Posts.Contracts
+@using Pulse.Shared.Aggregate
 @using Pulse.Shared.UI.Components
 @using Pulse.Posts.UI.Models
+@using Pulse.Users.Contracts
+
+@inject AggregateDataService DataService;
 
 @code {
-    [Parameter] public required PostViewModel CurrentPost { get; set; }
+    [Parameter] public required Guid PostId { get; set; }
+    [Parameter] public required RenderFragment UserLink { get; set; }
 
-    private string ProfileLink => $"/u/{CurrentPost.Username}";
+    private Post CurrentPost;
+    private string ProfileLink => $"/u/{PostingUser.Username}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var request = new GetPostDataRequest(PostId);
+        CurrentPost = await DataService.EnlistDataRequest(request);
+
+        return base.OnInitializedAsync();
+    }
 }
 
 <Panel>
     <div class="flex flex-1 gap-x-4 p-4 fade-in">
         <div class="flex flex-col xl:flex-none">
-            <Avatar src="" alt="@CurrentPost.DisplayName" initials="@CurrentPost.GetUserInitials()" />
+            <Avatar src="" alt="@PostingUser.DisplayName" initials="@PostingUser.GetUserInitials()" />
         </div>
         <div class="flex flex-col flex-1 gap-y-2">
+            @UserLink
             <SpaLink href="@ProfileLink" class="flex flex-1">
                 <div class="flex flex-col gap-y-0.5 text-sm">
                     <div class="flex-row">
                         <span class="text-lg mr-5">
-                            @CurrentPost.DisplayName
+                            @PostingUser.DisplayName
                         </span>
                         <span class="text-gray-600">
-                            @@@CurrentPost.Username
+                            @@@PostingUser.Username
                         </span>
                     </div>
                     <HumanReadableTimestamp Timestamp="@CurrentPost.CreatedAt" class="text-sm text-gray-600"/>
