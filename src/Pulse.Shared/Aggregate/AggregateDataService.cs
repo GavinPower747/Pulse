@@ -92,7 +92,18 @@ public class AggregateDataService(
             var individualItemTask = task.ContinueWith(res =>
             {
                 var overallResult = res.Result; //By virtue of this method being called this task should already be complete
-                var individualItem = overallResult.GetItemForKey(key);
+
+                if (overallResult is not AggregateDataBatchResponse<T, TKey> typedResult)
+                {
+                    _logger.LogError(
+                        "Batch response for {RequestType} was not of the expected type.",
+                        request.GetType().FullName
+                    );
+
+                    return null;
+                }
+
+                var individualItem = typedResult.GetItemForKey(key);
 
                 if (individualItem is not null)
                 {
@@ -102,7 +113,15 @@ public class AggregateDataService(
                 return individualItem;
             });
 
-            _inProgressRequests.TryAdd(itemCacheKey, individualItemTask);
+            var added = _inProgressRequests.TryAdd(itemCacheKey, individualItemTask);
+
+            if (added)
+            {
+                //When the individual item task completes, remove it from the in-progress requests
+                individualItemTask.ContinueWith(_ =>
+                    _inProgressRequests.TryRemove(itemCacheKey, out var _)
+                );
+            }
         }
 
         return task.ContinueWith(
@@ -125,7 +144,7 @@ public class AggregateDataService(
         );
     }
 
-    private async Task<AggregateDataResponse<T?>?> ExecuteDataRequest<T, TReq>(TReq request)
+    private async Task<AggregateDataResponse<T>?> ExecuteDataRequest<T, TReq>(TReq request)
         where T : class
         where TReq : AggregateDataRequest<T>
     {
@@ -158,6 +177,6 @@ public class AggregateDataService(
             _cache.Set(request.CacheKey, result);
         }
 
-        return response is not null ? new AggregateDataResponse<T?>(response.Data) : default;
+        return response;
     }
 }

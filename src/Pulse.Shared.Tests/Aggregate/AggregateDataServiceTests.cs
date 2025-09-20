@@ -132,7 +132,9 @@ public class AggregateDataServiceTests
             var request = new TestDataRequest("test-key");
 
             // Act
-            var result = await serviceWithoutProvider.EnlistDataRequest<TestData, TestDataRequest>(request);
+            var result = await serviceWithoutProvider.EnlistDataRequest<TestData, TestDataRequest>(
+                request
+            );
 
             // Assert
             Assert.Null(result);
@@ -217,6 +219,7 @@ public class AggregateDataServiceTests
             Assert.Equal(2, result.Length);
 
             // Individual items should be cached
+            await Task.Delay(50); // Give some time for caching to complete
             Assert.True(_cache.TryGetValue(request.GetItemCacheKey("key1"), out var item1));
             Assert.True(_cache.TryGetValue(request.GetItemCacheKey("key2"), out var item2));
             Assert.Equal(batchData[0], item1);
@@ -236,6 +239,7 @@ public class AggregateDataServiceTests
             await _sut.EnlistDataRequest<TestData, string, TestBatchDataRequest>(request);
 
             // Assert
+            await Task.Delay(50); // Give some time for caching to complete
             Assert.True(_cache.TryGetValue(request.GetItemCacheKey("key1"), out _));
             Assert.False(_cache.TryGetValue(request.GetItemCacheKey("key2"), out _)); // Null not cached
         }
@@ -280,7 +284,9 @@ public class AggregateDataServiceTests
             _testBatchProvider.SetupResponse(batchData);
 
             // Act
-            var result = await _sut.EnlistDataRequest<TestData, string, TestBatchDataRequest>(request);
+            var result = await _sut.EnlistDataRequest<TestData, string, TestBatchDataRequest>(
+                request
+            );
 
             // Assert
             Assert.NotNull(result);
@@ -467,7 +473,7 @@ public class AggregateDataServiceTests
             if (_exception != null)
                 throw _exception;
 
-            return new TestBatchDataResponse(_responseData ?? Array.Empty<TestData>());
+            return new TestBatchDataResponse(_responseData ?? []);
         }
     }
 }
